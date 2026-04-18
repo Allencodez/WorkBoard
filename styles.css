@@ -164,10 +164,11 @@ body {
  max-width: 90%;
 }
 
+/* 
   .card-ctn{
      display: flex;
      flex-direction: column;
-  }
+  } */
 
 
 .foot-1{
@@ -436,20 +437,12 @@ footer{
 
 /* Responsive rules for cards and footer */
 @media (max-width: 1024px) {
-  /* Cards: two-column layout on tablets */
-  .card-ctn {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-  }
-  .card, .card-1, .card-2, .card-3 {
-    width: calc(50% - 20px);
-    max-width: 420px;
-    height: auto;
-  }
-  .cards-sec .sec-se { padding: 30px 16px; }
 
-  /* Footer: wrap and center on tablets */
+.card-ctn {
+    flex-direction: column;
+    align-items: center;
+  }
+
   footer {
     padding: 40px;
     flex-wrap: wrap;
