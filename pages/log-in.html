@@ -52,13 +52,14 @@
         <div id="toast"></div>
 
         <!-- Form -->
-        <form id="login-form">
+        <form id="login-form" autocomplete="off">
           <label>Email</label>
           <input
             type="email"
             id="email"
             placeholder="allen@example.com"
             required
+            autocomplete="off"
           />
 
           <div class="label-row">
@@ -66,7 +67,7 @@
             <a href="../pages/forgot-pass.html">Forgot password?</a>
           </div>
 
-          <input type="password" id="password" required />
+          <input type="password" id="password" required autocomplete="off" />
 
           <button type="submit" class="primary">Sign In</button>
         </form>
@@ -85,10 +86,7 @@
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
       import {
         getAuth,
-        signInWithEmailAndPassword,
-        GoogleAuthProvider,
-        GithubAuthProvider,
-        signInWithPopup,
+        signInWithEmailAndPassword
       } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
       const firebaseConfig = {
@@ -115,94 +113,63 @@
       // Email login
       const form = document.getElementById("login-form");
 
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+        form.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
 
-        try {
-          const userCredential = await signInWithEmailAndPassword(
-            auth,
-            email,
-            password
-          );
-          console.log("Logged in:", userCredential.user);
-
-          showToast("Login successful ✅");
-
-          setTimeout(() => {
-            window.location.href = "../index.html";
-          }, 1000);
-        } catch (error) {
-          showToast(error.message);
-        }
-      });
-
-      // Google login
-      document
-        .getElementById("google-btn")
-        .addEventListener("click", async () => {
-          const provider = new GoogleAuthProvider();
-
-          try {
-            const result = await signInWithPopup(auth, provider);
-            console.log(result.user);
-
-            showToast("Google login successful ✅");
-
-            setTimeout(() => {
-              window.location.href = "../index.html";
-            }, 1000);
-          } catch (error) {
-            showToast(error.message);
-          }
-        });
-
-      // GitHub login
-      document
-        .getElementById("github-btn")
-        .addEventListener("click", async () => {
-          const provider = new GithubAuthProvider();
-
-          try {
-            const result = await signInWithPopup(auth, provider);
-            console.log(result.user);
-
-            showToast("GitHub login successful ✅");
-
-            setTimeout(() => {
-              window.location.href = "../index.html";
-            }, 1000);
-          } catch (error) {
-            showToast(error.message);
-          }
-        });
-
-
-        catch (error) {
-  let message = "Login failed. Please try again.";
-
-  switch (error.code) {
-    case "auth/wrong-password":
-      message = "Incorrect password. Please try again.";
-      break;
-
-    case "auth/user-not-found":
-      message = "No account found with this email.";
-      break;
-
-    case "auth/invalid-email":
-      message = "Invalid email address.";
-      break;
-
-    case "auth/too-many-requests":
-      message = "Too many attempts. Try again later.";
-      break;
+  // 🚫 STOP if fields are empty (prevents auto-submit issue)
+  if (!email || !password) {
+    return;
   }
 
-  showToast(message);
-}
+  try {
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    console.log("Logged in:", userCredential.user);
+    showToast("Login successful");
+
+    setTimeout(() => {
+      window.location.href = "../index.html";
+    }, 1000);
+
+  } catch (error) {
+    let message = "Login failed. Please try again.";
+
+    switch (error.code) {
+      case "auth/wrong-password":
+        message = "Incorrect password.";
+        break;
+      case "auth/user-not-found":
+        message = "No account found.";
+        break;
+      case "auth/invalid-email":
+        message = "Invalid email.";
+        break;
+      case "auth/too-many-requests":
+        message = "Too many attempts. Try later.";
+        break;
+    }
+
+    showToast(message);
+  }
+});
+
+
+// Google (Coming Soon)
+document.getElementById("google-btn").addEventListener("click", () => {
+  showToast("Google sign-in coming soon");
+});
+
+// GitHub (Coming Soon)
+document.getElementById("github-btn").addEventListener("click", () => {
+  showToast("GitHub sign-in coming soon");
+});
     </script>
   </body>
 </html>

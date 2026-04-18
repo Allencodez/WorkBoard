@@ -11,7 +11,6 @@ body {
   justify-content: center;
 }
 
-
 * {
   margin: 0;
   padding: 0;
@@ -46,9 +45,6 @@ body {
   margin-bottom: 10px;
 }
 
-
-
-
 .header h1 {
   font-size: 26px;
 }
@@ -63,10 +59,9 @@ body {
   background: white;
   padding: 25px;
   border-radius: 14px;
-    border: 2px solid #cad5e2;
+  border: 2px solid #cad5e2;
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
 }
-
 
 .sub {
   color: #6b7280;
@@ -74,8 +69,8 @@ body {
   margin-bottom: 15px;
 }
 
-.sub-3{
-   border: 2px solid #cad5e2;
+.sub-3 {
+  border: 2px solid #cad5e2;
 }
 
 /* SOCIALS */
@@ -93,7 +88,6 @@ body {
 }
 
 /* DIVIDER */
-
 
 .divider {
   display: flex;
@@ -122,7 +116,7 @@ body {
   height: 1px;
   background: #ddd;
   margin-left: 10px; /* prevents touching text */
-} 
+}
 
 /* INPUTS */
 label {
@@ -131,7 +125,8 @@ label {
   font-size: 14px;
 }
 
-input, select {
+input,
+select {
   width: 100%;
   padding: 12px;
   border: 1px solid #e5e7eb;
@@ -139,7 +134,8 @@ input, select {
   font-size: 14px;
 }
 
-input:focus, select:focus {
+input:focus,
+select:focus {
   border-color: #2563eb;
   outline: none;
 }
@@ -191,8 +187,6 @@ input:focus, select:focus {
   }
 }
 
-
-
 /* Card */
 .password-card {
   background: #f5f6f8;
@@ -236,12 +230,10 @@ input:focus, select:focus {
   accent-color: lightgrey; /* keeps your soft UI style */
 }
 
-
 .logo-bg {
   height: 25px;
   width: 25px;
 }
-
 
 .foot-1 {
   display: flex;
@@ -251,7 +243,7 @@ input:focus, select:focus {
   gap: 8px;
 }
 
-a{
+a {
   text-decoration: none;
   color: black;
 }
@@ -271,7 +263,6 @@ a{
   font-weight: bold;
   font-size: 20px;
 }
-
 
 /* SOCIAL */
 
@@ -329,10 +320,14 @@ a{
   transition: opacity 0.3s ease;
 }
 
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 #toast.show {
   opacity: 1;
 }
-
 
 .divider-line {
   width: 100%;
