@@ -129,7 +129,7 @@ input,
 select {
   width: 100%;
   padding: 12px;
-  border: 1px solid #e5e7eb;
+  border: 2px solid #cad5e2;
   border-radius: 8px;
   font-size: 14px;
 }
@@ -318,11 +318,6 @@ a {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 #toast.show {
