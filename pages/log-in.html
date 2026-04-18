@@ -178,6 +178,31 @@
             showToast(error.message);
           }
         });
+
+
+        catch (error) {
+  let message = "Login failed. Please try again.";
+
+  switch (error.code) {
+    case "auth/wrong-password":
+      message = "Incorrect password. Please try again.";
+      break;
+
+    case "auth/user-not-found":
+      message = "No account found with this email.";
+      break;
+
+    case "auth/invalid-email":
+      message = "Invalid email address.";
+      break;
+
+    case "auth/too-many-requests":
+      message = "Too many attempts. Try again later.";
+      break;
+  }
+
+  showToast(message);
+}
     </script>
   </body>
 </html>
