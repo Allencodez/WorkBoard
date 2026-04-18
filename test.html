@@ -3,1847 +3,126 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <link rel="stylesheet" href="styles.css" />
-  <body>
-    <!-- Navbar -->
-    <header class="navbar">
-      <div class="foot-1">
-      <a href="#">
-         <div class="foot-1-2">
-          <img class="logo-bg" src="./Assets/icons/icons8-dashboard-layout-48.png" alt="pre-designed logo">
-       </div >
-      </a>
-       <div class="foot-1-2-3">WorkBoard</div>
-     </div>
-
-      <nav class="nav-links">
-        <a href="#" class="btn primary small">Get Started</a>
-      </nav>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="hero">
-      <h1>
-        Project management <br />
-        <span>simplified for teams.</span>
-      </h1>
-
-      <p>
-        The all-in-one platform for student teams and small organizations to
-        manage tasks, track progress, and collaborate effectively.
-      </p>
-
-      <div class="hero-buttons">
-        <a href="#" class="btn primary">Start for free →</a>
-        <a href="#" class="btn secondary">Open dashboard</a>
-      </div>
-
-      <div>
-        <div class="analytics-img">
-          <img
-            class="ana-img"
-            src="./Assets/images/ana-img-3.avif"
-            alt="analytics dashboard"
-          />
-        </div>
-      </div>
-    </section>
-
-    <section class="cards-sec">
-      <div class="sec-se">
-        <h2 class="text-1">Everything you need to ship faster</h2>
-        <p class="text-2">
-          Powerful features designed for modern collaboration.
-        </p>
-      </div>
-
-      <div class="card-ctn">
-        <div class=" card card-1">
-          <div class="w-svg-1">
-            <img
-              class="img-crd"
-              src="./Assets/icons/icons8-dashboard-64.png"
-              alt=""
-            />
-          </div>
-          <h3>Kanban Boards</h3>
-          <p>
-            Visualize your workflows and move tasks through states with ease.
-          </p>
-        </div>
-        <div class=" card card-2">
-          <div class="w-svg-1">
-            <img
-              class="img-crd"
-              src="./Assets/icons/icons8-users-48.png"
-              alt=""
-            />
-          </div>
-          <h3>Team Collaboration</h3>
-          <p>
-            Assign tasks, set priorities, and keep everyone on the same page.
-          </p>
-        </div>
-        <div class=" card card-3">
-          <div class="w-svg-1">
-            <img
-              class="img-crd"
-              src="./Assets/icons/icons8-analytics-48.png"
-              alt=""
-            />
-          </div>
-          <h3>Progress Analytics</h3>
-          <p>
-            Track project health with real-time summaries and progress bars.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <footer>
-     <div class="foot-1">
-       <div class="foot-1-2">
-          <img class="logo-bg" src="./Assets/icons/icons8-dashboard-layout-48.png" alt="pre-designed logo">
-       </div >
-       <div class="foot-1-2-3">WorkBoard</div>
-     </div>
-    
-     <div class="foot-2">
-     <div>
-       <p>&copy; 2026 WorkBoard. All rights reserved.</p>
-     </div>
-     </div>
-
-     <div class="foot-3-0">
-      <a class="foot-3" href="">Privacy</a>
-      <a  class="foot-3" href="">Terms</a>
-      <a class="foot-3" href="">Contact</a>
-     </div>
-    </footer>
-
-    <script>
-      const cards = document.querySelectorAll('.card');
-
-      cards.forEach(card => {
-        card.addEventListener('click', () => {
-            cards.forEach(c => c.classList.remove('active'));
-            card.classList.add('active');
-          });
-      });
-    </script>
-  </body>
-</html>
-g
-g
-g
-g
-g
-g
-g
-g
-g
-gg
-g
-g
-g
-g
-g
-g
-
-
-
-
-
-
-@font-face {
-  font-family: poppins;
-  src: url("./Assets/fonts/Poppins-Medium.ttf");
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: poppins;
-}
-
-/* Body */
-body {
-  background: #ffffff;
-  color: #111;
-  padding: 20px;
-}
-
-/* Navbar */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 100px;
-  width: 100%;
-  flex-wrap: nowrap; /* keep items on a single horizontal line */
-}
-
-.foot-1:hover {
-  color: #555;
-}
-
-.nav-links a {
-  text-decoration: none;
-  color: #333;
-  gap: 30px;
-}
-
-.nav-links a:not(.btn):hover {
-  color: #555;
-}
-/* Buttons */
-.btn {
-  padding: 12px 22px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-size: 14px;
-  display: inline-block;
-}
-
-.btn.primary {
-  background: #2f6df6;
-  color: white;
-}
-
-.btn.primary:hover {
-  background: #1e4fd8;
-}
-
-.btn.secondary {
-  border: 1px solid #ddd;
-  color: #333;
-}
-
-.btn.secondary:hover {
-  background: #f5f5f5;
-}
-
-.btn.small {
-  padding: 8px 16px;
-}
-
-/* Hero Section */
-.hero {
-  text-align: center;
-  max-width: 800px;
-  margin: auto;
-}
-
-/* Heading */
-.hero h1 {
-  font-size: 48px;
-  font-weight: 800;
-  line-height: 1.2;
-}
-
-.hero h1 span {
-  color: #2f6df6;
-}
-
-/* Paragraph */
-.hero p {
-  margin-top: 20px;
-  color: #555;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-/* Buttons */
-.hero-buttons {
-  margin-top: 30px;
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-/* Analytics Image */
-/* Analytics Image */
-.analytics-img {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 60px auto;
-  width: 70%;
-  max-width: 720px;
-  padding: 12px;
-  border-radius: 16px;
-  border: 1px solid #111;
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.ana-img {
-  width: 100%;
-  height: auto;
-  display: block;
-  object-fit: contain;
-  border-radius: 8px;
-}
-
-@media (max-width: 480px) {
-  .analytics-img {
-    width: 70%;
-    padding: 8px;
-    border-radius: 12px;
-  }
-  .ana-img {
-    border-radius: 6px;
-  }
-
-.card{
- max-width: 90%;
-}
-
-  .card-ctn{
-     display: flex;
-     flex-direction: column;
-  }
-
-
-.foot-1{
-  display: flex;
-  flex-direction:column;
-
-}
-
-.foot-3{
-  display: none;
-}
-
-.foot-2{
-   display: flex;
-   flex-direction: column;
-   align-items: center;
-}
-
-
-}
-
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .hero h1 {
-    font-size: 32px;
-  }
-
-  .hero p {
-    font-size: 14px;
-  }
-
-}
-
-  /* keep header items on a single row on small screens; reduce spacing to avoid overlap */
-  .navbar {
-    flex-direction: row;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: nowrap;
-  }
-
-  .nav-links {
-    gap: 12px;
-    margin-left: auto; /* ensure links stay right-aligned */
-  }
-
-  /* slightly reduce button padding and font-size on small screens */
-  .btn {
-    padding: 8px 12px;
-    font-size: 13px;
-  }
-  .btn.small {
-    padding: 6px 10px;
-    font-size: 13px;
-  }
-  .logo {
-    font-size: 16px;
-  }
-
-
-@media (max-width: 480px) {
-  .hero h1 {
-    font-size: 40px;
-  }
-
-  .hero-buttons {
-    flex-direction: space-between;
-  }
-}
-
-
-.logo-bg{
-  height: 35px;
-  width: 35px;
-}
-
-.foot-1{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: row;
-  border-radius: 5px;
-  gap:8px;
-}
-
-
-.foot-1-2{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #2f6df6;
-  border-radius: 8px;
-  padding: 5px;
-}
-
-
-.foot-0-1{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #2f6df6;
-  border-radius: 8px;
-  padding: 5px;
-}
-
-
-.foot-1-2-3{
-  font-weight: bold;
-}
-.foot-3{
-  text-decoration: none;
-  color: black;
-}
-
-.foot-2{
-  display: flex;
-  gap: 20px;
-}
-
-.foot-3-0{
-  display: flex;
-  gap: 20px;
-}
-
-.cards-sec {
-  border-radius: 5px;
-  border-top: solid 0px lightgrey;
-  background-color: #f8fafc;
-  text-align: center;
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
-  height: 100%;
-}
-
-.card.active{
-  border-color: #155dfc;
-  border-width: 2px;
-  box-shadow: 
-  0 0 5px #00f0ff;
-  0 0 10px #155dfc;
-  0 0 20px #00f0ff;
-  0 0 40px #00f0ff;
-}
-
-.cards-sec .sec-se {
-  padding: 40px 20px;
-}
-
-.text-1 {
-  margin-top: 20px;
-  font-size: 30px;
-  line-height: 36px;
-  margin-bottom: 20px;
-}
-
-.text-2 {
-  font-size: 16px;
-  line-height: 24px;
-  color: grey;
-}
-
-.card-ctn {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 25px;
-  transition: all 0.3s ease;
-   margin-bottom: 40px;
-}
-
-.card-1:hover {
-  border-color: #d1d5db;
-  border-width: 0.5px;
-  box-shadow: 0 0 0 0.3px;
-}
-
-.card-2:hover {
-  border-color: #d1d5db;
-  border-width: 0.5px;
-  box-shadow: 0 0 0 0.3px;
-}
-
-.card-3:hover {
-  border-color: #d1d5db;
-  border-width: 0.5px;
-  box-shadow: 0 0 0 0.3px;
-}
-
-.card-1 {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  background-color: #ffffff;
-  border: #cad5e2 solid 0.8px;
-  border-radius: 10px;
-  color: #0a0a0a;
-  width: 375px;
-  height: 250px;
-   gap: 12px;
-  padding: 16px;
-}
-
-.card-2 {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  background-color: #ffffff;
-  border: #cad5e2 solid 0.8px;
-  border-radius: 10px;
-  color: #0a0a0a;
-  width: 375px;
-  height: 250px;
-    gap: 12px;
-  padding: 16px;
-}
-
-.card-3 {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  background-color: #ffffff;
-  border: #cad5e2 solid 0.8px;
-  border-radius: 10px;
-  color: #0a0a0a;
-  width: 375px;
-  height: 250px;
-  gap: 12px;
-  padding: 16px;
-}
-
-.w-svg-1 {
-  background-color: #2f6df6;
-  height: 48px;
-  width: 48px;
-  border-radius: 8px;
-  border-color: #cecece;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: auto;
-}
-
-.img-crd {
-  width: 30px;
-  height: 30px;
-}
-
-footer{
-  border: solid lightgrey 0.5px;
-  border-radius: 5px;
-  background-color: white;
-  padding: 60px;
-  display:flex;
-  justify-content: space-between;
-}
-
-
-
-
-
-
-
-
-f
-
-ff
-f
-f
-f
-f
-f
-
-
-
-@font-face {
-  font-family: poppins;
-  src: url("./Assets/fonts/Poppins-Medium.ttf");
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: poppins;
-}
-
-/* Body */
-body {
-  background: #ffffff;
-  color: #111;
-  padding: 20px;
-  display: flex;
-  justify-content: center;
-}
-
-/* SIGN-UP PAGE */
-
-.ctn-1 {
-  background-color: #f8fafc;
-  border-radius: 8px;
-  
-}
-
-.caa-1 {
-  margin-top: 30px;
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-.p-1 {
-  margin-bottom: 30px;
-  color: grey;
-}
-
-.foot-1 {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: row;
-  border-radius: 5px;
-  gap: 8px;
-}
-
-.foot-1-2 {
-  margin-top: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #2f6df6;
-  border-radius: 8px;
-  padding: 5px;
-}
-
-.foot-0-1 {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #2f6df6;
-  border-radius: 8px;
-  padding: 5px;
-}
-
-.foot-1-2-3 {
-  margin-top: 10px;
-  font-weight: bold;
-  font-size: 20px;
-}
-
-.logo-bg {
-  height: 25px;
-  width: 25px;
-}
-
-.sign-up-card {
-  border-top: lightgrey;
-}
-
-.sign-up-card {
-  border-radius: 2px;
-  border: lightgray solid 2px;
-  width: 90%;
-  margin: auto;
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
-  border-bottom: none;
-}
-
-.auth-cards {
-  border: lightgray solid 2px;
-  width: 90%;
-  margin: auto;
-  border-top: none;
-  border-bottom: none;
-  color: grey;
-}
-
-.foot-btn {
-  border-bottom-left-radius: 15px;
-  border-bottom-right-radius: 15px;
-  border: lightgray solid 2px;
-  width: 90%;
-  margin: auto;
-  padding: 8px 20px;
-  background-color: #eff3f9;
-}
-
-.sign-up-btn {
-  margin-top: 20px;
-  margin-left: 20px;
-  margin-bottom: 10px;
-  font-weight: bold;
-  font-size: 24px;
-}
-
-.log-btn{
-    text-decoration: none;
-    color: blue;
-    font-weight: 500;
-    font-size: 15px;
-}
-
-.p-12 {
-  margin-left: 20px;
-  color: grey;
-}
-
-.gg-btn {
-  text-align: center;
-  padding: 12px 16px;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.btn {
-  width: 45%;
-  background-color: white;
-  padding: 4px 12px;
-  border-radius: 8px;
-  border: 2px solid lightgrey;
-}
-
-.divider {
-  gap: 15px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.divider span {
-  padding: 0 12px;
-}
-
-.divider::before,
-.divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: lightgrey;
-  border-bottom: 1px solid lightgrey;
-}
-
-.divider ::before {
-  margin-right: 5px;
-}
-
-.divider ::after {
-  margin-left: 5px;
-}
-
-.name-label {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 15px;
-  gap: 10px;
-  margin-left: 10px;
-}
-
-.name-label label {
-  margin-bottom: 5px;
-  font-weight: 100;
-  flex: 1;
-  font-size: 12.5px;
-  color: rgb(10, 9, 9);
-}
-
-.name-label input,
-.name-label select {
-  margin: auto;
-  width: 90%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 15px;
-  outline: none;
-}
-
-input:focus,
-select:focus {
-  border-color: grey;
-  box-shadow: 0 0 5px rgba(19, 156, 235, 0.8);
-}
-
-select {
-  flex: 1;
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #0f0404;
-  border-radius: 8px;
-  background: #fff;
-}
-
-.bluey{
-    display:flex;
-    justify-content: center;
-}
-
-.pass-card {
-  display: flex; 
-  flex-direction: row;
-  justify-content: center; 
-  margin :0 auto;
-}
-
-.pass-check{
-    margin-left: 20px;
-    background-color: #eff3f9;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 20px;
-   
-
-}
-
-.pass-check .pass-1{
-   color: rgb(67, 63, 63);
-   margin-left: 12px;
-   padding: 8px 12px;
-}
-
-.pass-check .pass-2{
-    margin-bottom: 10px;
-}
-
-.Main-ca{
-    display: flex;
-    justify-content: center;
-    margin-bottom: 10px;
-}
-
-.ca-btn{
-    width: 80%;
-  border-radius: 8px;
-    padding:8px 12px;
-    color: white;
-    border: none;
-    background-color: #2f6df6;
-}
-f
-ff
-f
-f
-ff
-
-f
-
-
-
-
-
-    <div class="popup-card" id="popupCard">
-  <p id="popupText"></p>
-</div>
-
-<script>
-  const popupCard = document.getElementById("popupCard");
-  const popupText = document.getElementById("popupText");
-  const buttons = document.querySelectorAll(".btn");
-
-  let timer;
-
-  buttons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const name = btn.textContent.trim();
-
-      // set message depending on button
-      if (name.toLowerCase().includes("github")) {
-        popupText.textContent = "GitHub coming soon";
-      } else if (name.toLowerCase().includes("google")) {
-        popupText.textContent = "Google coming soon";
-      }
-
-      // show card
-      popupCard.classList.add("show");
-
-      // reset timer if spam-clicked
-      clearTimeout(timer);
-
-      // hide after 2 seconds
-      timer = setTimeout(() => {
-        popupCard.classList.remove("show");
-      }, 1500);
-    });
-  });
-</script>
-  </body>
-</html>
-
-
-
-
-
-
-.popup-card {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #fff;
-  border: 1px solid #ddd;
-  padding: 14px 18px;
-  border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-  font-size: 14px;
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: 0.25s ease;
-  pointer-events: none;
-  z-index: 9999;
-}
-
-.popup-card.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login</title>
     <link rel="stylesheet" href="../log--in.css" />
   </head>
+
   <body>
     <div class="container">
       <div class="header">
         <div class="logo">
-          <div class="logo-box"></div>
-          
+          <div class="foot-1">
+            <a href="../index.html">
+              <div class="foot-1-2">
+                <img
+                  class="logo-bg"
+                  src="../Assets/icons/icons8-dashboard-layout-48.png"
+                  alt="logo"
+                />
+              </div>
+            </a>
+            <a href="../index.html">
+              <div class="foot-1-2-3">WorkBoard</div>
+            </a>
+          </div>
         </div>
+
         <h1>Welcome back</h1>
         <p>Enter your credentials to access your workspace</p>
       </div>
 
-      <div >
-        <div  class="card">
-            <h2 class="sub-0">Login</h2>
+      <div class="card">
+        <h2 class="sub-0">Login</h2>
         <p class="sub">Choose your preferred login method</p>
 
-   <div class="socks">
-                <!-- Social Buttons -->
-<button class="social-btn google-btn" onclick="showToast('Google coming soon')">
-  <img src="../Assets/icons/icons8-chrome-48.png" alt="Google Icon" class="icon-img">
-  Google
-</button>
+        <!-- Social Buttons -->
+        <div class="socks">
+          <button id="google-btn" class="social-btn google-btn">
+            <img src="../Assets/icons/icons8-chrome-48.png" class="icon-img" />
+            Google
+          </button>
 
-<button class="social-btn github-btn" onclick="showToast('GitHub coming soon')">
-  <img src="../Assets/icons/icons8-github-64.png" alt="GitHub Icon" class="icon-img">
-  GitHub
-</button>
-   </div>
-
-<!-- Toast Popup -->
-<div id="toast"></div>
-
-        <div class="divider"><span>OR CONTINUE WITH</span></div>
-
-        <label>Email</label>
-        <input type="email" placeholder="allen@example.com" />
-
-        <div class="label-row">
-          <label>Password</label>
-          <a href="#">Forgot password?</a>
+          <button id="github-btn" class="social-btn github-btn">
+            <img src="../Assets/icons/icons8-github-64.png" class="icon-img" />
+            GitHub
+          </button>
         </div>
 
-        <input type="password" />
+        <!-- Toast -->
+        <div id="toast"></div>
 
-        <button class="primary">Sign In</button>
-    </div>
-      <div class="div-line">
-        
+        <!-- Form -->
+        <form id="login-form" autocomplete="off">
+          <label>Email</label>
+          <input
+            type="email"
+            id="email"
+            placeholder="allen@example.com"
+            required
+            autocomplete="off"
+          />
+
+          <div class="label-row">
+            <label>Password</label>
+            <a href="../pages/forgot-pass.html">Forgot password?</a>
+          </div>
+
+          <input type="password" id="password" required autocomplete="off" />
+
+          <button type="submit" class="primary">Sign In</button>
+        </form>
+
         <div class="divider-line"></div>
 
-        <p class="bottom">Don't have an account? <a href="#">Sign up</a></p>
-      
-    
-      </div>
-
-    <script>
-  function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.classList.add("show");
-
-    setTimeout(() => {
-      toast.classList.remove("show");
-    }, 1500);
-  }
-</script>
-
-  </body>
-</html>
-
-
-@font-face {
-  font-family: poppins;
-  src: url("./Assets/fonts/Poppins-Medium.ttf");
-}
-
-body {
-  background: #f8fafc;
-  color: #111;
-  padding: 20px;
-  display: flex;
-  justify-content: center;
-}
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: poppins;
-}
-
-body {
-  background: #f9fafb;
-  display: flex;
-  justify-content: center;
-  min-height: 100vh;
-}
-
-.container {
-  width: 100%;
-  max-width: 420px;
-  padding: 20px;
-}
-
-/* HEADER */
-.header {
-  text-align: center;
-  margin-bottom: 25px;
-}
-
-.logo {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.header h1 {
-  font-size: 26px;
-}
-
-.header p {
-  color: #6b7280;
-  font-size: 14px;
-}
-
-/* CARD */
-.card {
-  background: white;
-  padding: 25px;
-  border-radius: 14px;
-  border: 2px solid #cad5e2;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
-  border-bottom-right-radius: 0px;
-   border-bottom-left-radius: 0px;
-}
-
-/* SOCIAL */
-
-.socks {
-  display: flex;
-  gap: 15px;
-}
-
-.social-btn {
-  width: 100%;
-  padding: 5px;
-  border: 2px solid #cad5e2;
-  border-radius: 8px;
-  background: white;
-  cursor: pointer;
-
-  display: flex !important;
-  flex-direction: row !important; /* FORCE horizontal */
-  align-items: center;
-  justify-content: center;
-
-  gap: 5px;
-
-  box-sizing: border-box;
-  transition: 0.25s ease;
-}
-
-/* Hover effect */
-.social-btn:hover {
-  border: 2px solid #f8fafc;
-  background: #f3f5f8;
-}
-
-/* Icon image styling */
-.icon-img {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-}
-
-/* Toast popup */
-#toast {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #101010;
-  color: white;
-  padding: 12px 18px;
-  border-radius: 8px;
-  font-size: 14px;
-
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-#toast.show {
-  opacity: 1;
-}
-
-/* DIVIDER */
-
-.divider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  margin: 15px 0;
-  color: #777;
-  font-size: 14px;
-  gap: 10px; /* ensures spacing control */
-}
-
-/* left line */
-.divider::before {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: #ddd;
-  margin-right: 10px; /* prevents touching text */
-}
-
-/* right line */
-.divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: #ddd;
-  margin-left: 10px; /* prevents touching text */
-}
-
-/* INPUTS */
-label {
-  display: block;
-  margin: 10px 0 5px;
-}
-
-input {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid #cad5e2;
-  border-radius: 8px;
-}
-
-input:focus {
-  border-color: #2563eb;
-  outline: none;
-}
-
-/* LABEL ROW */
-.label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.label-row a {
-  font-size: 12px;
-  color: #2563eb;
-  text-decoration: none;
-}
-
-/* BUTTON */
-.primary {
-  width: 100%;
-  padding: 12px;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  margin-top: 15px;
-}
-
-/* FOOTER */
-.bottom {
-  text-align: center;
-  margin-top: 15px;
-}
-
-.bottom a {
-  color: #2563eb;
-  text-decoration: none;
-}
-
-.sub {
-  margin-bottom: 20px;
-}
-
-.sub-0 {
-  margin-bottom: 10px;
-}
-
-.div-line {
-  /* padding-top: 10px; */
-  padding-bottom: 10px; /* fixed (no negative padding) */
-
-  background: white;
-  border-radius: 14px;
-  border: 2px solid #cad5e2;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
-
-  border-top-right-radius: 0px;
-  border-top-left-radius: 0px;
-  border-top: none;
-
-  /* 🔥 THIS FIXES VERTICAL ALIGNMENT */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-}
-
-
-.logo-bg {
-  height: 25px;
-  width: 25px;
-}
-
-
-.foot-1 {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 5px;
-  gap: 8px;
-}
-
-a{
-  text-decoration: none;
-  color: black;
-}
-
-.foot-1-2 {
-  margin-top: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #2f6df6;
-  border-radius: 8px;
-  padding: 5px;
-}
-
-.bottom{
-    padding: 10px;
-}
-
-.foot-1-2-3 {
-  margin-top: 10px;
-  font-weight: bold;
-  font-size: 20px;
-}
-
-
-
-f
-f
-f
-<fieldset>
-
-
-
-</fieldset>
-
-
-
-
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <link rel="stylesheet" href="./styles.css" />
-  <body>
-    <!-- Navbar -->
-    <header class="navbar">
-      <div class="foot-1">
-        <a href="./index.html">
-          <div class="foot-1-2">
-            <img
-              class="logo-bg"
-              src="./Assets/icons/icons8-dashboard-layout-48.png"
-              alt="pre-designed logo"
-            />
-          </div>
-        </a>
-
-        <a href="./index.html"> <div class="foot-1-2-3">WorkBoard</div></a>
-      </div>
-
-      <nav class="nav-links">
-        <a href="./pages/sign-up.html" class="btn primary small">Get Started</a>
-      </nav>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="hero">
-      <h1>
-        Project management <br />
-        <span>simplified for teams.</span>
-      </h1>
-
-      <p>
-        The all-in-one platform for student teams and small organizations to
-        manage tasks, track progress, and collaborate effectively.
-      </p>
-
-      <div class="hero-buttons">
-        <a href="#" class="btn primary">Start for free →</a>
-        <a href="./pages/sign-up.html" class="btn secondary">Open dashboard</a>
-      </div>
-
-      <div>
-        <div class="analytics-img">
-          <img
-            class="ana-img"
-            src="./Assets/images/ana-img-3.avif"
-            alt="analytics dashboard"
-          />
-        </div>
-      </div>
-    </section>
-
-    <section class="cards-sec">
-      <div class="sec-se">
-        <h2 class="text-1">Everything you need to ship faster</h2>
-        <p class="text-2">
-          Powerful features designed for modern collaboration.
+        <p class="bottom">
+          Don't have an account?
+          <a href="./sign-up.html">Sign up</a>
         </p>
       </div>
-
-      <div class="card-ctn">
-        <div class="card card-1">
-          <div class="w-svg-1">
-            <img
-              class="img-crd"
-              src="./Assets/icons/icons8-dashboard-64.png"
-              alt=""
-            />
-          </div>
-          <h3>Kanban Boards</h3>
-          <p>
-            Visualize your workflows and move tasks through states with ease.
-          </p>
-        </div>
-        <div class="card card-2">
-          <div class="w-svg-1">
-            <img
-              class="img-crd"
-              src="./Assets/icons/icons8-users-48.png"
-              alt=""
-            />
-          </div>
-          <h3>Team Collaboration</h3>
-          <p>
-            Assign tasks, set priorities, and keep everyone on the same page.
-          </p>
-        </div>
-        <div class="card card-3">
-          <div class="w-svg-1">
-            <img
-              class="img-crd"
-              src="./Assets/icons/icons8-analytics-48.png"
-              alt=""
-            />
-          </div>
-          <h3>Progress Analytics</h3>
-          <p>
-            Track project health with real-time summaries and progress bars.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <footer>
-      <div class="foot-1">
-        <a href="./index.html">
-          <div class="foot-1-2">
-            <img
-              class="logo-bg"
-              src="./Assets/icons/icons8-dashboard-layout-48.png"
-              alt="pre-designed logo"
-            />
-          </div>
-        </a>
-
-        <a href="./index.html"> <div class="foot-1-2-3">WorkBoard</div></a>
-      </div>
-
-      <div class="foot-2">
-        <div>
-          <p>&copy; 2026 WorkBoard. All rights reserved.</p>
-        </div>
-      </div>
-
-      <div class="foot-3-0">
-        <a class="foot-3" href="">Privacy</a>
-        <a class="foot-3" href="">Terms</a>
-        <a class="foot-3" href="">Contact</a>
-      </div>
-    </footer>
-
-    <script>
-      const cards = document.querySelectorAll(".card");
-
-      cards.forEach((card) => {
-        card.addEventListener("click", () => {
-          cards.forEach((c) => c.classList.remove("active"));
-          card.classList.add("active");
-        });
-      });
-    </script>
-  </body>
-</html>
-f
-f
-f
-f
-f
-f
-f
-f
-f@font-face {
-  font-family: poppins;
-  src: url("./Assets/fonts/Poppins-Medium.ttf");
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: poppins;
-}
-
-/* Body */
-body {
-  background: #ffffff;
-  color: #111;
-  padding: 20px;
-  display: flex;
-  justify-content: center;
-}
-
-/* SIGN-UP PAGE */
-
-.ctn-1 {
-  background-color: #f8fafc;
-  border-radius: 8px;
-  
-}
-
-.caa-1 {
-  margin-top: 30px;
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-.p-1 {
-  margin-bottom: 30px;
-  color: grey;
-}
-
-.foot-1 {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 5px;
-  gap: 8px;
-}
-
-a{
-  text-decoration: none;
-  color: black;
-}
-
-.foot-1-2 {
-  margin-top: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #2f6df6;
-  border-radius: 8px;
-  padding: 5px;
-}
-
-.foot-0-1 {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #2f6df6;
-  border-radius: 8px;
-  padding: 5px;
-}
-
-.foot-1-2-3 {
-  margin-top: 10px;
-  font-weight: bold;
-  font-size: 20px;
-}
-
-.logo-bg {
-  height: 25px;
-  width: 25px;
-}
-
-.sign-up-card {
-  border-top: lightgrey;
-}
-
-.sign-up-card {
-  border-radius: 2px;
-  border: lightgray solid 2px;
-  width: 90%;
-  margin: auto;
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
-  border-bottom: none;
-  height: 200%;
-}
-
-.auth-cards {
-  border: lightgray solid 2px;
-  width: 90%;
-  margin: auto;
-  border-top: none;
-  border-bottom: none;
-  color: grey;
-}
-
-.foot-btn {
-  border-bottom-left-radius: 15px;
-  border-bottom-right-radius: 15px;
-  border: lightgray solid 2px;
-  width: 90%;
-  margin: auto;
-  padding: 8px 20px;
-  background-color: #eff3f9;
-}
-
-.sign-up-btn {
-  margin-top: 20px;
-  margin-left: 20px;
-  margin-bottom: 10px;
-  font-weight: bold;
-  font-size: 24px;
-}
-
-.log-btn{
-    text-decoration: none;
-    color: blue;
-    font-weight: 500;
-    font-size: 15px;
-    height: 100%;
-}
-
-.p-12 {
-  margin-left: 20px;
-  color: grey;
-}
-
-.gg-btn {
-  gap: 12px;
-  text-align: center;
-  padding: 12px 16px;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.btn {
-  display: flex;
-  align-items: center;   /* vertically center icon + text */
-  gap: 8px;              /* space between icon and text */
-  padding: 5px 30px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #fff;
-  cursor: pointer;
-  font-size: 14px;
-  transition: 0.2s ease;
-}
-
-.btn:hover {
-  background: #f5f5f5;
-}
-
-.img-icons{
-   width: 20px;   /* shrink your 48px icon */
-  height: 20px;
-  object-fit: contain;
-}
-
-.popup-card {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #fff;
-  border: 1px solid #ddd;
-  padding: 14px 18px;
-  border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-  font-size: 14px;
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: 0.25s ease;
-  pointer-events: none;
-  z-index: 9999;
-}
-
-.popup-card.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.divider {
-  gap: 15px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.divider span {
-  padding: 0 12px;
-}
-
-.divider::before,
-.divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: lightgrey;
-  border-bottom: 1px solid lightgrey;
-}
-
-.divider ::before {
-  margin-right: 5px;
-}
-
-.divider ::after {
-  margin-left: 5px;
-}
-
-.full-name{
-  margin-left: 10px;
-}
-
-.name-label {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 15px;
-  gap: 10px;
-  /* padding: 10px; */
-}
-
-.name-label label {
-  margin-bottom: 5px;
-  font-weight: 100;
-  flex: 1;
-  font-size: 12.5px;
-  color: rgb(10, 9, 9);
-}
-
-.name-label input,
-.name-label select {
-  margin: auto;
-  width: 90%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 15px;
-  outline: none;
-}
-
-input:focus,
-select:focus {
-  border-color: grey;
-  box-shadow: 0 0 5px rgba(19, 156, 235, 0.8);
-}
-
-select {
-  flex: 1;
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #0f0404;
-  border-radius: 8px;
-  background: #fff;
-}
-
-.bluey{
-    display:flex;
-    justify-content: center;
-}
-
-.parse{
-  padding: 5px 10px;
-}
-
-.pass-card {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 20px;
-  width: 100%;
-  max-width: 700px;
-  margin: 0 auto;
-}
-
-
-
-.pass-check{
-    margin-left: 20px;
-    background-color: #eff3f9;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 20px;
-    width: 90%;
-}
-
-.pass-check .pass-1{
-   color: rgb(67, 63, 63);
-   margin-left: 12px;
-   padding: 8px 12px;
-}
-
-
-.pass-check .pass-2 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.name-label input {
-  width: 90%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-.Main-ca{
-    display: flex;
-    justify-content: center;
-    margin-bottom: 10px;
-}
-
-.ca-btn{
-    width: 80%;
-  border-radius: 8px;
-    padding:8px 12px;
-    color: white;
-    border: none;
-    background-color: #2f6df6;
-}
-f
-f
-ff
-f
-f
-f
-f
-f
-f
-
-
-ff
-f
-ff
-f
-f
-f
-f    
-
-
-
-    <script>
-  function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.classList.add("show");
-
-    setTimeout(() => {
-      toast.classList.remove("show");
-    }, 1500);
-  }
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { 
-  getAuth, 
-  signInWithEmailAndPassword 
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAem227DiziypXlJpa1FCqzvAH-gD0K750",
-  authDomain: "workboard-fdf84.firebaseapp.com",
-  projectId: "workboard-fdf84",
-  appId: "1:412387128397:web:f3e5701388b90425831804"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-const form = document.getElementById("login-form");
-
-form.addEventListener("submit", async (e) => {
+    </div>
+
+    <!-- SCRIPT -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import {
+        getAuth,
+        signInWithEmailAndPassword
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyAem227DiziypXlJpa1FCqzvAH-gD0K750",
+        authDomain: "workboard-fdf84.firebaseapp.com",
+        projectId: "workboard-fdf84",
+        appId: "1:412387128397:web:f3e5701388b90425831804",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+      // Toast
+      function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+          toast.classList.remove("show");
+        }, 2000);
+      }
+
+      // Email login
+      const form = document.getElementById("login-form");
+
+        form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  // 🚫 STOP if fields are empty (prevents auto-submit issue)
+  if (!email || !password) {
+    return;
+  }
 
   try {
     const userCredential = await signInWithEmailAndPassword(
@@ -1853,57 +132,82 @@ form.addEventListener("submit", async (e) => {
     );
 
     console.log("Logged in:", userCredential.user);
+    showToast("Login successful");
 
-    // redirect to dashboard/homepage
-    window.location.href = "../index.html";
+    setTimeout(() => {
+      window.location.href = "../index.html";
+    }, 1000);
 
   } catch (error) {
-    alert(error.message);
+    let message = "Login failed. Please try again.";
+
+    switch (error.code) {
+      case "auth/wrong-password":
+        message = "Incorrect password.";
+        break;
+      case "auth/user-not-found":
+        message = "No account found.";
+        break;
+      case "auth/invalid-email":
+        message = "Invalid email.";
+        break;
+      case "auth/too-many-requests":
+        message = "Too many attempts. Try later.";
+        break;
+    }
+
+    showToast(message);
   }
 });
 
 
-import { GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-const googleBtn = document.getElementById("google-btn");
-
-googleBtn.addEventListener("click", async () => {
-  const provider = new GoogleAuthProvider();
-
-  try {
-    const result = await signInWithPopup(auth, provider);
-    console.log(result.user);
-
-    window.location.href = "../index.html";
-
-  } catch (error) {
-    alert(error.message);
-  }
+// Google (Coming Soon)
+document.getElementById("google-btn").addEventListener("click", () => {
+  showToast("Google sign-in coming soon");
 });
 
-
-import { GithubAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-const githubBtn = document.getElementById("github-btn");
-
-githubBtn.addEventListener("click", async () => {
-  const provider = new GithubAuthProvider();
-
-  try {
-    const result = await signInWithPopup(auth, provider);
-    console.log(result.user);
-
-    window.location.href = "../index.html";
-
-  } catch (error) {
-    alert(error.message);
-  }
+// GitHub (Coming Soon)
+document.getElementById("github-btn").addEventListener("click", () => {
+  showToast("GitHub sign-in coming soon");
 });
+    </script>
+  </body>
+</html>
 
 
+d
+d
+d
 
-</script>
+d
+dd
+dd
 
+d
+d
+d
+d
+d
+d
+d
 
+d
+d
+d
+d
+d
+d
+d
+d
+d
+d
+d
 
-
+d
+d
+d
+d
+d
+d
+d
+d
