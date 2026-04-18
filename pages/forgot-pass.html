@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="../forgot--pass.css" />
+  </head>
+  <body>
+    <div class="auth-container">
+      <div class="foot-1">
+        <a href="../index.html">
+          <div class="foot-1-2">
+            <img
+              class="logo-bg"
+              src="../Assets/icons/icons8-dashboard-layout-48.png"
+              alt="pre-designed logo"
+            />
+          </div>
+        </a>
+        <a href="../index.html"> <div class="foot-1-2-3">WorkBoard</div></a>
+      </div>
+      <form id="reset-form" class="auth-card">
+        <!-- HEADER SECTION -->
+        <div class="auth-header">
+          <h2>Forgot Password</h2>
+          <p class="auth-subtext">
+            Enter your email and we’ll send you a reset link.
+          </p>
+        </div>
+
+        <!-- INPUT -->
+        <label>Email</label>
+        <input
+          type="email"
+          id="reset-email"
+          placeholder="allen@example.com"
+          required
+        />
+
+        <!-- BUTTON -->
+        <button type="submit">Send Reset Link</button>
+        <div class="card-line"></div>
+        <div class="auth-footer">
+          <p class="bottom">Back to <a href="./log-in.html">Login</a></p>
+        </div>
+      </form>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import {
+        getAuth,
+        sendPasswordResetEmail,
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyAem227DiziypXlJpa1FCqzvAH-gD0K750",
+        authDomain: "workboard-fdf84.firebaseapp.com",
+        projectId: "workboard-fdf84",
+        appId: "1:412387128397:web:f3e5701388b90425831804",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+
+      function showToast(message) {
+  let toast = document.getElementById("toast");
+
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "toast";
+    document.body.appendChild(toast);
+  }
+
+  toast.textContent = message;
+  toast.style.position = "fixed";
+  toast.style.bottom = "20px";
+  toast.style.left = "50%";
+  toast.style.transform = "translateX(-50%)";
+  toast.style.background = "#111";
+  toast.style.color = "#fff";
+  toast.style.padding = "10px 16px";
+  toast.style.borderRadius = "8px";
+  toast.style.fontSize = "14px";
+  toast.style.zIndex = "9999";
+
+  setTimeout(() => {
+    toast.remove();
+  }, 2000);
+}
+
+   const form = document.getElementById("reset-form");
+const btn = form.querySelector("button");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = document.getElementById("reset-email").value.trim();
+
+  if (!email) return; // safety guard
+
+  try {
+    btn.disabled = true;
+    btn.textContent = "Sending...";
+
+    await sendPasswordResetEmail(auth, email);
+
+    showToast("Reset link sent");
+
+    setTimeout(() => {
+      window.location.href = "./log-in.html";
+    }, 2500);
+    
+
+  } catch (error) {
+   showToast("If the email exists, a reset link was sent.");
+
+  btn.disabled = false;
+     btn.textContent = "Send Reset Link";
+  }
+});
+
+    </script>
+  </body>
+</html>

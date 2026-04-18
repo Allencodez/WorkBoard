@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <link rel="stylesheet" href="../log--in.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="logo">
+          <div class="foot-1">
+            <a href="../index.html">
+              <div class="foot-1-2">
+                <img
+                  class="logo-bg"
+                  src="../Assets/icons/icons8-dashboard-layout-48.png"
+                  alt="logo"
+                />
+              </div>
+            </a>
+            <a href="../index.html">
+              <div class="foot-1-2-3">WorkBoard</div>
+            </a>
+          </div>
+        </div>
+
+        <h1>Welcome back</h1>
+        <p>Enter your credentials to access your workspace</p>
+      </div>
+
+      <div class="card">
+        <h2 class="sub-0">Login</h2>
+        <p class="sub">Choose your preferred login method</p>
+
+        <!-- Social Buttons -->
+        <div class="socks">
+          <button id="google-btn" class="social-btn google-btn">
+            <img src="../Assets/icons/icons8-chrome-48.png" class="icon-img" />
+            Google
+          </button>
+
+          <button id="github-btn" class="social-btn github-btn">
+            <img src="../Assets/icons/icons8-github-64.png" class="icon-img" />
+            GitHub
+          </button>
+        </div>
+
+        <!-- Toast -->
+        <div id="toast"></div>
+
+        <!-- Form -->
+        <form id="login-form">
+          <label>Email</label>
+          <input
+            type="email"
+            id="email"
+            placeholder="allen@example.com"
+            required
+          />
+
+          <div class="label-row">
+            <label>Password</label>
+            <a href="../pages/forgot-pass.html">Forgot password?</a>
+          </div>
+
+          <input type="password" id="password" required />
+
+          <button type="submit" class="primary">Sign In</button>
+        </form>
+
+        <div class="divider-line"></div>
+
+        <p class="bottom">
+          Don't have an account?
+          <a href="./sign-up.html">Sign up</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import {
+        getAuth,
+        signInWithEmailAndPassword,
+        GoogleAuthProvider,
+        GithubAuthProvider,
+        signInWithPopup,
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyAem227DiziypXlJpa1FCqzvAH-gD0K750",
+        authDomain: "workboard-fdf84.firebaseapp.com",
+        projectId: "workboard-fdf84",
+        appId: "1:412387128397:web:f3e5701388b90425831804",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+      // Toast
+      function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+          toast.classList.remove("show");
+        }, 2000);
+      }
+
+      // Email login
+      const form = document.getElementById("login-form");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        try {
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          console.log("Logged in:", userCredential.user);
+
+          showToast("Login successful ✅");
+
+          setTimeout(() => {
+            window.location.href = "../index.html";
+          }, 1000);
+        } catch (error) {
+          showToast(error.message);
+        }
+      });
+
+      // Google login
+      document
+        .getElementById("google-btn")
+        .addEventListener("click", async () => {
+          const provider = new GoogleAuthProvider();
+
+          try {
+            const result = await signInWithPopup(auth, provider);
+            console.log(result.user);
+
+            showToast("Google login successful ✅");
+
+            setTimeout(() => {
+              window.location.href = "../index.html";
+            }, 1000);
+          } catch (error) {
+            showToast(error.message);
+          }
+        });
+
+      // GitHub login
+      document
+        .getElementById("github-btn")
+        .addEventListener("click", async () => {
+          const provider = new GithubAuthProvider();
+
+          try {
+            const result = await signInWithPopup(auth, provider);
+            console.log(result.user);
+
+            showToast("GitHub login successful ✅");
+
+            setTimeout(() => {
+              window.location.href = "../index.html";
+            }, 1000);
+          } catch (error) {
+            showToast(error.message);
+          }
+        });
+    </script>
+  </body>
+</html>

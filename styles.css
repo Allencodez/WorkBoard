@@ -1,0 +1,508 @@
+@font-face {
+  font-family: poppins;
+  src: url("./Assets/fonts/Poppins-Medium.ttf");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: poppins;
+}
+
+/* Body */
+body {
+  background: #ffffff;
+  color: #111;
+  padding: 20px;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 100px;
+  width: 100%;
+  flex-wrap: nowrap; /* keep items on a single horizontal line */
+}
+
+.foot-1:hover {
+  color: #555;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #333;
+  gap: 30px;
+}
+
+.nav-links a:not(.btn):hover {
+  color: #555;
+}
+/* Buttons */
+.btn {
+  padding: 12px 22px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 14px;
+  display: inline-block;
+}
+
+.btn.primary {
+  background: #2f6df6;
+  color: white;
+}
+
+.btn.primary:hover {
+  background: #1e4fd8;
+}
+
+.btn.secondary {
+  border: 2px solid #cad5e2;
+  color: #333;
+}
+
+.btn.secondary:hover {
+  background: #f5f5f5;
+}
+
+.btn.small {
+  padding: 8px 16px;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  max-width: 800px;
+  margin: auto;
+}
+
+  /* Ensure hero buttons are vertically stacked and nicely padded on mobile */
+
+  @media (max-width: 480px) {
+       .hero .hero-buttons {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin-top: 20px !important;
+    padding: 0 14px !important;
+  }
+
+  .hero .hero-buttons .btn {
+    width: 100% !important;
+    max-width: 360px !important;
+    padding: 12px 16px !important;
+  } 
+
+  }
+
+/* Heading */
+.hero h1 {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.hero h1 span {
+  color: #2f6df6;
+}
+
+/* Paragraph */
+.hero p {
+  margin-top: 20px;
+  color: #555;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Buttons */
+.hero-buttons {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+
+/* Analytics Image */
+
+/* CONTAINER */
+.analytics-img {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  margin: 60px auto;
+
+  width: 90%;          /* 🔥 wider */
+  max-width: 1100px;   /* 🔥 more horizontal space */
+
+  padding: 12px;          /* ❌ remove box feel */
+  border: 2px solid #cad5e2;        
+  background: transparent;
+  overflow: hidden;
+  border-radius: 16px;    /* optional: remove card look */
+}
+
+/* IMAGE */
+.ana-img {
+  width: 100%;
+  height: 350px;       /* 🔥 forces rectangular shape */
+  object-fit: cover;   /* 🔥 fills space like a hero image */
+  transition: transform 0.4s ease;
+  border-radius: 12px; /* keep slight rounding (optional) */
+  display: block;
+}
+
+.analytics-img:hover .ana-img {
+  transform: scale(1.05);
+}
+
+.card{
+ max-width: 90%;
+}
+
+  .card-ctn{
+     display: flex;
+     flex-direction: column;
+  }
+
+
+.foot-1{
+  display: flex;
+  flex-direction:column;
+
+}
+
+.foot-3{
+  display: none;
+}
+
+.foot-2{
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+}
+ 
+footer{
+  display:flex;
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 32px;
+  }
+
+  .hero p {
+    font-size: 14px;
+  }
+
+}
+
+  /* keep header items on a single row on small screens; reduce spacing to avoid overlap */
+  .navbar {
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+
+  .nav-links {
+    gap: 12px;
+    margin-left: auto; /* ensure links stay right-aligned */
+  }
+
+  /* slightly reduce button padding and font-size on small screens */
+  .btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .btn.small {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  .logo {
+    font-size: 16px;
+  }
+
+
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 40px;
+  }
+
+  .hero-buttons {
+    flex-direction: space-between;
+  }
+}
+
+
+.logo-bg{
+  height: 25px;
+  width: 25px;
+}
+
+.foot-1{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  border-radius: 5px;
+  gap:8px;
+}
+
+
+.foot-1-2{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #2f6df6;
+  border-radius: 8px;
+  padding: 5px;
+}
+
+a{
+  color: black;
+  text-decoration: none;
+}
+
+.foot-0-1{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #2f6df6;
+  border-radius: 8px;
+  padding: 5px;
+}
+
+
+.foot-1-2-3{
+  font-weight: bold;
+  font-size: 20px;
+}
+.foot-3{
+  text-decoration: none;
+  color: black;
+}
+
+.foot-2{
+  display: flex;
+  gap: 20px;
+}
+
+.foot-3-0{
+  display: flex;
+  gap: 20px;
+}
+
+.cards-sec {
+  border-radius: 5px;
+  border-top: solid 0px lightgrey;
+  background-color: #f8fafc;
+  text-align: center;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  height: 100%;
+}
+
+.card.active{
+  border-color: #155dfc;
+  border-width: 2px;
+  box-shadow: 
+  0 0 5px #00f0ff;
+  0 0 10px #155dfc;
+  0 0 20px #00f0ff;
+  0 0 40px #00f0ff;
+}
+
+.cards-sec .sec-se {
+  padding: 40px 20px;
+}
+
+.text-1 {
+  margin-top: 20px;
+  font-size: 30px;
+  line-height: 36px;
+  margin-bottom: 20px;
+}
+
+.text-2 {
+  font-size: 16px;
+  line-height: 24px;
+  color: grey;
+}
+
+.card-ctn {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 25px;
+  transition: all 0.3s ease;
+   margin-bottom: 40px;
+}
+
+.card-1:hover {
+  border-color: #d1d5db;
+  border-width: 0.5px;
+  box-shadow: 0 0 0 0.3px;
+}
+
+.card-2:hover {
+  border-color: #d1d5db;
+  border-width: 0.5px;
+  box-shadow: 0 0 0 0.3px;
+}
+
+.card-3:hover {
+  border-color: #d1d5db;
+  border-width: 0.5px;
+  box-shadow: 0 0 0 0.3px;
+}
+
+.card-1 {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: #ffffff;
+  border: #cad5e2 solid 2px;
+  border-radius: 10px;
+  color: #0a0a0a;
+  width: 375px;
+  height: 250px;
+   gap: 12px;
+  padding: 16px;
+}
+
+.card-2 {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: #ffffff;
+  border: #cad5e2 solid 2px;
+  border-radius: 10px;
+  color: #0a0a0a;
+  width: 375px;
+  height: 250px;
+    gap: 12px;
+  padding: 16px;
+}
+
+.card-3 {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: #ffffff;
+  border: #cad5e2 solid 2px;
+  border-radius: 10px;
+  color: #0a0a0a;
+  width: 375px;
+  height: 250px;
+  gap: 12px;
+  padding: 16px;
+}
+
+.w-svg-1 {
+  background-color: #2f6df6;
+  height: 48px;
+  width: 48px;
+  border-radius: 8px;
+  border-color: #cecece;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+}
+
+.img-crd {
+  width: 30px;
+  height: 30px;
+}
+
+footer{
+  border: #cad5e2 solid 2px;
+  border-radius: 5px;
+  background-color: white;
+  padding: 60px;
+  display:flex;
+  justify-content: space-between;
+}
+
+/* Responsive rules for cards and footer */
+@media (max-width: 1024px) {
+  /* Cards: two-column layout on tablets */
+  .card-ctn {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+  }
+  .card, .card-1, .card-2, .card-3 {
+    width: calc(50% - 20px);
+    max-width: 420px;
+    height: auto;
+  }
+  .cards-sec .sec-se { padding: 30px 16px; }
+
+  /* Footer: wrap and center on tablets */
+  footer {
+    padding: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    text-align: center;
+  }
+  footer .foot-1, footer .foot-2, footer .foot-3-0 {
+    flex: 0 1 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .foot-2 { gap: 12px; }
+  .foot-3-0 { gap: 12px; }
+}
+
+@media (max-width: 480px) {
+  /* Cards: single column on mobile */
+  .card-ctn {
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+  }
+  .card, .card-1, .card-2, .card-3 {
+    width: 92%;
+    max-width: 520px;
+  }
+
+  /* Footer: compact padding and vertical stacking */
+  footer {
+    padding: 20px;
+    gap: 12px;
+    text-align: center;
+    flex-direction: column;
+    align-items: center;
+  }
+  /* Keep logo and WorkBoard on same horizontal line on mobile */
+  .foot-1 { flex-direction: row; gap: 8px; align-items: center; }
+  .foot-2 { justify-content: center; }
+  .foot-3-0 { flex-wrap: wrap; gap: 8px; justify-content: center; }
+}
+
+
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+padding: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}

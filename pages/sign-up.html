@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="../sign--up.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="foot-1">
+          <a href="../index.html">
+            <div class="foot-1-2">
+              <img
+                class="logo-bg"
+                src="../Assets/icons/icons8-dashboard-layout-48.png"
+                alt="pre-designed logo"
+              />
+            </div>
+          </a>
+
+          <a href="../index.html">
+            <div class="foot-1-2-3">WorkBoard</div>
+          </a>
+        </div>
+
+        <h1>Create an account</h1>
+        <p>Join thousands of teams managing work with WorkBoard</p>
+      </div>
+
+      <div class="card">
+        <!-- 🔥 FORM START -->
+        <form id="signup-form">
+          <h2>Sign Up</h2>
+          <p class="sub">Choose your preferred sign up method</p>
+
+          <div class="socks">
+            <button
+              class="social-btn google-btn"
+              type="button"
+              onclick="showToast('Google coming soon')"
+            >
+              <img
+                src="../Assets/icons/icons8-chrome-48.png"
+                class="icon-img"
+              />
+              Google
+            </button>
+
+            <button
+              class="social-btn github-btn"
+              type="button"
+              onclick="showToast('GitHub coming soon')"
+            >
+              <img
+                src="../Assets/icons/icons8-github-64.png"
+                class="icon-img"
+              />
+              GitHub
+            </button>
+          </div>
+
+          <div id="toast"></div>
+
+          <div class="divider"><span>OR CONTINUE WITH</span></div>
+
+          <label>Full Name</label>
+          <input type="text" id="full-name" placeholder="Elon musk" />
+
+          <label>Email</label>
+          <input type="email" id="email" placeholder="allen@example.com" />
+
+          <label>Role</label>
+          <select id="role">
+            <option>Developer</option>
+            <option>Designer</option>
+            <option>Team Lead</option>
+            <option>QA Engineer</option>
+            <option>Product Manager</option>
+            <option>Others</option>
+          </select>
+
+          <!-- PASSWORD -->
+          <div class="password-row">
+            <div>
+              <label>Password</label>
+              <input id="password" type="password"  required />
+            </div>
+
+            <div>
+              <label>Confirm Password</label>
+              <input id="confirm-password" type="password" required />
+            </div>
+          </div>
+
+          <!-- REQUIREMENTS -->
+          <div class="password-card">
+            <p class="req-title">Password Requirements</p>
+
+            <div class="password-card">
+  <p class="req-title">Password must contain:</p>
+
+  <ul class="req-list">
+    <li>
+      <input type="checkbox" id="check-length" disabled />
+      At least 8 characters
+    </li>
+    <li>
+      <input type="checkbox" id="check-uppercase" disabled />
+      One uppercase letter
+    </li>
+    <li>
+      <input type="checkbox" id="check-number" disabled />
+      One number
+    </li>
+    <li>
+      <input type="checkbox" id="check-match" disabled />
+      Passwords match
+    </li>
+  </ul>
+</div>
+
+          </div>
+
+          <!-- 🔥 THIS MUST SUBMIT -->
+          <button type="submit" class="primary" id="signup-btn" disabled>Create Account</button>
+        </form>
+        <!-- 🔥 FORM END -->
+
+        <div class="divider-line"></div>
+
+        <p class="bottom">
+          Already have an account? <a href="./log-in.html">Login</a>
+        </p>
+      </div>
+    </div>
+
+    <script>
+      function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+          toast.classList.remove("show");
+        }, 1500);
+      }
+
+       const password = document.getElementById("password");
+const confirmPassword = document.getElementById("confirm-password");
+
+// checkboxes
+const checkLength = document.getElementById("check-length");
+const checkUpper = document.getElementById("check-uppercase");
+const checkNumber = document.getElementById("check-number");
+const checkMatch = document.getElementById("check-match");
+
+// signup button
+const signupBtn = document.getElementById("signup-btn");
+
+function validatePassword() {
+  const pass = password.value;
+  const confirm = confirmPassword.value;
+
+  // rules
+  const isLength = pass.length >= 8;
+  const hasUpper = /[A-Z]/.test(pass);
+  const hasNumber = /[0-9]/.test(pass);
+  const isMatch = pass !== "" && pass === confirm;
+
+  // tick checkboxes
+  checkLength.checked = isLength;
+  checkUpper.checked = hasUpper;
+  checkNumber.checked = hasNumber;
+  checkMatch.checked = isMatch;
+
+  // enable button only if all true
+  signupBtn.disabled = !(isLength && hasUpper && hasNumber && isMatch);
+}
+
+// listen for typing
+password.addEventListener("input", validatePassword);
+confirmPassword.addEventListener("input", validatePassword);
+
+    </script>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import {
+        getAuth,
+        createUserWithEmailAndPassword,
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyAem227DiziypXlJpa1FCqzvAH-gD0K750",
+        authDomain: "workboard-fdf84.firebaseapp.com",
+        projectId: "workboard-fdf84",
+        storageBucket: "workboard-fdf84.firebasestorage.app",
+        messagingSenderId: "412387128397",
+        appId: "1:412387128397:web:f3e5701388b90425831804",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+      const form = document.getElementById("signup-form");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault(); // 🔥 STOPS PAGE REFRESH
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const confirmPassword =
+          document.getElementById("confirm-password").value;
+        const fullName = document.getElementById("full-name").value;
+        const role = document.getElementById("role").value;
+
+        // basic validation
+        if (password !== confirmPassword) {
+          alert("Passwords do not match");
+          return;
+        }
+
+        try {
+          const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+
+          console.log("User created:", userCredential.user);
+
+          alert("Account created successfully 🎉");
+
+          // optional redirect
+          window.location.href = "./log-in.html";
+        } catch (error) {
+          alert(error.message);
+          console.error(error);
+        }
+      });
+    </script>
+  </body>
+</html>
