@@ -1,213 +1,884 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login</title>
-    <link rel="stylesheet" href="../log--in.css" />
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WorkBoard Dashboard</title>
 
-  <body>
-    <div class="container">
-      <div class="header">
-        <div class="logo">
-          <div class="foot-1">
-            <a href="../index.html">
-              <div class="foot-1-2">
-                <img
-                  class="logo-bg"
-                  src="../Assets/icons/icons8-dashboard-layout-48.png"
-                  alt="logo"
-                />
-              </div>
-            </a>
-            <a href="../index.html">
-              <div class="foot-1-2-3">WorkBoard</div>
-            </a>
-          </div>
-        </div>
+  <link rel="stylesheet" href="../dashboard.css"/>
+</head>
 
-        <h1>Welcome back</h1>
-        <p>Enter your credentials to access your workspace</p>
+<body>
+
+    <div class="app-layout">
+             
+<!-- ================= OVERLAY ================= -->
+<div class="overlay" id="overlay"></div>
+
+
+<!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar" id="sidebar">
+
+  <a href="../index.html" class="logo-link">
+    <div class="logo">
+      <div class="logo-icon">
+        <img class="logo-icon-1" src="../Assets/icons/icons8-dashboard-24.png" alt="logo">
       </div>
+      <span>WorkBoard</span>
+    </div>
+  </a>
 
-      <div class="card">
-        <h2 class="sub-0">Login</h2>
-        <p class="sub">Choose your preferred login method</p>
+  <ul class="menu-list">
+    <li class="menu-item active">
+      <span class="icon">
+        <img src="../Assets/icons/icons8-dashboard-24.png" alt="dashboard">
+      </span>
+      <span class="text">Dashboard</span>
+    </li>
 
-        <!-- Social Buttons -->
-        <div class="socks">
-          <button id="google-btn" class="social-btn google-btn">
-            <img src="../Assets/icons/icons8-chrome-48.png" class="icon-img" />
-            Google
-          </button>
+    <li class="menu-item">
+      <span class="icon">
+        <img src="../Assets/icons/icons8-activity-feed-24.png" alt="tasks">
+      </span>
+      <span class="text">Tasks</span>
+    </li>
 
-          <button id="github-btn" class="social-btn github-btn">
-            <img src="../Assets/icons/icons8-github-64.png" class="icon-img" />
-            GitHub
-          </button>
-        </div>
+    <li class="menu-item">
+      <span class="icon">
+        <img src="../Assets/icons/icons8-user-account-48.png" alt="team">
+      </span>
+      <span class="text">Team</span>
+    </li>
 
-        <!-- Toast -->
-        <div id="toast"></div>
+    <li class="menu-item">
+      <span class="icon">
+        <img src="../Assets/icons/icons8-notification-48.png" alt="notifications">
+      </span>
+      <span class="text">Activity</span>
+    </li>
+  </ul>
 
-        <!-- Form -->
-        <form id="login-form" autocomplete="off">
-          <label>Email</label>
-          <input
-            type="email"
-            id="email"
-            placeholder="allen@example.com"
-            required
-            autocomplete="off"
-          />
+  <!-- ✅ LOGOUT INSIDE SIDEBAR -->
+  <div class="sidebar-footer">
+    <a href="./log-in.html" class="logout-btn">
+      <span class="icon">
+        <img src="../Assets/icons/icons8-logout-48.png" alt="logout">
+      </span>
+      <span class="text">Logout</span>
+    </a>
+  </div>
 
-          <div class="label-row">
-            <label>Password</label>
-            <a href="../pages/forgot-pass.html">Forgot password?</a>
-          </div>
+</aside>
 
-          <input type="password" id="password" required autocomplete="off" />
+<!-- ================= TOP BAR ================= -->
 
-          <button type="submit" class="primary">Sign In</button>
-        </form>
+<main class="main-content">
 
-        <div class="divider-line"></div>
+    <header class="topbar">
 
-        <p class="bottom">
-          Don't have an account?
-          <a href="./sign-up.html">Sign up</a>
-        </p>
+  <!-- ONLY MENU BUTTON (WORKS NOW) -->
+  <img
+    src="../Assets/icons/icons8-menu-50.png"
+    class="menu-icon"
+    id="menuBtn"
+    alt="menu"
+  />
+
+  <div class="title">Dashboard</div>
+  <input type="text" class="search" placeholder="Search..."/>
+</header>
+
+<!-- ================= WELCOME ================= -->
+<section class="welcome">
+  <h1>Welcome back, Allen</h1>
+  <p>Here’s what’s happening with your project today.</p>
+</section>
+
+<!-- ================= OVERVIEW ================= -->
+<section class="overview">
+
+  <div class="overview-header">
+    <h3>Project Overview</h3>
+    <button class="primary-btn" id="openModal">+ Create Task</button>
+  </div>
+
+  <div class="cards">
+
+    <div class="stat-card">
+      <div class="card-text">
+        <h4>In Progress</h4>
+        <p class="value">0</p>
+        <span>No tasks yet</span>
       </div>
+      <img class="icon" src="../Assets/icons/icons8-in-progress-48.png"/>
     </div>
 
-    <!-- SCRIPT -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-      import {
-        getAuth,
-        signInWithEmailAndPassword
-      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    <div class="stat-card">
+      <div class="card-text">
+        <h4>Upcoming</h4>
+        <p class="value">0</p>
+        <span>Nothing scheduled</span>
+      </div>
+      <img style="width: 44px; height: 45px;" class="icon" src="../Assets/icons/icons8-today-64.png"/>
+    </div>
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyAem227DiziypXlJpa1FCqzvAH-gD0K750",
-        authDomain: "workboard-fdf84.firebaseapp.com",
-        projectId: "workboard-fdf84",
-        appId: "1:412387128397:web:f3e5701388b90425831804",
-      };
+    <div class="stat-card">
+      <div class="card-text">
+        <h4>Completion</h4>
+        <p class="value">0%</p>
+        <span>No progress yet</span>
+      </div>
+      <img class="icon" src="../Assets/icons/icons8-task-completed-48.png"/>
+    </div>
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
+  </div>
+</section>
 
-      // Toast
-      function showToast(message) {
-        const toast = document.getElementById("toast");
-        toast.textContent = message;
-        toast.classList.add("show");
+  <div class="dashboard-grid">
+            
+<!-- ================= TASKS ================= -->
+<section class="tasks">
+  <h3>Recent Active Tasks</h3>
 
-        setTimeout(() => {
-          toast.classList.remove("show");
-        }, 2000);
-      }
+  <div class="empty-tasks">
+    <h4>No tasks yet</h4>
+    <p>Start organizing your work by creating your first task.</p>
 
-      // Email login
-      const form = document.getElementById("login-form");
+    <button class="cta-btn" id="openModal2">+ Create Task</button>
+  </div>
+</section>
 
-        form.addEventListener("submit", async (e) => {
-  e.preventDefault();
+<!-- ================= ACTIVITY ================= -->
+<section class="activity">
+  <h3>Activity Feed</h3>
 
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
+  <div class="empty-activity">
+    <p>No activity yet</p>
+    <span>Your actions will appear here once you start creating tasks.</span>
+  </div>
+</section>
 
-  // 🚫 STOP if fields are empty (prevents auto-submit issue)
-  if (!email || !password) {
-    return;
-  }
+  </div>
 
-  try {
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
+<!-- ================= MODAL ================= -->
+<div class="modal-overlay" id="modal">
 
-    console.log("Logged in:", userCredential.user);
-    showToast("Login successful");
+  <div class="modal-card">
+    <div class="modal-content">
 
-    setTimeout(() => {
-      window.location.href = "../index.html";
-    }, 1000);
+      <div class="header">
+        <h2>Create New Task</h2>
 
-  } catch (error) {
-    let message = "Login failed. Please try again.";
+      </div>
 
-    switch (error.code) {
-      case "auth/wrong-password":
-        message = "Incorrect password.";
-        break;
-      case "auth/user-not-found":
-        message = "No account found.";
-        break;
-      case "auth/invalid-email":
-        message = "Invalid email.";
-        break;
-      case "auth/too-many-requests":
-        message = "Too many attempts. Try later.";
-        break;
-    }
+      <div class="subtitle">
+        Add a new task to your project board. Fill in the details below.
+      </div>
 
-    showToast(message);
-  }
+      <label>Task Title</label>
+      <input type="text" placeholder="e.g. Design new landing page"/>
+
+      <label>Description</label>
+      <textarea placeholder="Describe the task in detail..."></textarea>
+
+      <div class="row">
+        <div class="field">
+          <label>Priority</label>
+          <select>
+            <option>medium</option>
+            <option>low</option>
+            <option>high</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Due Date</label>
+          <input type="date"/>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Status</label>
+          <select>
+            <option>todo</option>
+            <option>in progress</option>
+            <option>done</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Assignee</label>
+          <select>
+            <option>u1</option>
+            <option>u2</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="button-primary">Create Task</button>
+      <button class="button-secondary" id="cancelModal">Cancel</button>
+
+    </div>
+  </div>
+
+</div>
+
+</main>
+    </div>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+const sidebar = document.getElementById("sidebar");
+const menuBtn = document.getElementById("menuBtn");
+const overlay = document.getElementById("overlay");
+
+menuBtn.addEventListener("click", () => {
+  sidebar.classList.add("open");
+  overlay.classList.add("show");
 });
 
-
-// Google (Coming Soon)
-document.getElementById("google-btn").addEventListener("click", () => {
-  showToast("Google sign-in coming soon");
+overlay.addEventListener("click", () => {
+  sidebar.classList.remove("open");
+  overlay.classList.remove("show");
 });
 
-// GitHub (Coming Soon)
-document.getElementById("github-btn").addEventListener("click", () => {
-  showToast("GitHub sign-in coming soon");
+/* MODAL */
+const modal = document.getElementById("modal");
+
+document.getElementById("openModal").onclick = () =>
+  modal.style.display = "flex";
+
+document.getElementById("openModal2").onclick = () =>
+  modal.style.display = "flex";
+
+document.getElementById("closeModal").onclick =
+document.getElementById("cancelModal").onclick = () =>
+  modal.style.display = "none";
+
+modal.onclick = (e) => {
+  if (e.target === modal) modal.style.display = "none";
+};
+
+document.querySelectorAll(".menu-item").forEach(item => {
+  item.addEventListener("click", () => {
+    document.querySelector(".menu-item.active")?.classList.remove("active");
+    item.classList.add("active");
+  });
 });
-    </script>
-  </body>
+</script>
+
+</body>
 </html>
 
 
-d
-d
-d
 
-d
-dd
-dd
+gg
 
-d
-d
-d
-d
-d
-d
-d
+g
+g
+g
+gg
+g
+g
+g
+g
+g
+g
+@font-face {
+  font-family: poppins;
+  src: url("./Assets/fonts/Poppins-SemiBold.ttf");
+}
 
-d
-d
-d
-d
-d
-d
-d
-d
-d
-d
-d
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: poppins;
+}
 
-d
-d
-d
-d
-d
-d
-d
-d
+/* ================= BODY ================= */
+body {
+  background: #ffffff;
+  color: #111;
+  padding: 20px;
+  overflow-x: hidden;
+}
+
+/* ================= APP LAYOUT ================= */
+.app-layout {
+  display: flex;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 70%;
+  max-width: 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, #0f172a, #020617);
+  color: #cbd5f5;
+  padding: 20px 15px;
+  transition: 0.3s ease;
+  z-index: 100;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-footer {
+    
+  margin-top: auto;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px 15px;
+  border-radius: 10px;
+
+  text-decoration: none;
+  color: #9ca3af;
+}
+
+.logout-btn:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+
+.logout-btn .icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ================= OVERLAY ================= */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.3s;
+  z-index: 90;
+}
+
+.overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ================= LOGO ================= */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+  color: #fff;
+  font-size: 18px;
+}
+
+.logo-icon {
+  width: 35px;
+  height: 35px;
+  background: #3b82f6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-icon-1 {
+  width: 22px;
+  height: 22px;
+}
+
+/* ================= MENU ================= */
+
+.menu-list {
+  list-style: none;
+}
+
+.menu-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.menu-list li:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.menu-list li.active {
+  background: rgba(59,130,246,0.2);
+  color: #fff;
+}
+
+/* ================= MAIN ================= */
+.main-content {
+  flex: 1;
+}
+
+/* ================= TOPBAR ================= */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px; /* 🔥 spacing fix */
+}
+
+.menu-icon {
+  width: 24px;
+  cursor: pointer;
+}
+
+.title {
+  font-weight: bold;
+}
+
+/* 🔥 SEARCH FIX */
+.search {
+  width: 250px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 2px solid #cad5e2;
+}
+
+/* ================= SECTIONS ================= */
+.welcome,
+.overview,
+.tasks,
+.activity {
+  margin-bottom: 25px; /* 🔥 spacing fix */
+}
+
+
+
+.overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px; /* 🔥 spacing */
+}
+
+/* ================= BUTTONS ================= */
+.primary-btn,
+.cta-btn {
+  background: #155dfc;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* 🔥 MODAL BUTTONS FIXED */
+.button-primary {
+  width: 100%;
+  background: linear-gradient(90deg,#3b82f6,#2563eb);
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 15px;
+  cursor: pointer;
+}
+
+.button-secondary {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 2px solid #cad5e2;
+  background: #fff;
+  cursor: pointer;
+}
+
+/* ================= CARDS ================= */
+.cards {
+  display: grid;
+  gap: 15px; /* 🔥 more breathing */
+  margin-top: 10px;
+}
+
+.stat-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 2px solid #cad5e2;
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.icon img {
+  width: 20px;
+}
+
+.value{
+    font-size: 35px;
+}
+
+/* ================= EMPTY STATES ================= */
+.empty-tasks,
+.empty-activity {
+  border-radius: 12px;
+  padding: 25px;
+}
+
+.empty-tasks {
+  border: 2px dashed #cad5e2;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.empty-tasks h4 {
+    margin-bottom: 10px;
+}
+
+.empty-activity {
+  border: 2px solid #cad5e2;
+  text-align: center;
+   margin-top: 20px;
+}
+
+
+.empty-activity p{
+    margin-bottom: 10px;
+}
+
+/* ================= MODAL ================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(10px);
+  z-index: 200;
+  padding: 20px;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 450px;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  border: 2px solid #cad5e2;
+}
+
+/* ================= FORM ================= */
+label {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 10px 0 5px;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px solid #cad5e2;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border: 3px solid #9ca3af;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+
+/* ================= MOBILE ================= */
+
+
+@media (max-width: 480px) {
+    .title{
+        display: none
+    }
+}
+
+/* ================= TABLET ================= */
+@media (min-width: 768px) and (max-width: 1023px) {
+
+  body {
+    padding: 0;
+  }
+
+  .sidebar {
+    position: relative;
+    left: 0;
+    width: 220px;
+  }
+
+  .overlay {
+    display: none !important;
+  }
+
+  .menu-icon {
+    display: none;
+  }
+
+  .main-content {
+    padding: 25px;
+  }
+
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 25px;
+  }
+}
+
+/* ================= DESKTOP ================= */
+@media (min-width: 1024px) {
+
+  body {
+    padding: 0;
+  }
+
+  .sidebar {
+    position: relative;
+    left: 0;
+    width: 260px;
+  }
+
+  .overlay {
+    display: none !important;
+  }
+
+  .menu-icon {
+    display: none;
+  }
+
+  .main-content {
+    padding: 30px 40px;
+  }
+
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+  }
+
+  /* 🔥 SEARCH POSITION FIX */
+  .topbar {
+    justify-content: space-between;
+  }
+
+  .search {
+    width: 300px;
+  }
+}
+
+
+
+
+local storage
+
+/ GET ALL TASKS
+function getTasks() {
+  return JSON.parse(localStorage.getItem(TASK_KEY)) || [];
+}
+
+// SAVE TASKS
+function saveTasks(tasks) {
+  localStorage.setItem(TASK_KEY, JSON.stringify(tasks));
+}
+
+// CREATE TASK
+function createTask(task) {
+  const tasks = getTasks();
+  tasks.push(task);
+  saveTasks(tasks);
+}
+
+// DELETE TASK
+function deleteTask(id) {
+  let tasks = getTasks();
+  tasks = tasks.filter((t) => t.id !== id);
+  saveTasks(tasks);
+}
+
+// UPDATE TASK
+function updateTask(id, updates) {
+  const tasks = getTasks();
+
+  const updated = tasks.map((task) =>
+    task.id === id ? { ...task, ...updates } : task
+  );
+
+  saveTasks(updated);
+}
+
+
+
+
+
+
+import { createTask, getTasks} from "./task-engine.js";
+
+console.log("getTasks import:", getTasks);
+
+
+
+// ================= SIDEBAR =================
+const sidebar = document.getElementById("sidebar");
+const menuBtn = document.getElementById("menuBtn");
+const overlay = document.getElementById("overlay");
+
+if (menuBtn && sidebar && overlay) {
+  menuBtn.addEventListener("click", () => {
+    sidebar.classList.add("open");
+    overlay.classList.add("show");
+  });
+
+  overlay.addEventListener("click", () => {
+    sidebar.classList.remove("open");
+    overlay.classList.remove("show");
+  });
+}
+
+// ================= MODAL =================
+const modal = document.getElementById("modal");
+const openBtn1 = document.getElementById("openModal");
+const openBtn2 = document.getElementById("openModal2");
+const cancelBtn = document.getElementById("cancelModal");
+
+function openModal() {
+  if (modal) modal.style.display = "flex";
+}
+
+function closeModal() {
+  if (modal) modal.style.display = "none";
+}
+
+if (openBtn1) openBtn1.addEventListener("click", openModal);
+if (openBtn2) openBtn2.addEventListener("click", openModal);
+
+if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+
+if (modal) {
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+}
+
+
+const createBtn = document.querySelector(".button-primary");
+
+createBtn?.addEventListener("click", async () => {
+  console.log("CREATE BUTTON CLICKED");
+
+  const modalEl = document.getElementById("modal");
+
+  const title = modalEl.querySelector('input[type="text"]').value.trim();
+  const desc = modalEl.querySelector("textarea").value.trim();
+  const priority = modalEl.querySelectorAll("select")[0].value;
+  const dueDate = modalEl.querySelector('input[type="date"]').value;
+  const status = modalEl.querySelectorAll("select")[1].value;
+
+  console.log("TITLE VALUE:", title); // debug
+
+  if (!title) {
+    alert("Task title is required");
+    return;
+  }
+
+  await createTask({
+    title,
+    desc,
+    priority,
+    dueDate,
+    status
+  });
+
+  console.log("REAL TASK SENT");
+
+  // clear fields
+  modalEl.querySelector('input[type="text"]').value = "";
+  modalEl.querySelector("textarea").value = "";
+  modalEl.querySelector('input[type="date"]').value = "";
+
+  closeModal();
+});
+
+// ================= ACTIVE SIDEBAR =================
+const menuItems = document.querySelectorAll(".menu-item");
+
+menuItems.forEach((item) => {
+  item.addEventListener("click", () => {
+    document.querySelector(".menu-item.active")?.classList.remove("active");
+    item.classList.add("active");
+  });
+});
+
+const user = JSON.parse(localStorage.getItem("workboard_user"));
+
+const welcomeHeader = document.querySelector(".welcome h1");
+
+if (user && welcomeHeader) {
+  welcomeHeader.textContent = `Welcome back, ${user.name}`;
+}
+
+const tasksContainer = document.querySelector(".empty-tasks");
+
+async function loadTasks() {
+  const tasks = await getTasks();
+
+  console.log("LOADED TASKS:", tasks);
+
+  if (!tasks.length) return;
+
+  tasksContainer.innerHTML = tasks.map(task => `
+    <div class="task-card">
+      <h4>${task.title}</h4>
+      <p>${task.desc || ""}</p>
+
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <small>⚡ ${task.priority}</small>
+        <small>📌 ${task.status}</small>
+        <small>📅 ${task.dueDate || "No date"}</small>
+      </div>
+    </div>
+  `).join("");
+
+  document.querySelector(".empty-tasks")?.style.display = "none";
+}
+
+
+loadTasks();

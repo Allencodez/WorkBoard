@@ -1,4 +1,4 @@
-// scripts/ui.js
+// ================= TOAST =================
 export function showToast(message) {
   const toast = document.getElementById("toast");
   if (!toast) return;

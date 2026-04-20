@@ -1,0 +1,69 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Task Card</title>
+  <link rel="stylesheet" href="../create-task.css" />
+</head>
+<body>
+
+<div class="card">
+  <div class="header">
+    <h2>Create New Task</h2>
+    <div class="close">&times;</div>
+  </div>
+
+  <div class="subtitle">
+    Add a new task to your project board. Fill in the details below.
+  </div>
+
+  <label>Task Title</label>
+  <input type="text" placeholder="e.g. Design new landing page" />
+
+  <label>Description</label>
+  <textarea placeholder="Describe the task in detail..."></textarea>
+
+  <div class="row">
+    <div class="field">
+      <label>Priority</label>
+      <select>
+        <option>medium</option>
+        <option>low</option>
+        <option>high</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Due Date</label>
+      <input type="date" />
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>Status</label>
+      <select>
+        <option>todo</option>
+        <option>in progress</option>
+        <option>done</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Assignee</label>
+      <select>
+        <option>u1</option>
+        <option>u2</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="button-primary">Create Task</button>
+  <a href="dashboard.html" class="button-secondary">Cancel</a>
+</div>
+
+</body>
+</html>
+

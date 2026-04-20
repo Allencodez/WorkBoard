@@ -15,7 +15,7 @@
             <div class="foot-1-2">
               <img
                 class="logo-bg"
-                src="../Assets/icons/icons8-dashboard-layout-48.png"
+                src="../Assets/icons/icons8-dashboard-24.png"
                 alt="pre-designed logo"
               />
             </div>
@@ -37,11 +37,7 @@
           <p class="sub">Choose your preferred sign up method</p>
 
           <div class="socks">
-            <button
-              class="social-btn google-btn"
-              type="button"
-              onclick="showToast('Google sign-in coming soon')"
-            >
+            <button class="social-btn google-btn" type="button" id="google-btn">
               <img
                 src="../Assets/icons/icons8-chrome-48.png"
                 class="icon-img"
@@ -49,11 +45,7 @@
               Google
             </button>
 
-            <button
-              class="social-btn github-btn"
-              type="button"
-              onclick="showToast('GitHub sign-in coming soon')"
-            >
+            <button class="social-btn github-btn" type="button" id="github-btn">
               <img
                 src="../Assets/icons/icons8-github-64.png"
                 class="icon-img"
@@ -86,7 +78,7 @@
           <div class="password-row">
             <div>
               <label>Password</label>
-              <input id="password" type="password"  required />
+              <input id="password" type="password" required />
             </div>
 
             <div>
@@ -100,32 +92,33 @@
             <p class="req-title">Password Requirements</p>
 
             <div class="password-card">
-  <p class="req-title">Password must contain:</p>
+              <p class="req-title">Password must contain:</p>
 
-  <ul class="req-list">
-    <li>
-      <input type="checkbox" id="check-length" disabled />
-      At least 8 characters
-    </li>
-    <li>
-      <input type="checkbox" id="check-uppercase" disabled />
-      One uppercase letter
-    </li>
-    <li>
-      <input type="checkbox" id="check-number" disabled />
-      One number
-    </li>
-    <li>
-      <input type="checkbox" id="check-match" disabled />
-      Passwords match
-    </li>
-  </ul>
-</div>
-
+              <ul class="req-list">
+                <li>
+                  <input type="checkbox" id="check-length" disabled />
+                  At least 8 characters
+                </li>
+                <li>
+                  <input type="checkbox" id="check-uppercase" disabled />
+                  One uppercase letter
+                </li>
+                <li>
+                  <input type="checkbox" id="check-number" disabled />
+                  One number
+                </li>
+                <li>
+                  <input type="checkbox" id="check-match" disabled />
+                  Passwords match
+                </li>
+              </ul>
+            </div>
           </div>
 
           <!-- 🔥 THIS MUST SUBMIT -->
-          <button type="submit" class="primary" id="signup-btn" >Create Account</button>
+          <button type="submit" class="primary" id="signup-btn">
+            Create Account
+          </button>
         </form>
         <!-- 🔥 FORM END -->
 
@@ -136,111 +129,6 @@
         </p>
       </div>
     </div>
-
-    <script>
-      function showToast(message) {
-        const toast = document.getElementById("toast");
-        toast.textContent = message;
-        toast.classList.add("show");
-
-        setTimeout(() => {
-          toast.classList.remove("show");
-        }, 1500);
-      }
-
-       const password = document.getElementById("password");
-const confirmPassword = document.getElementById("confirm-password");
-
-// checkboxes
-const checkLength = document.getElementById("check-length");
-const checkUpper = document.getElementById("check-uppercase");
-const checkNumber = document.getElementById("check-number");
-const checkMatch = document.getElementById("check-match");
-
-// signup button
-const signupBtn = document.getElementById("signup-btn");
-
-function validatePassword() {
-  const pass = password.value;
-  const confirm = confirmPassword.value;
-
-  // rules
-  const isLength = pass.length >= 8;
-  const hasUpper = /[A-Z]/.test(pass);
-  const hasNumber = /[0-9]/.test(pass);
-  const isMatch = pass !== "" && pass === confirm;
-
-  // tick checkboxes
-  checkLength.checked = isLength;
-  checkUpper.checked = hasUpper;
-  checkNumber.checked = hasNumber;
-  checkMatch.checked = isMatch;
-
-  // enable button only if all true
-  signupBtn.disabled = !(isLength && hasUpper && hasNumber && isMatch);
-}
-
-// listen for typing
-password.addEventListener("input", validatePassword);
-confirmPassword.addEventListener("input", validatePassword);
-
-    </script>
-
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-      import {
-        getAuth,
-        createUserWithEmailAndPassword,
-      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyAem227DiziypXlJpa1FCqzvAH-gD0K750",
-        authDomain: "workboard-fdf84.firebaseapp.com",
-        projectId: "workboard-fdf84",
-        storageBucket: "workboard-fdf84.firebasestorage.app",
-        messagingSenderId: "412387128397",
-        appId: "1:412387128397:web:f3e5701388b90425831804",
-      };
-
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-
-      const form = document.getElementById("signup-form");
-
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault(); // 🔥 STOPS PAGE REFRESH
-
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-        const confirmPassword =
-          document.getElementById("confirm-password").value;
-        const fullName = document.getElementById("full-name").value;
-        const role = document.getElementById("role").value;
-
-        // basic validation
-        if (password !== confirmPassword) {
-          alert("Passwords do not match");
-          return;
-        }
-
-        try {
-          const userCredential = await createUserWithEmailAndPassword(
-            auth,
-            email,
-            password
-          );
-
-          console.log("User created:", userCredential.user);
-
-          alert("Account created successfully 🎉");
-
-          // optional redirect
-          window.location.href = "./log-in.html";
-        } catch (error) {
-          alert(error.message);
-          console.error(error);
-        }
-      });
-    </script>
+    <script type="module" src="../scripts/auth.js"></script>
   </body>
 </html>

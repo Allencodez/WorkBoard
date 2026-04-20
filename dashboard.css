@@ -1,0 +1,438 @@
+@font-face {
+  font-family: poppins;
+  src: url("./Assets/fonts/Poppins-SemiBold.ttf");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: poppins;
+}
+
+/* ================= BODY ================= */
+body {
+  background: #ffffff;
+  color: #111;
+  padding: 20px;
+  overflow-x: hidden;
+}
+
+/* ================= APP LAYOUT ================= */
+.app-layout {
+  display: flex;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 70%;
+  max-width: 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, #0f172a, #020617);
+  color: #cbd5f5;
+  padding: 20px 15px;
+  transition: 0.3s ease;
+  z-index: 100;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-footer {
+    
+  margin-top: auto;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px 15px;
+  border-radius: 10px;
+
+  text-decoration: none;
+  color: #9ca3af;
+}
+
+.logout-btn:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+
+.logout-btn .icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ================= OVERLAY ================= */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.3s;
+  z-index: 90;
+}
+
+.overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ================= LOGO ================= */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+  color: #fff;
+  font-size: 18px;
+text-decoration: none;
+}
+
+.logo-icon {
+  width: 35px;
+  height: 35px;
+  background: #3b82f6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-icon-1 {
+  width: 22px;
+  height: 22px;
+}
+
+.logo-link,
+.logo-link:visited,
+.logo-link:hover,
+.logo-link:active {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ================= MENU ================= */
+
+.menu-list {
+  list-style: none;
+}
+
+.menu-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.menu-list li:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.menu-list li.active {
+  background: rgba(59,130,246,0.2);
+  color: #fff;
+}
+
+/* ================= MAIN ================= */
+.main-content {
+  flex: 1;
+}
+
+/* ================= TOPBAR ================= */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px; /* 🔥 spacing fix */
+}
+
+.menu-icon {
+  width: 24px;
+  cursor: pointer;
+}
+
+.title {
+  font-weight: bold;
+}
+
+/* 🔥 SEARCH FIX */
+.search {
+  width: 250px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 2px solid #cad5e2;
+}
+
+/* ================= SECTIONS ================= */
+.welcome,
+.overview,
+.tasks,
+.activity {
+  margin-bottom: 25px; /* 🔥 spacing fix */
+}
+
+
+
+.overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px; /* 🔥 spacing */
+}
+
+/* ================= BUTTONS ================= */
+.primary-btn,
+.cta-btn {
+  background: #155dfc;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* 🔥 MODAL BUTTONS FIXED */
+.button-primary {
+  width: 100%;
+  background: linear-gradient(90deg,#3b82f6,#2563eb);
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 15px;
+  cursor: pointer;
+}
+
+.button-secondary {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 2px solid #cad5e2;
+  background: #fff;
+  cursor: pointer;
+}
+
+/* ================= CARDS ================= */
+.cards {
+  display: grid;
+  gap: 15px; /* 🔥 more breathing */
+  margin-top: 10px;
+}
+
+.stat-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 2px solid #cad5e2;
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.icon img {
+  width: 20px;
+}
+
+.value{
+    font-size: 35px;
+}
+
+/* ================= EMPTY STATES ================= */
+.empty-tasks,
+.empty-activity {
+  border-radius: 12px;
+  padding: 25px;
+}
+
+.empty-tasks {
+  border: 2px dashed #cad5e2;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.empty-tasks h4 {
+    margin-bottom: 10px;
+}
+
+.empty-activity {
+  border: 2px solid #cad5e2;
+  text-align: center;
+   margin-top: 20px;
+}
+
+
+.empty-activity p{
+    margin-bottom: 10px;
+}
+
+/* ================= MODAL ================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(10px);
+  z-index: 200;
+  padding: 20px;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 450px;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  border: 2px solid #cad5e2;
+}
+
+/* ================= FORM ================= */
+label {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 10px 0 5px;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px solid #cad5e2;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border: 3px solid #9ca3af;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+
+/* ================= MOBILE ================= */
+
+
+@media (max-width: 480px) {
+    .title{
+        display: none
+    }
+}
+
+/* ================= TABLET ================= */
+@media (min-width: 768px) and (max-width: 1023px) {
+
+  body {
+    padding: 0;
+  }
+
+  .sidebar {
+    position: relative;
+    left: 0;
+    width: 220px;
+  }
+
+  .overlay {
+    display: none !important;
+  }
+
+  .menu-icon {
+    display: none;
+  }
+
+  .main-content {
+    padding: 25px;
+  }
+
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 25px;
+  }
+}
+
+/* ================= DESKTOP ================= */
+@media (min-width: 1024px) {
+
+  body {
+    padding: 0;
+  }
+
+  .sidebar {
+    position: relative;
+    left: 0;
+    width: 260px;
+  }
+
+  .overlay {
+    display: none !important;
+  }
+
+  .menu-icon {
+    display: none;
+  }
+
+  .main-content {
+    padding: 30px 40px;
+  }
+
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+  }
+
+  /* 🔥 SEARCH POSITION FIX */
+  .topbar {
+    justify-content: space-between;
+  }
+
+  .search {
+    width: 300px;
+  }
+}
+
+/* TASK */
+
+.task-card {
+  border: 2px solid #cad5e2;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  background: #fff;
+}

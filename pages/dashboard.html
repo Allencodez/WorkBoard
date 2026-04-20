@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WorkBoard Dashboard</title>
+
+  <link rel="stylesheet" href="../dashboard.css"/>
+</head>
+
+<body>
+
+    <div class="app-layout">
+             
+<!-- ================= OVERLAY ================= -->
+<div class="overlay" id="overlay"></div>
+
+
+<!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar" id="sidebar">
+
+  <a href="../index.html" class="logo-link">
+    <div class="logo">
+      <div class="logo-icon">
+        <img class="logo-icon-1" src="../Assets/icons/icons8-dashboard-24.png" alt="logo">
+      </div>
+      <span>WorkBoard</span>
+    </div>
+  </a>
+
+  <ul class="menu-list">
+    <li class="menu-item active">
+      <span class="icon">
+        <img src="../Assets/icons/icons8-dashboard-24.png" alt="dashboard">
+      </span>
+      <span class="text">Dashboard</span>
+    </li>
+
+    <li class="menu-item">
+      <span class="icon">
+        <img src="../Assets/icons/icons8-activity-feed-24.png" alt="tasks">
+      </span>
+      <span class="text">Tasks</span>
+    </li>
+
+    <li class="menu-item">
+      <span class="icon">
+        <img src="../Assets/icons/icons8-user-account-48.png" alt="team">
+      </span>
+      <span class="text">Team</span>
+    </li>
+
+    <li class="menu-item">
+      <span class="icon">
+        <img src="../Assets/icons/icons8-notification-48.png" alt="notifications">
+      </span>
+      <span class="text">Activity</span>
+    </li>
+  </ul>
+
+  <!-- ✅ LOGOUT INSIDE SIDEBAR -->
+  <div class="sidebar-footer">
+    <a href="./log-in.html" class="logout-btn">
+      <span class="icon">
+        <img src="../Assets/icons/icons8-logout-48.png" alt="logout">
+      </span>
+      <span class="text">Logout</span>
+    </a>
+  </div>
+
+</aside>
+
+<!-- ================= TOP BAR ================= -->
+
+<main class="main-content">
+
+    <header class="topbar">
+
+  <!-- ONLY MENU BUTTON (WORKS NOW) -->
+  <img
+    src="../Assets/icons/icons8-menu-50.png"
+    class="menu-icon"
+    id="menuBtn"
+    alt="menu"
+  />
+
+  <div class="title">Dashboard</div>
+  <input type="text" class="search" placeholder="Search..."/>
+</header>
+
+<!-- ================= WELCOME ================= -->
+<section class="welcome">
+  <h1>Welcome back, Allen</h1>
+  <p>Here’s what’s happening with your project today.</p>
+</section>
+
+<!-- ================= OVERVIEW ================= -->
+<section class="overview">
+
+  <div class="overview-header">
+    <h3>Project Overview</h3>
+    <button class="primary-btn" id="openModal">+ Create Task</button>
+  </div>
+
+  <div class="cards">
+
+    <div class="stat-card">
+      <div class="card-text">
+        <h4>In Progress</h4>
+        <p class="value">0</p>
+        <span>No tasks yet</span>
+      </div>
+      <img class="icon" src="../Assets/icons/icons8-in-progress-48.png"/>
+    </div>
+
+    <div class="stat-card">
+      <div class="card-text">
+        <h4>Upcoming</h4>
+        <p class="value">0</p>
+        <span>Nothing scheduled</span>
+      </div>
+      <img style="width: 44px; height: 45px;" class="icon" src="../Assets/icons/icons8-today-64.png"/>
+    </div>
+
+    <div class="stat-card">
+      <div class="card-text">
+        <h4>Completion</h4>
+        <p class="value">0%</p>
+        <span>No progress yet</span>
+      </div>
+      <img class="icon" src="../Assets/icons/icons8-task-completed-48.png"/>
+    </div>
+
+  </div>
+</section>
+
+  <div class="dashboard-grid">
+            
+<!-- ================= TASKS ================= -->
+<section class="tasks">
+  <h3>Recent Active Tasks</h3>
+
+  <div class="empty-tasks">
+    <h4>No tasks yet</h4>
+    <p>Start organizing your work by creating your first task.</p>
+
+    <button class="cta-btn" id="openModal2">+ Create Task</button>
+  </div>
+</section>
+
+<!-- ================= ACTIVITY ================= -->
+<section class="activity">
+  <h3>Activity Feed</h3>
+
+  <div class="empty-activity">
+    <p>No activity yet</p>
+    <span>Your actions will appear here once you start creating tasks.</span>
+  </div>
+</section>
+
+  </div>
+
+<!-- ================= MODAL ================= -->
+    <!-- ================= MODAL ================= -->
+<div class="modal-overlay" id="modal">
+
+  <div class="modal-card">
+    <div class="modal-content">
+
+      <div class="header">
+        <h2>Create New Task</h2>
+      </div>
+
+      <div class="subtitle">
+        Add a new task to your project board. Fill in the details below.
+      </div>
+
+      <!-- TASK TITLE -->
+      <label>Task Title</label>
+      <input 
+        type="text" 
+        id="taskTitle"
+        placeholder="e.g. Design new landing page"
+      />
+
+      <!-- DESCRIPTION -->
+      <label>Description</label>
+      <textarea 
+        id="taskDescription"
+        placeholder="Describe the task in detail..."
+      ></textarea>
+
+      <div class="row">
+        <div class="field">
+          <label>Priority</label>
+          <select id="taskPriority">
+            <option value="medium">medium</option>
+            <option value="low">low</option>
+            <option value="high">high</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Due Date</label>
+          <input type="date" id="taskDueDate"/>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Status</label>
+          <select id="taskStatus">
+            <option value="todo">todo</option>
+            <option value="in progress">in progress</option>
+            <option value="done">done</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Assignee</label>
+          <select id="taskAssignee">
+            <option value="u1">u1</option>
+            <option value="u2">u2</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <button class="button-primary" id="createTaskBtn">
+        Create Task
+      </button>
+
+      <button class="button-secondary" id="cancelModal">
+        Cancel
+      </button>
+
+    </div>
+  </div>
+
+</div>
+    
+
+</main>
+    </div>
+
+<!-- ================= SCRIPT ================= -->
+  <script type="module" src="../scripts/ui1.js"></script>
+
+</body>
+</html>
