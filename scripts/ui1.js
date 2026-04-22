@@ -1,25 +1,13 @@
-import { createTask, getTasks} from "./task-engine.js";
+import { createTask } from "./task-engine.js";
+import { db } from "./firebase.js";
+import { 
+  collection, 
+  onSnapshot, 
+  query, 
+  orderBy 
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-console.log("getTasks import:", getTasks);
 
-
-
-// ================= SIDEBAR =================
-const sidebar = document.getElementById("sidebar");
-const menuBtn = document.getElementById("menuBtn");
-const overlay = document.getElementById("overlay");
-
-if (menuBtn && sidebar && overlay) {
-  menuBtn.addEventListener("click", () => {
-    sidebar.classList.add("open");
-    overlay.classList.add("show");
-  });
-
-  overlay.addEventListener("click", () => {
-    sidebar.classList.remove("open");
-    overlay.classList.remove("show");
-  });
-}
 
 // ================= MODAL =================
 const modal = document.getElementById("modal");
@@ -46,88 +34,162 @@ if (modal) {
   });
 }
 
-
-const createBtn = document.querySelector(".button-primary");
+const createBtn = document.getElementById("createTaskBtn");
 
 createBtn?.addEventListener("click", async () => {
-  console.log("CREATE BUTTON CLICKED");
+  console.log("CREATE CLICKED");
 
-  const modalEl = document.getElementById("modal");
+  try {
+    const title = document.getElementById("taskTitle").value.trim();
+    const desc = document.getElementById("taskDescription").value.trim();
+    const priority = document.getElementById("taskPriority").value;
+    const dueDate = document.getElementById("taskDueDate").value;
+    const status = document.getElementById("taskStatus").value;
+    const assignee = document.getElementById("taskAssignee").value;
 
-  const title = modalEl.querySelector('input[type="text"]').value.trim();
-  const desc = modalEl.querySelector("textarea").value.trim();
-  const priority = modalEl.querySelectorAll("select")[0].value;
-  const dueDate = modalEl.querySelector('input[type="date"]').value;
-  const status = modalEl.querySelectorAll("select")[1].value;
+    if (!title) {
+      alert("Task title is required");
+      return;
+    }
 
-  console.log("TITLE VALUE:", title); // debug
+    // 🔥 WAIT for Firebase
+    await createTask({
+      title,
+      desc,
+      priority,
+      dueDate,
+      status,
+      assignee
+    });
 
-  if (!title) {
-    alert("Task title is required");
+    console.log("TASK CREATED SUCCESS");
+
+    // ✅ clear inputs
+    document.getElementById("taskTitle").value = "";
+    document.getElementById("taskDescription").value = "";
+    document.getElementById("taskDueDate").value = "";
+
+    // ✅ CLOSE MODAL
+    closeModal();
+
+  } catch (error) {
+    console.error("CREATE ERROR:", error);
+    alert("Task failed to create");
+  }
+});
+
+
+// RENDER FUNCTION
+
+function renderTasks(tasks) {
+  const container = document.querySelector(".empty-tasks");
+
+  if (!tasks.length) {
+    container.innerHTML = `
+      <h4>No tasks yet</h4>
+      <p>Start organizing your work by creating your first task.</p>
+      <button class="cta-btn" id="openModal2">+ Create Task</button>
+    `;
     return;
   }
 
-  await createTask({
-    title,
-    desc,
-    priority,
-    dueDate,
-    status,
-    assignee
+  container.innerHTML = ""; // 🔥 clears duplicates
+
+  tasks.forEach(task => {
+    const div = document.createElement("div");
+    div.className = `task-card ${task.status.toLowerCase().replace(" ", "-")}`;
+
+   div.innerHTML = `
+  <div class="task-card-inner">
+
+    <div class="task-top">
+   <span class="task-priority ${task.priority}">${task.priority}</span>
+     <span class="task-status ${task.status.toLowerCase()}">${task.status}</span>
+    </div>
+
+    <div class="task-title">
+      ${task.title}
+    </div>
+
+    <div class="task-bottom">
+      <span class="task-date">
+       ${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ""}
+      </span>
+    </div>
+
+  </div>
+`;
+
+    container.appendChild(div);
   });
-
-  closeModal();
-  await loadTasks();
+}
 
 
-  console.log("REAL TASK SENT");
+// ONSNAPSHOT
 
-  // clear fields
-  modalEl.querySelector('input[type="text"]').value = "";
-  modalEl.querySelector("textarea").value = "";
-  modalEl.querySelector('input[type="date"]').value = "";
+ const tasksContainer = document.querySelector(".empty-tasks");
 
-  closeModal();
+const tasksRef = collection(db, "tasks");
+
+const q = query(tasksRef, orderBy("createdAt", "desc"));
+
+onSnapshot(q, (snapshot) => {
+  const tasks = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+
+  const limitedTasks = tasks.slice(0, 5);
+renderTasks(limitedTasks);
+
 });
 
-// ================= ACTIVE SIDEBAR =================
-const menuItems = document.querySelectorAll(".menu-item");
+// NOMENCLATURE
 
-menuItems.forEach((item) => {
-  item.addEventListener("click", () => {
-    document.querySelector(".menu-item.active")?.classList.remove("active");
-    item.classList.add("active");
-  });
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const auth = getAuth();
+
+onAuthStateChanged(auth, (user) => {
+  const welcomeHeader = document.querySelector(".welcome h1");
+
+  if (user && welcomeHeader) {
+    const name = user.email.split("@")[0];
+    welcomeHeader.textContent = `Welcome back, ${name}`;
+  }
 });
 
-const user = JSON.parse(localStorage.getItem("workboard_user"));
+// AUTO SWITCH ACTRIVE MENU
 
-const welcomeHeader = document.querySelector(".welcome h1");
+document.addEventListener("DOMContentLoaded", () => {
 
-if (user && welcomeHeader) {
-  welcomeHeader.textContent = `Welcome back, ${user.name}`;
-}
+  const menuItems = document.querySelectorAll(".menu-item");
 
-const tasksContainer = document.querySelector(".empty-tasks");
+  // detect current page
+  const path = window.location.pathname;
 
-async function loadTasks() {
-  const tasks = await getTasks();
+  let currentPage = "";
 
-  console.log("LOADED TASKS:", tasks);
+  if (path.includes("dashboard.html") || path === "/") {
+    currentPage = "dashboard";
+  } 
+  else if (path.includes("tasks.html")) {
+    currentPage = "tasks";
+  } 
+  else if (path.includes("team")) {
+    currentPage = "team";
+  } 
+  else if (path.includes("activity")) {
+    currentPage = "activity";
+  }
 
-  if (!tasks.length) return;
+  // apply active class
+  menuItems.forEach(item => {
+    item.classList.remove("active");
 
-  tasksContainer.innerHTML = tasks.map(task => {
-    return `
-      <div class="task-card">
-        <h4>${task.title}</h4>
-        <p>${task.desc || ""}</p>
-      </div>
-    `;
-  }).join("");
- 
-  if (emptyState && tasks.length > 0) {
-  emptyState.style.display = "none";
-}
+    if (item.dataset.page === currentPage) {
+      item.classList.add("active");
+    }
+  });
 
-}
+});

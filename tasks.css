@@ -1,0 +1,360 @@
+@font-face {
+  font-family: poppins;
+  src: url("./Assets/fonts/Poppins-SemiBold.ttf");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: poppins;
+}
+
+/* ================= BODY ================= */
+body {
+  background: #ffffff;
+  color: #111;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ================= LAYOUT ================= */
+.app-layout {
+  display: flex;
+  height: 100vh;
+}
+
+/* ================= MAIN CONTENT ================= */
+.main-content {
+  flex: 1;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* ================= TASKS ================= */
+.tasks-page {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ================= TASK CARD ================= */
+.task-card {
+  border: 2px solid #cad5e2;
+  border-radius: 12px;
+  padding: 14px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  border-left: 4px solid #f59e0b;
+  transition: 0.2s ease;
+}
+
+.task-card:hover {
+  transform: translateY(-2px);
+}
+
+.task-card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.task-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.task-priority {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: capitalize;
+}
+
+.task-priority.high {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.task-priority.medium {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.task-priority.low {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.task-status {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.task-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.task-bottom {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.task-date {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.task-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.task-actions button {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.task-actions button:nth-child(1) {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.task-actions button:nth-child(2) {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.task-actions button:nth-child(3) {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* STATUS COLORS */
+.task-card.todo {
+  border-left-color: #3b82f6;
+}
+
+.task-card.in-progress {
+  border-left-color: #f59e0b;
+}
+
+.task-card.done {
+  border-left-color: #10b981;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 70%;
+  max-width: 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, #0f172a, #020617);
+  color: #cbd5f5;
+  padding: 20px 15px;
+  transition: 0.3s ease;
+  z-index: 100;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+/* ================= MENU ================= */
+.menu-link {
+  display: flex;   
+  flex-direction: column;           /* 🔥 THIS FIXES EVERYTHING */
+  align-items: center;       /* vertical center */
+  gap: 12px;
+
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+}
+
+.menu-item {
+  display: flex;              /* ✅ forces horizontal */
+  /* align-items: center;       */
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.menu-item:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.menu-item.active {
+  background: rgba(59,130,246,0.2);
+  color: #fff;
+  transform: translateX(3px);
+}
+
+/* ICON */
+.menu-item .icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-item .icon img {
+  width: 20px;
+}
+
+/* LINKS */
+.menu-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+/* ================= LOGOUT ================= */
+.sidebar-footer {
+  margin-top: auto;
+  display: flex;
+
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #9ca3af;
+}
+
+.logout-btn .icon {
+  width: 25px;
+  height: 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logout-btn .icon img {
+  width: 20px;   /* 🔥 smaller icon */
+  height: 20px;
+}
+
+.logout-btn:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+
+/* ================= LOGO ================= */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+  color: #fff;
+}
+
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo-icon {
+  width: 35px;
+  height: 35px;
+  background: #3b82f6;   /* 🔵 blue box */
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-icon img {
+  width: 20px;
+  height: 20px;
+}
+
+/* ================= TOPBAR ================= */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.menu-icon {
+  width: 24px;
+  cursor: pointer;
+}
+
+.search {
+  width: 250px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 2px solid #cad5e2;
+}
+
+.title {
+  margin-top: 20px;
+}
+
+/* ================= OVERLAY ================= */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.3s;
+  z-index: 90;
+}
+
+.overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ================= DESKTOP FIX ================= */
+@media (min-width: 768px) {
+
+  .sidebar {
+    position: relative;
+    left: 0;
+    width: 240px;
+    max-width: none;
+    height: 100vh;
+    flex-shrink: 0;
+  }
+
+  .overlay {
+    display: none;
+  }
+
+  .menu-icon {
+    display: none;
+  }
+
+}

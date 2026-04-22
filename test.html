@@ -1,290 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WorkBoard Dashboard</title>
-
-  <link rel="stylesheet" href="../dashboard.css"/>
-</head>
-
-<body>
-
-    <div class="app-layout">
-             
-<!-- ================= OVERLAY ================= -->
-<div class="overlay" id="overlay"></div>
-
-
-<!-- ================= SIDEBAR ================= -->
-  <aside class="sidebar" id="sidebar">
-
-  <a href="../index.html" class="logo-link">
-    <div class="logo">
-      <div class="logo-icon">
-        <img class="logo-icon-1" src="../Assets/icons/icons8-dashboard-24.png" alt="logo">
-      </div>
-      <span>WorkBoard</span>
-    </div>
-  </a>
-
-  <ul class="menu-list">
-    <li class="menu-item active">
-      <span class="icon">
-        <img src="../Assets/icons/icons8-dashboard-24.png" alt="dashboard">
-      </span>
-      <span class="text">Dashboard</span>
-    </li>
-
-    <li class="menu-item">
-      <span class="icon">
-        <img src="../Assets/icons/icons8-activity-feed-24.png" alt="tasks">
-      </span>
-      <span class="text">Tasks</span>
-    </li>
-
-    <li class="menu-item">
-      <span class="icon">
-        <img src="../Assets/icons/icons8-user-account-48.png" alt="team">
-      </span>
-      <span class="text">Team</span>
-    </li>
-
-    <li class="menu-item">
-      <span class="icon">
-        <img src="../Assets/icons/icons8-notification-48.png" alt="notifications">
-      </span>
-      <span class="text">Activity</span>
-    </li>
-  </ul>
-
-  <!-- ✅ LOGOUT INSIDE SIDEBAR -->
-  <div class="sidebar-footer">
-    <a href="./log-in.html" class="logout-btn">
-      <span class="icon">
-        <img src="../Assets/icons/icons8-logout-48.png" alt="logout">
-      </span>
-      <span class="text">Logout</span>
-    </a>
-  </div>
-
-</aside>
-
-<!-- ================= TOP BAR ================= -->
-
-<main class="main-content">
-
-    <header class="topbar">
-
-  <!-- ONLY MENU BUTTON (WORKS NOW) -->
-  <img
-    src="../Assets/icons/icons8-menu-50.png"
-    class="menu-icon"
-    id="menuBtn"
-    alt="menu"
-  />
-
-  <div class="title">Dashboard</div>
-  <input type="text" class="search" placeholder="Search..."/>
-</header>
-
-<!-- ================= WELCOME ================= -->
-<section class="welcome">
-  <h1>Welcome back, Allen</h1>
-  <p>Here’s what’s happening with your project today.</p>
-</section>
-
-<!-- ================= OVERVIEW ================= -->
-<section class="overview">
-
-  <div class="overview-header">
-    <h3>Project Overview</h3>
-    <button class="primary-btn" id="openModal">+ Create Task</button>
-  </div>
-
-  <div class="cards">
-
-    <div class="stat-card">
-      <div class="card-text">
-        <h4>In Progress</h4>
-        <p class="value">0</p>
-        <span>No tasks yet</span>
-      </div>
-      <img class="icon" src="../Assets/icons/icons8-in-progress-48.png"/>
-    </div>
-
-    <div class="stat-card">
-      <div class="card-text">
-        <h4>Upcoming</h4>
-        <p class="value">0</p>
-        <span>Nothing scheduled</span>
-      </div>
-      <img style="width: 44px; height: 45px;" class="icon" src="../Assets/icons/icons8-today-64.png"/>
-    </div>
-
-    <div class="stat-card">
-      <div class="card-text">
-        <h4>Completion</h4>
-        <p class="value">0%</p>
-        <span>No progress yet</span>
-      </div>
-      <img class="icon" src="../Assets/icons/icons8-task-completed-48.png"/>
-    </div>
-
-  </div>
-</section>
-
-  <div class="dashboard-grid">
-            
-<!-- ================= TASKS ================= -->
-<section class="tasks">
-  <h3>Recent Active Tasks</h3>
-
-  <div class="empty-tasks">
-    <h4>No tasks yet</h4>
-    <p>Start organizing your work by creating your first task.</p>
-
-    <button class="cta-btn" id="openModal2">+ Create Task</button>
-  </div>
-</section>
-
-<!-- ================= ACTIVITY ================= -->
-<section class="activity">
-  <h3>Activity Feed</h3>
-
-  <div class="empty-activity">
-    <p>No activity yet</p>
-    <span>Your actions will appear here once you start creating tasks.</span>
-  </div>
-</section>
-
-  </div>
-
-<!-- ================= MODAL ================= -->
-<div class="modal-overlay" id="modal">
-
-  <div class="modal-card">
-    <div class="modal-content">
-
-      <div class="header">
-        <h2>Create New Task</h2>
-
-      </div>
-
-      <div class="subtitle">
-        Add a new task to your project board. Fill in the details below.
-      </div>
-
-      <label>Task Title</label>
-      <input type="text" placeholder="e.g. Design new landing page"/>
-
-      <label>Description</label>
-      <textarea placeholder="Describe the task in detail..."></textarea>
-
-      <div class="row">
-        <div class="field">
-          <label>Priority</label>
-          <select>
-            <option>medium</option>
-            <option>low</option>
-            <option>high</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Due Date</label>
-          <input type="date"/>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="field">
-          <label>Status</label>
-          <select>
-            <option>todo</option>
-            <option>in progress</option>
-            <option>done</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Assignee</label>
-          <select>
-            <option>u1</option>
-            <option>u2</option>
-          </select>
-        </div>
-      </div>
-
-      <button class="button-primary">Create Task</button>
-      <button class="button-secondary" id="cancelModal">Cancel</button>
-
-    </div>
-  </div>
-
-</div>
-
-</main>
-    </div>
-
-<!-- ================= SCRIPT ================= -->
-<script>
-const sidebar = document.getElementById("sidebar");
-const menuBtn = document.getElementById("menuBtn");
-const overlay = document.getElementById("overlay");
-
-menuBtn.addEventListener("click", () => {
-  sidebar.classList.add("open");
-  overlay.classList.add("show");
-});
-
-overlay.addEventListener("click", () => {
-  sidebar.classList.remove("open");
-  overlay.classList.remove("show");
-});
-
-/* MODAL */
-const modal = document.getElementById("modal");
-
-document.getElementById("openModal").onclick = () =>
-  modal.style.display = "flex";
-
-document.getElementById("openModal2").onclick = () =>
-  modal.style.display = "flex";
-
-document.getElementById("closeModal").onclick =
-document.getElementById("cancelModal").onclick = () =>
-  modal.style.display = "none";
-
-modal.onclick = (e) => {
-  if (e.target === modal) modal.style.display = "none";
-};
-
-document.querySelectorAll(".menu-item").forEach(item => {
-  item.addEventListener("click", () => {
-    document.querySelector(".menu-item.active")?.classList.remove("active");
-    item.classList.add("active");
-  });
-});
-</script>
-
-</body>
-</html>
-
-
-
-gg
-
-g
-g
-g
-gg
-g
-g
-g
-g
-g
-g
 @font-face {
   font-family: poppins;
   src: url("./Assets/fonts/Poppins-SemiBold.ttf");
@@ -303,11 +16,14 @@ body {
   color: #111;
   padding: 20px;
   overflow-x: hidden;
+   height: 100vh;
+  overflow: hidden;
 }
 
 /* ================= APP LAYOUT ================= */
 .app-layout {
   display: flex;
+  height: 100vh;
 }
 
 /* ================= SIDEBAR ================= */
@@ -387,6 +103,7 @@ body {
   margin-bottom: 30px;
   color: #fff;
   font-size: 18px;
+text-decoration: none;
 }
 
 .logo-icon {
@@ -402,6 +119,14 @@ body {
 .logo-icon-1 {
   width: 22px;
   height: 22px;
+}
+
+.logo-link,
+.logo-link:visited,
+.logo-link:hover,
+.logo-link:active {
+  text-decoration: none;
+  color: inherit;
 }
 
 /* ================= MENU ================= */
@@ -428,9 +153,60 @@ body {
   color: #fff;
 }
 
+.menu-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+/* ICON FIX */
+.menu-item .icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* IMAGE CENTERING */
+.menu-item .icon img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* TEXT ALIGNMENT */
+.menu-item .text {
+  display: flex;
+  align-items: center;
+}
+
+
+.menu-item.active {
+  background: rgba(59,130,246,0.2);
+  color: #fff;
+  transform: translateX(3px);
+}
+
 /* ================= MAIN ================= */
 .main-content {
   flex: 1;
+   height: 100vh;
+  overflow-y: auto;
+  padding: 16px;
 }
 
 /* ================= TOPBAR ================= */
@@ -461,12 +237,13 @@ body {
 /* ================= SECTIONS ================= */
 .welcome,
 .overview,
-.tasks,
+.tasks, 
 .activity {
   margin-bottom: 25px; /* 🔥 spacing fix */
-}
-
-
+   flex: 1;
+  display: flex;
+  flex-direction: column;
+}                                                     
 
 .overview-header {
   display: flex;
@@ -526,6 +303,11 @@ body {
   padding: 15px;
 }
 
+.icon-me{
+  width: 44px;
+  height: 45px;
+}
+
 .icon img {
   width: 20px;
 }
@@ -542,8 +324,13 @@ body {
 }
 
 .empty-tasks {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
   border: 2px dashed #cad5e2;
-  text-align: center;
+  padding: 15px;
   margin-top: 20px;
 }
 
@@ -654,9 +441,9 @@ select:focus {
   }
 
   .dashboard-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 25px;
+    display: flex;
+  gap: 25px;
+  flex: 1;
   }
 }
 
@@ -690,9 +477,9 @@ select:focus {
   }
 
   .dashboard-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 30px;
+  display: flex;
+  gap: 25px;
+  flex: 1;
   }
 
   /* 🔥 SEARCH POSITION FIX */
@@ -705,180 +492,713 @@ select:focus {
   }
 }
 
+/* TASK */
 
-
-
-local storage
-
-/ GET ALL TASKS
-function getTasks() {
-  return JSON.parse(localStorage.getItem(TASK_KEY)) || [];
-}
-
-// SAVE TASKS
-function saveTasks(tasks) {
-  localStorage.setItem(TASK_KEY, JSON.stringify(tasks));
-}
-
-// CREATE TASK
-function createTask(task) {
-  const tasks = getTasks();
-  tasks.push(task);
-  saveTasks(tasks);
-}
-
-// DELETE TASK
-function deleteTask(id) {
-  let tasks = getTasks();
-  tasks = tasks.filter((t) => t.id !== id);
-  saveTasks(tasks);
-}
-
-// UPDATE TASK
-function updateTask(id, updates) {
-  const tasks = getTasks();
-
-  const updated = tasks.map((task) =>
-    task.id === id ? { ...task, ...updates } : task
-  );
-
-  saveTasks(updated);
+.task-card {
+  border: 2px solid #cad5e2;
+  padding: 10px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  background: #fff;
+   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border-left: 3px solid #f59e0b;
+  display: flex;
+  flex-direction: column;
 }
 
 
+.task-bottom {
+  margin-top: auto;
+}
+/* TASK CARD STRUCTURE */
 
 
-
-
-import { createTask, getTasks} from "./task-engine.js";
-
-console.log("getTasks import:", getTasks);
-
-
-
-// ================= SIDEBAR =================
-const sidebar = document.getElementById("sidebar");
-const menuBtn = document.getElementById("menuBtn");
-const overlay = document.getElementById("overlay");
-
-if (menuBtn && sidebar && overlay) {
-  menuBtn.addEventListener("click", () => {
-    sidebar.classList.add("open");
-    overlay.classList.add("show");
-  });
-
-  overlay.addEventListener("click", () => {
-    sidebar.classList.remove("open");
-    overlay.classList.remove("show");
-  });
+/* INNER LAYOUT */
+.task-card-inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
-// ================= MODAL =================
-const modal = document.getElementById("modal");
-const openBtn1 = document.getElementById("openModal");
-const openBtn2 = document.getElementById("openModal2");
-const cancelBtn = document.getElementById("cancelModal");
-
-function openModal() {
-  if (modal) modal.style.display = "flex";
+/* TOP ROW */
+.task-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 500;
 }
 
-function closeModal() {
-  if (modal) modal.style.display = "none";
+/* PRIORITY */
+/* BASE STYLE (applies to all priorities) */
+.task-priority {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  text-transform: capitalize;
+  display: inline-block;
 }
 
-if (openBtn1) openBtn1.addEventListener("click", openModal);
-if (openBtn2) openBtn2.addEventListener("click", openModal);
+/* HIGH PRIORITY */
+.task-priority.high {
+  color: #b91c1c;            /* dark red text */
+  background-color: #fee2e2; /* light red background */
+}
 
-if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+/* MEDIUM PRIORITY */
+.task-priority.medium {
+  color: #92400e;            /* dark orange text */
+  background-color: #fef3c7; /* light orange/yellow */
+}
 
-if (modal) {
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) closeModal();
-  });
+/* LOW PRIORITY */
+.task-priority.low {
+  color: #065f46;            /* dark green text */
+  background-color: #d1fae5; /* light green background */
+}
+
+/* STATUS */
+.task-status {
+  text-transform: capitalize;
+   font-size: 12px;
+  font-weight: 600;
+    padding: 2px 0;
+}
+
+/* TITLE (CENTER) */
+.task-title {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 10px 0;
+}
+
+/* BOTTOM ROW */
+.task-bottom {
+   margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* DATE */
+.task-date {
+  font-size: 10px;
+  color: #777;
 }
 
 
-const createBtn = document.querySelector(".button-primary");
+.task-priority.high { color: red; }
+.task-priority.medium { color: orange; }
+.task-priority.low { color: green; }
 
-createBtn?.addEventListener("click", async () => {
-  console.log("CREATE BUTTON CLICKED");
 
-  const modalEl = document.getElementById("modal");
 
-  const title = modalEl.querySelector('input[type="text"]').value.trim();
-  const desc = modalEl.querySelector("textarea").value.trim();
-  const priority = modalEl.querySelectorAll("select")[0].value;
-  const dueDate = modalEl.querySelector('input[type="date"]').value;
-  const status = modalEl.querySelectorAll("select")[1].value;
+/* card status */
 
-  console.log("TITLE VALUE:", title); // debug
+.task-card.todo {
+  border-left-color: #3b82f6; /* blue */
+}
 
-  if (!title) {
-    alert("Task title is required");
-    return;
+.task-card-progress {
+  border-left-color: #f59e0b; /* orange */
+}
+
+.task-card.done {
+  border-left-color: #10b981; /* green */
+}
+
+
+<html></html>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WorkBoard Dashboard</title>
+
+  <link rel="stylesheet" href="../dashboard.css"/>
+</head>
+
+<body>
+
+    <div class="app-layout">
+             
+<!-- ================= OVERLAY ================= -->
+<div class="overlay" id="overlay"></div>
+
+
+<!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar" id="sidebar">
+
+  <a href="../index.html" class="logo-link">
+    <div class="logo">
+      <div class="logo-icon">
+        <img class="logo-icon-1" src="../Assets/icons/icons8-dashboard-24.png" alt="logo">
+      </div>
+      <span>WorkBoard</span>
+    </div>
+  </a>
+
+     <a href="dashboard.html" class="menu-link"></a>
+  <ul class="menu-list">
+    <li class="menu-item" data-page="dashboard">
+      <span class="icon">
+        <img src="../Assets/icons/icons8-dashboard-24.png" alt="dashboard">
+      </span>
+      <span class="text">Dashboard</span>
+    </li>
+    </a>
+
+   <a href="./tasks.html" class="menu-link">
+  <li class="menu-item" data-page="task">
+    <span class="icon">
+      <img src="../Assets/icons/icons8-activity-feed-24.png" alt="tasks">
+    </span>
+    <span class="text">Tasks</span>
+  </li>
+</a>
+
+    <li class="menu-item" data-page="team">
+      <span class="icon">
+        <img src="../Assets/icons/icons8-user-account-48.png" alt="team">
+      </span>
+      <span class="text">Team</span>
+    </li>
+
+    <li class="menu-item" data-page="activity">
+      <span class="icon">
+        <img src="../Assets/icons/icons8-notification-48.png" alt="notifications">
+      </span>
+      <span class="text">Activity</span>
+    </li>
+  </ul>
+
+  <!-- ✅ LOGOUT INSIDE SIDEBAR -->
+  <div class="sidebar-footer">
+    <a href="./log-in.html" class="logout-btn">
+      <span class="icon">
+        <img src="../Assets/icons/icons8-logout-48.png" alt="logout">
+      </span>
+      <span class="text">Logout</span>
+    </a>
+  </div>
+
+</aside>
+
+<!-- ================= TOP BAR ================= -->
+
+<main class="main-content">
+
+    <header class="topbar">
+
+  <!-- ONLY MENU BUTTON (WORKS NOW) -->
+  <img
+    src="../Assets/icons/icons8-menu-50.png"
+    class="menu-icon"
+    id="menuBtn"
+    alt="menu"
+  />
+
+  <div class="title">Dashboard</div>
+  <input type="text" class="search" placeholder="Search..."/>
+</header>
+
+<!-- ================= WELCOME ================= -->
+<section class="welcome">
+  <h1>Welcome back,</h1>
+  <p>Here’s what’s happening with your project today.</p>
+</section>
+
+<!-- ================= OVERVIEW ================= -->
+<section class="overview">
+
+  <div class="overview-header">
+    <h3>Project Overview</h3>
+    <button class="primary-btn" id="openModal">+ Create Task</button>
+  </div>
+
+  <div class="cards">
+
+    <div class="stat-card">
+      <div class="card-text task-card-progress">
+        <h4>In Progress</h4>
+        <p class="value">0</p>
+        <span>No tasks yet</span>
+      </div>
+      <img class="icon" src="../Assets/icons/icons8-in-progress-48.png"/>
+    </div>
+
+    <div class="stat-card">
+      <div class="card-text">
+        <h4>Upcoming</h4>
+        <p class="value">0</p>
+        <span>Nothing scheduled</span>
+      </div>
+      <img class="icon icon-me" src="../Assets/icons/icons8-today-64.png"/>
+    </div>
+
+    <div class="stat-card">
+      <div class="card-text">
+        <h4>Completion</h4>
+        <p class="value">0%</p>
+        <span>No progress yet</span>
+      </div>
+      <img class="icon" src="../Assets/icons/icons8-task-completed-48.png"/>
+    </div>
+
+  </div>
+</section>
+
+  <div class="dashboard-grid">
+            
+<!-- ================= TASKS ================= -->
+<section class="tasks">
+  <h3>Recent Active Tasks</h3>
+
+  <div class="empty-tasks">
+    <h4>No tasks yet</h4>
+    <p>Start organizing your work by creating your first task.</p>
+
+    <button class="cta-btn" id="openModal2">+ Create Task</button>
+  </div>
+</section>
+
+<!-- ================= ACTIVITY ================= -->
+<section class="activity">
+  <h3>Activity Feed</h3>
+
+  <div class="empty-activity">
+    <p>No activity yet</p>
+    <span>Your actions will appear here once you start creating tasks.</span>
+  </div>
+</section>
+
+  </div>
+
+<!-- ================= MODAL ================= -->
+    <!-- ================= MODAL ================= -->
+<div class="modal-overlay" id="modal">
+
+  <div class="modal-card">
+    <div class="modal-content">
+
+      <div class="header">
+        <h2>Create New Task</h2>
+      </div>
+
+      <div class="subtitle">
+        Add a new task to your project board. Fill in the details below.
+      </div>
+
+      <!-- TASK TITLE -->
+      <label>Task Title</label>
+      <input 
+        type="text" 
+        id="taskTitle"
+        placeholder="e.g. Design new landing page"
+      />
+
+      <!-- DESCRIPTION -->
+      <label>Description</label>
+      <textarea 
+        id="taskDescription"
+        placeholder="Describe the task in detail..."
+      ></textarea>
+
+      <div class="row">
+        <div class="field">
+          <label>Priority</label>
+          <select id="taskPriority">
+            <option value="medium">medium</option>
+            <option value="low">low</option>
+            <option value="high">high</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Due Date</label>
+          <input type="date" id="taskDueDate"/>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Status</label>
+          <select id="taskStatus">
+            <option value="todo">todo</option>
+            <option value="in progress">in progress</option>
+            <option value="done">done</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Assignee</label>
+          <select id="taskAssignee">
+            <option value="u1">u1</option>
+            <option value="u2">u2</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <button class="button-primary" id="createTaskBtn">
+        Create Task
+      </button>
+
+      <button class="button-secondary" id="cancelModal">
+        Cancel
+      </button>
+
+    </div>
+  </div>
+
+</div>
+    
+
+</main>
+    </div>
+
+<!-- ================= SCRIPT ================= -->
+  <script type="module" src="../scripts/ui1.js"></script>
+
+</body>
+</html>
+
+
+
+h
+h
+h
+hh
+
+h
+h
+h
+
+
+
+h@font-face {
+  font-family: poppins;
+  src: url("./Assets/fonts/Poppins-SemiBold.ttf");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: poppins;
+}
+
+/* ================= BODY ================= */
+body {
+  background: #ffffff;
+  color: #111;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ================= LAYOUT ================= */
+.app-layout {
+  display: flex;
+  height: 100vh;
+}
+
+/* ================= MAIN CONTENT ================= */
+.main-content {
+  flex: 1;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* ================= TASKS ================= */
+.tasks-page {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ================= TASK CARD ================= */
+.task-card {
+  border: 2px solid #cad5e2;
+  border-radius: 12px;
+  padding: 14px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  border-left: 4px solid #f59e0b;
+  transition: 0.2s ease;
+}
+
+.task-card:hover {
+  transform: translateY(-2px);
+}
+
+.task-card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.task-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.task-priority {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: capitalize;
+}
+
+.task-priority.high {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.task-priority.medium {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.task-priority.low {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.task-status {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.task-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.task-bottom {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.task-date {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.task-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.task-actions button {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.task-actions button:nth-child(1) {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.task-actions button:nth-child(2) {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.task-actions button:nth-child(3) {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* STATUS COLORS */
+.task-card.todo {
+  border-left-color: #3b82f6;
+}
+
+.task-card.in-progress {
+  border-left-color: #f59e0b;
+}
+
+.task-card.done {
+  border-left-color: #10b981;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 70%;
+  max-width: 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, #0f172a, #020617);
+  color: #cbd5f5;
+  padding: 20px 15px;
+  transition: 0.3s ease;
+  z-index: 100;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+/* ================= MENU ================= */
+.menu-list {
+  list-style: none;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.menu-item:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.menu-item.active {
+  background: rgba(59,130,246,0.2);
+  color: #fff;
+  transform: translateX(3px);
+}
+
+/* ICON */
+.menu-item .icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-item .icon img {
+  width: 20px;
+}
+
+/* LINKS */
+.menu-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+/* ================= LOGOUT ================= */
+.sidebar-footer {
+  margin-top: auto;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #9ca3af;
+}
+
+.logout-btn:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+
+/* ================= LOGO ================= */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+  color: #fff;
+}
+
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ================= TOPBAR ================= */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.menu-icon {
+  width: 24px;
+  cursor: pointer;
+}
+
+.search {
+  width: 250px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 2px solid #cad5e2;
+}
+
+.title {
+  margin-top: 20px;
+}
+
+/* ================= OVERLAY ================= */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.3s;
+  z-index: 90;
+}
+
+.overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ================= DESKTOP FIX ================= */
+@media (min-width: 768px) {
+
+  .sidebar {
+    position: relative;
+    left: 0;
+    width: 240px;
+    max-width: none;
+    height: 100vh;
+    flex-shrink: 0;
   }
 
-  await createTask({
-    title,
-    desc,
-    priority,
-    dueDate,
-    status
-  });
+  .overlay {
+    display: none;
+  }
 
-  console.log("REAL TASK SENT");
+  .menu-icon {
+    display: none;
+  }
 
-  // clear fields
-  modalEl.querySelector('input[type="text"]').value = "";
-  modalEl.querySelector("textarea").value = "";
-  modalEl.querySelector('input[type="date"]').value = "";
-
-  closeModal();
-});
-
-// ================= ACTIVE SIDEBAR =================
-const menuItems = document.querySelectorAll(".menu-item");
-
-menuItems.forEach((item) => {
-  item.addEventListener("click", () => {
-    document.querySelector(".menu-item.active")?.classList.remove("active");
-    item.classList.add("active");
-  });
-});
-
-const user = JSON.parse(localStorage.getItem("workboard_user"));
-
-const welcomeHeader = document.querySelector(".welcome h1");
-
-if (user && welcomeHeader) {
-  welcomeHeader.textContent = `Welcome back, ${user.name}`;
 }
-
-const tasksContainer = document.querySelector(".empty-tasks");
-
-async function loadTasks() {
-  const tasks = await getTasks();
-
-  console.log("LOADED TASKS:", tasks);
-
-  if (!tasks.length) return;
-
-  tasksContainer.innerHTML = tasks.map(task => `
-    <div class="task-card">
-      <h4>${task.title}</h4>
-      <p>${task.desc || ""}</p>
-
-      <div style="display:flex; gap:10px; margin-top:8px;">
-        <small>⚡ ${task.priority}</small>
-        <small>📌 ${task.status}</small>
-        <small>📅 ${task.dueDate || "No date"}</small>
-      </div>
-    </div>
-  `).join("");
-
-  document.querySelector(".empty-tasks")?.style.display = "none";
-}
-
-
-loadTasks();

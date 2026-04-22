@@ -14,61 +14,8 @@
              
 <!-- ================= OVERLAY ================= -->
 <div class="overlay" id="overlay"></div>
+<div id="sidebar-container"></div>
 
-
-<!-- ================= SIDEBAR ================= -->
-  <aside class="sidebar" id="sidebar">
-
-  <a href="../index.html" class="logo-link">
-    <div class="logo">
-      <div class="logo-icon">
-        <img class="logo-icon-1" src="../Assets/icons/icons8-dashboard-24.png" alt="logo">
-      </div>
-      <span>WorkBoard</span>
-    </div>
-  </a>
-
-  <ul class="menu-list">
-    <li class="menu-item active">
-      <span class="icon">
-        <img src="../Assets/icons/icons8-dashboard-24.png" alt="dashboard">
-      </span>
-      <span class="text">Dashboard</span>
-    </li>
-
-    <li class="menu-item">
-      <span class="icon">
-        <img src="../Assets/icons/icons8-activity-feed-24.png" alt="tasks">
-      </span>
-      <span class="text">Tasks</span>
-    </li>
-
-    <li class="menu-item">
-      <span class="icon">
-        <img src="../Assets/icons/icons8-user-account-48.png" alt="team">
-      </span>
-      <span class="text">Team</span>
-    </li>
-
-    <li class="menu-item">
-      <span class="icon">
-        <img src="../Assets/icons/icons8-notification-48.png" alt="notifications">
-      </span>
-      <span class="text">Activity</span>
-    </li>
-  </ul>
-
-  <!-- ✅ LOGOUT INSIDE SIDEBAR -->
-  <div class="sidebar-footer">
-    <a href="./log-in.html" class="logout-btn">
-      <span class="icon">
-        <img src="../Assets/icons/icons8-logout-48.png" alt="logout">
-      </span>
-      <span class="text">Logout</span>
-    </a>
-  </div>
-
-</aside>
 
 <!-- ================= TOP BAR ================= -->
 
@@ -90,7 +37,7 @@
 
 <!-- ================= WELCOME ================= -->
 <section class="welcome">
-  <h1>Welcome back, Allen</h1>
+  <h1>Welcome back,</h1>
   <p>Here’s what’s happening with your project today.</p>
 </section>
 
@@ -105,7 +52,7 @@
   <div class="cards">
 
     <div class="stat-card">
-      <div class="card-text">
+      <div class="card-text task-card-progress">
         <h4>In Progress</h4>
         <p class="value">0</p>
         <span>No tasks yet</span>
@@ -119,7 +66,7 @@
         <p class="value">0</p>
         <span>Nothing scheduled</span>
       </div>
-      <img style="width: 44px; height: 45px;" class="icon" src="../Assets/icons/icons8-today-64.png"/>
+      <img class="icon icon-me" src="../Assets/icons/icons8-today-64.png"/>
     </div>
 
     <div class="stat-card">
@@ -245,6 +192,9 @@
 
 <!-- ================= SCRIPT ================= -->
   <script type="module" src="../scripts/ui1.js"></script>
-
+<script type="module">
+  import { loadSidebar } from "../scripts/layout.js";
+  loadSidebar();
+</script>
 </body>
 </html>

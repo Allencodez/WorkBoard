@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tasks - WorkBoard</title>
+  <link rel="stylesheet" href="../tasks.css"/>
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <div class="overlay" id="overlay"></div>
+ 
+<!-- ================= SIDEBAR ================= -->
+ 
+
+<div id="sidebar-container"></div>
+
+  <main class="main-content">
+
+    
+    <header class="topbar">
+
+      <!-- ONLY MENU BUTTON (WORKS NOW) -->
+  <img
+    src="../Assets/icons/icons8-menu-50.png"
+    class="menu-icon"
+    id="menuBtn"
+    alt="menu"
+  />
+
+  
+  <input type="text" id="searchInput" class="search" placeholder="Search..."/>
+
+
+    </header>
+
+  <h1 class="title">Tasks Board</h1>
+
+    <!-- ================= WELCOME ================= -->
+ <section class="welcome">
+  <p>Manage and track your team's progress across all states.</p>
+ </section>
+
+    <!-- TASK LIST -->
+    <section class="tasks-page">
+
+      <div id="tasksList" class="tasks-list">
+        <!-- tasks will render here -->
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+<script type="module" src="../scripts/tasks.js"></script>
+<script type="module">
+  import { loadSidebar } from "../scripts/layout.js";
+  loadSidebar();
+</script>
+
+</body>
+</html>
+
