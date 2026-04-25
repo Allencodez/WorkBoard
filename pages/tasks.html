@@ -1,69 +1,186 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tasks - WorkBoard</title>
-  <link rel="stylesheet" href="../tasks.css"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tasks - FlowZard</title>
+  <link rel="stylesheet" href="../tasks.css" />
 </head>
 
 <body>
 
-<div class="app-layout">
+  <div class="app-layout">
 
     <div class="overlay" id="overlay"></div>
- 
-<!-- ================= SIDEBAR ================= -->
- 
 
-<div id="sidebar-container"></div>
-
-  <main class="main-content">
-
-    
-    <header class="topbar">
-
-      <!-- ONLY MENU BUTTON (WORKS NOW) -->
-  <img
-    src="../Assets/icons/icons8-menu-50.png"
-    class="menu-icon"
-    id="menuBtn"
-    alt="menu"
-  />
-
-  
-  <input type="text" id="searchInput" class="search" placeholder="Search..."/>
+    <!-- ================= SIDEBAR ================= -->
 
 
-    </header>
+    <div id="sidebar-container"></div>
 
-  <h1 class="title">Tasks Board</h1>
+    <main class="main-content">
 
-    <!-- ================= WELCOME ================= -->
- <section class="welcome">
-  <p>Manage and track your team's progress across all states.</p>
- </section>
 
-    <!-- TASK LIST -->
-    <section class="tasks-page">
+      <header class="topbar">
+        <div class="topbar-left">
+          <!-- ONLY MENU BUTTON (WORKS NOW) -->
+          <img src="../Assets/icons/icons8-menu-50.png" class="menu-icon" id="menuBtn" alt="menu" />
+          <div class="topbar-title">tasks</div>
+        </div>
 
-      <div id="tasksList" class="tasks-list">
-        <!-- tasks will render here -->
+        <div class="topbar-right">
+          <input type="text" id="searchInput" class="search" placeholder="Search..." />
+          <button class="notif-btn"><img src="../Assets/icons/icons8-notification-48.png"
+              alt="notifications" /></button>
+           <div class="topbar-user" id="navUsername"></div>
+        </div>
+      </header>
+
+      <!-- HEADER FOR MOBILE ONLY -->
+      <header class="tasks-header">
+        <h1 class="title">Tasks Board</h1>
+      </header>
+
+      <div class="tasks-header-wrapper">
+        <!-- ================= WELCOME ================= -->
+        <section class="welcome">
+          <p>Manage and track your team's progress across all states.</p>
+        </section>
+
+        <!-- ================= ACTIONS ================= -->
+        <div class="tasks-actions">
+          <button class="primary-btn" id="openModal">New Task</button>
+          <div class="filter-wrapper">
+            <svg viewBox="0 0 24 24" class="filter-icon">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            <select id="filterSelect" class="filter-dropdown">
+              <option value="default" disabled selected hidden>Filter</option>
+              <option value="all">All</option>
+              <option value="todo">Todo</option>
+              <option value="in progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+        </div>
       </div>
 
-    </section>
+      <!-- TASK LIST -->
+     <section class="tasks-page">
 
-  </main>
+  <div id="tasksList" class="tasks-list empty-state">
 
-</div>
+    <div class="kanban-board">
 
-<script type="module" src="../scripts/tasks.js"></script>
-<script type="module">
-  import { loadSidebar } from "../scripts/layout.js";
-  loadSidebar();
-</script>
+      <!-- TODO -->
+      <div class="kanban-column">
+        <h3 class="column-title">Todo</h3>
+
+        <div class="column-tasks">
+          <div class="empty-column-card">
+            <h4>No tasks</h4>
+            <p>Create a task to get started</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT SIDE -->
+      <div class="kanban-right">
+
+        <!-- IN PROGRESS -->
+        <div class="kanban-column">
+          <h3 class="column-title">In Progress</h3>
+
+          <div class="column-tasks">
+            <div class="empty-column-card">
+              <h4>No tasks</h4>
+              <p>Tasks in progress will appear here</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- DONE -->
+        <div class="kanban-column">
+          <h3 class="column-title">Done</h3>
+
+          <div class="column-tasks">
+            <div class="empty-column-card">
+              <h4>No tasks</h4>
+              <p>Completed tasks will appear here</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+    </main>
+
+    <!-- ================= MODAL ================= -->
+    <div class="modal-overlay" id="modal">
+      <div class="modal-card">
+        <div class="modal-content">
+          <div class="header">
+            <h2>Create New Task</h2>
+          </div>
+          <div class="subtitle">
+            Add a new task to your project board. Fill in the details below.
+          </div>
+          <label>Task Title</label>
+          <input type="text" id="taskTitle" placeholder="e.g. Design new landing page" />
+          <label>Description</label>
+          <textarea id="taskDescription" placeholder="Describe the task in detail..."></textarea>
+          <div class="row">
+            <div class="field">
+              <label>Priority</label>
+              <select id="taskPriority">
+                <option value="medium">medium</option>
+                <option value="low">low</option>
+                <option value="high">high</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Due Date</label>
+              <input type="date" id="taskDueDate" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>Status</label>
+              <select id="taskStatus">
+                <option value="todo">todo</option>
+                <option value="in progress">in progress</option>
+                <option value="done">done</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Assignee</label>
+              <select id="taskAssignee">
+                <option value="u1">u1</option>
+                <option value="u2">u2</option>
+              </select>
+            </div>
+          </div>
+          <button class="button-primary" id="createTaskBtn">Create Task</button>
+          <button class="button-secondary" id="cancelModal">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="../scripts/tasks.js"></script>
+  <script type="module">
+    import { loadSidebar } from "../scripts/layout.js";
+    loadSidebar();
+  </script>
 
 </body>
-</html>
 
+</html>

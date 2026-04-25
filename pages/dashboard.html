@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WorkBoard Dashboard</title>
+  <title>FlowZard Dashboard</title>
 
   <link rel="stylesheet" href="../dashboard.css"/>
 </head>
@@ -22,18 +22,23 @@
 <main class="main-content">
 
     <header class="topbar">
+      <div class="topbar-left">
+        <!-- ONLY MENU BUTTON (WORKS NOW) -->
+        <img
+          src="../Assets/icons/icons8-menu-50.png"
+          class="menu-icon"
+          id="menuBtn"
+          alt="menu"
+        />
+        <div class="topbar-title">Dashboard</div>
+      </div>
 
-  <!-- ONLY MENU BUTTON (WORKS NOW) -->
-  <img
-    src="../Assets/icons/icons8-menu-50.png"
-    class="menu-icon"
-    id="menuBtn"
-    alt="menu"
-  />
-
-  <div class="title">Dashboard</div>
-  <input type="text" class="search" placeholder="Search..."/>
-</header>
+      <div class="topbar-right">
+        <input type="text" id="dashboardSearch" class="search" placeholder="Search..."/>
+        <button class="notif-btn"><img src="../Assets/icons/icons8-notification-48.png" alt="notifications"/></button>
+        <span class="topbar-user" id="navUsername"></span>
+      </div>
+    </header>
 
 <!-- ================= WELCOME ================= -->
 <section class="welcome">
@@ -54,8 +59,8 @@
     <div class="stat-card">
       <div class="card-text task-card-progress">
         <h4>In Progress</h4>
-        <p class="value">0</p>
-        <span>No tasks yet</span>
+        <p class="value" id="inProgressTasks">0</p>
+        <span id="progressText">No tasks yet</span>
       </div>
       <img class="icon" src="../Assets/icons/icons8-in-progress-48.png"/>
     </div>
@@ -63,8 +68,8 @@
     <div class="stat-card">
       <div class="card-text">
         <h4>Upcoming</h4>
-        <p class="value">0</p>
-        <span>Nothing scheduled</span>
+        <p class="value" id="todoTasks">0</p>
+        <span id="todoText">Nothing scheduled</span>
       </div>
       <img class="icon icon-me" src="../Assets/icons/icons8-today-64.png"/>
     </div>
@@ -72,8 +77,8 @@
     <div class="stat-card">
       <div class="card-text">
         <h4>Completion</h4>
-        <p class="value">0%</p>
-        <span>No progress yet</span>
+        <p class="value" id="doneTasks">0%</p>
+        <span id="completionText">No progress yet</span>
       </div>
       <img class="icon" src="../Assets/icons/icons8-task-completed-48.png"/>
     </div>
@@ -100,14 +105,15 @@
   <h3>Activity Feed</h3>
 
   <div class="empty-activity">
-    <p>No activity yet</p>
-    <span>Your actions will appear here once you start creating tasks.</span>
+    <div> <p>No activity yet</p></div>
+    <div>    <span>Your actions will appear here once you start creating tasks.</span></div>
   </div>
+  
+  <div id="activityFeedList" class="activity-feed-list"></div>
 </section>
 
   </div>
 
-<!-- ================= MODAL ================= -->
     <!-- ================= MODAL ================= -->
 <div class="modal-overlay" id="modal">
 
@@ -192,6 +198,8 @@
 
 <!-- ================= SCRIPT ================= -->
   <script type="module" src="../scripts/ui1.js"></script>
+  <script type="module" src="../scripts/layout.js"></script>
+  <script type="module" src="../scripts/activity-ui.js"></script>
 <script type="module">
   import { loadSidebar } from "../scripts/layout.js";
   loadSidebar();

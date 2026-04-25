@@ -3,12 +3,15 @@ export async function loadSidebar() {
 
   if (!sidebarContainer) return;
 
-  const res = await fetch("/pages/sidebar.html");
+  const basePath = window.location.pathname.includes('/pages/') ? '../pages/' : './pages/';
+const res = await fetch(basePath + 'sidebar.html');
+
   const html = await res.text();
 
   sidebarContainer.innerHTML = html;
 
   initSidebarLogic();
+
 }
 
 
@@ -19,6 +22,7 @@ function initSidebarLogic() {
 
   // OPEN / CLOSE
   menuBtn?.addEventListener("click", () => {
+    console.log("Clicked");
     sidebar.classList.add("open");
     overlay.classList.add("show");
   });

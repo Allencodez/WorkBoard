@@ -7,6 +7,7 @@ import {
   createUserWithEmailAndPassword,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
+
 /* =========================
    FIREBASE INIT (GLOBAL)
 ========================= */
@@ -38,29 +39,29 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-     const userCredential = await signInWithEmailAndPassword(
-  auth,
-  email,
-  password
-);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
-const user = userCredential.user;
+      const user = userCredential.user;
 
-// 🔥 SAVE USER INFO FOR DASHBOARD
-const userData = {
-  name: user.displayName || user.email.split("@")[0],
-  email: user.email,
-  uid: user.uid
-};
+      // 🔥 SAVE USER INFO FOR DASHBOARD
+      const userData = {
+        name: user.displayName || user.email.split("@")[0],
+        email: user.email,
+        uid: user.uid,
+      };
 
-localStorage.setItem("workboard_user", JSON.stringify(userData));
+      localStorage.setItem("workboard_user", JSON.stringify(userData));
 
-console.log("Logged in:", user);
-showToast("Login successful");
+      console.log("Logged in:", user);
+      showToast("Login successful");
 
-setTimeout(() => {
-  window.location.href = "dashboard.html";
-}, 1000);
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 1000);
     } catch (error) {
       console.log(error.code);
 
@@ -133,7 +134,7 @@ setTimeout(() => {
         case "auth/email-already-in-use":
           message = "Email already in use.";
           break;
-        case "auth-invalid-email":
+        case "auth/invalid-email":
           message = "Invalid email.";
           break;
         case "auth/weak-password":

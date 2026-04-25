@@ -480,7 +480,7 @@ footer{
     flex-direction: column;
     align-items: center;
   }
-  /* Keep logo and WorkBoard on same horizontal line on mobile */
+  /* Keep logo and FlowZard on same horizontal line on mobile */
   .foot-1 { flex-direction: row; gap: 8px; align-items: center; }
   .foot-2 { justify-content: center; }
   .foot-3-0 { flex-wrap: wrap; gap: 8px; justify-content: center; }

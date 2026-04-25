@@ -8,6 +8,7 @@ import {
   getFirestore
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+
 // 🔑 YOUR FIREBASE CONFIG (paste yours here)
 const firebaseConfig = {
     apiKey: "AIzaSyAem227DiziypXlJpa1FCqzvAH-gD0K750",

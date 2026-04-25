@@ -6,7 +6,7 @@ import {
   deleteDoc,
   doc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+import { logActivity } from "./activity-engine.js";
 
 // ================= CREATE TASK =================
 export async function createTask(task) {
@@ -17,6 +17,10 @@ export async function createTask(task) {
     });
 
     console.log("TASK CREATED:", docRef.id);
+    
+    // Log the activity
+    await logActivity("created", task.title);
+
     return docRef.id;
 
   } catch (err) {

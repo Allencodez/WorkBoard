@@ -1,1204 +1,2584 @@
+import { db } from "./firebase.js";
+import { createTask } from "./task-engine.js";
+import {
+collection,
+onSnapshot,
+doc,
+deleteDoc,
+updateDoc,
+query,
+orderBy,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { logActivity } from "./activity-engine.js";
+
+let editingTaskId = null;
+
+const container = document.getElementById("tasksList");
+
+const tasksRef = collection(db, "tasks");
+
+
+// 🔥 REALTIME LISTENER
+
+let allTasks = [];
+
+const q = query(tasksRef, orderBy("createdAt", "desc"));
+
+
+onSnapshot(q, (snapshot) => {
+allTasks = snapshot.docs.map((doc) => ({
+id: doc.id,
+...doc.data(),
+}));
+
+if (typeof updateTasksView === "function") {
+updateTasksView();
+} else {
+renderTasks(allTasks);
+}
+});
+
+// 🎯 RENDER FUNCTION
+
+function renderTasks(tasks, filterStatus = "all") {
+// 🔥 GROUP TASKS BY STATUS
+const grouped = {
+"todo": [],
+"in progress": [],
+"done": []
+};
+
+tasks.forEach(task => {
+const status = task.status || "todo";
+if (grouped[status]) {
+grouped[status].push(task);
+}
+});
+
+// 🎯 RENDER COLUMNS
+
+let html = `<div class="kanban-board">`;
+
+  // 🔥 ALWAYS WORK WITH ACTUAL TASKS (NOT PRE-GROUPED EMPTY STRUCTURE)
+  const hasSearch = currentSearch.length > 0;
+  const hasFilter = filterStatus !== "all";
+
+  // 🎯 IF SEARCH OR FILTER IS ACTIVE → FLAT MODE (NO EMPTY COLUMNS)
+  if (hasSearch || hasFilter) {
+
+  const visibleTasks = tasks;
+
+  const renderFlatColumn = (title, statusKey) => {
+  const filtered = visibleTasks.filter(t =>
+  (t.status || "todo") === statusKey
+  );
+
+  if (filtered.length === 0) return "";
+
+  return `
+  <div class="kanban-column ${statusKey.replace(" ", " -")}">
+    <h3 class="column-title">${title}</h3>
+
+    <div class="column-tasks">
+      ${filtered.map(task => `
+      <div class="task-card ${task.status}">
+        <div class="task-card-inner">
+
+          <div class="task-top">
+
+            <span class="task-priority ${task.priority}">
+              ${task.priority}
+            </span>
+
+            <div class="task-top-right">
+              <span class="task-status">${task.status}</span>
+
+              <div class="task-menu">
+                <button class="menu-btn">⋮</button>
+
+                <div class="menu-dropdown">
+                  <button onclick="openEditTask('${task.id}')">Edit</button>
+                  <button onclick="deleteTask('${task.id}', \`${task.title.replace(/`/g, '')}\`)">Delete</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <h4 class="task-title">${task.title}</h4>
+
+          ${task.desc ? `<p class="task-desc">${task.desc}</p>` : ""}
+
+        </div>
+      </div>
+      `).join("")}
+    </div>
+  </div>
+  `;
+  };
+
+  html += renderFlatColumn("Todo", "todo") || "";
+  html += renderFlatColumn("In Progress", "in progress") || "";
+  html += renderFlatColumn("Done", "done") || "";
+
+  } else {
+
+  // 🎯 DEFAULT KANBAN MODE
+  html += `
+  ${renderColumn("Todo", grouped["todo"], "todo")}
+
+  <div class="kanban-right">
+    ${renderColumn("In Progress", grouped["in progress"], "in-progress")}
+    ${renderColumn("Done", grouped["done"], "done")}
+  </div>
+  `;
+  }
+
+  html += `
+</div>`;
+container.innerHTML = html;
+}
+
+
+
+function renderColumn(title, tasks, status) {
+return `
+<div class="kanban-column ${status.replace(" ", " -")}">
+
+  <h3 class="column-title">${title}</h3>
+
+  <div class="column-tasks">
+    ${tasks.length === 0
+    ? `<p class="empty-column">No tasks</p>`
+    : tasks.map(task => `
+    <div class="task-card ${task.status} priority-${task.priority}">
+
+      <div class="task-top">
+
+        <span class="task-priority ${task.priority}">
+          ${task.priority}
+        </span>
+
+        <div class="task-top-right">
+          <span class="task-status">${task.status}</span>
+
+          <div class="task-menu">
+            <button class="menu-btn">⋮</button>
+
+            <div class="menu-dropdown">
+              <button onclick="openEditTask('${task.id}')">Edit</button>
+              <button onclick="deleteTask('${task.id}', \`${task.title.replace(/`/g, '')}\`)">Delete</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <h4 class="task-title">${task.title}</h4>
+
+      ${task.desc
+      ? `<p class="task-desc">${task.desc}</p>`
+      : ""
+      }
+
+      <div class="task-bottom">
+        <span class="task-date">
+          ${task.createdAt
+          ? new Date(task.createdAt.seconds * 1000).toLocaleDateString()
+          : ""
+          }
+        </span>
+      </div>
+
+      <div class="task-actions">
+        <button onclick="updateStatus('${task.id}', 'todo', \`${task.title.replace(/`/g, '')}\`)"> Todo</button>
+        <button onclick="updateStatus('${task.id}', 'in progress', \`${task.title.replace(/`/g, '')}\`)">Start</button>
+        <button onclick="updateStatus('${task.id}', 'done', \`${task.title.replace(/`/g, '')}\`)">Done</button>
+      </div>
+    </div>
+
+  </div>
+  `).join("")
+  }
+</div>
+
+</div>
+`;
+}
+
+
+// DELETE FUNCTION
+
+window.deleteTask = async (id, title) => {
+await deleteDoc(doc(db, "tasks", id));
+
+await logActivity("Task Deleted", title);
+};
+
+// UPDATE STATUS
+
+window.updateStatus = async (id, status, title) => {
+await updateDoc(doc(db, "tasks", id), {
+status,
+});
+
+await logActivity(`Task Updated (${status})`, title);
+};
+
+// EDIT TASK
+window.openEditTask = (id) => {
+const task = allTasks.find(t => t.id === id);
+if (!task) return;
+
+editingTaskId = id;
+
+document.getElementById("taskTitle").value = task.title || "";
+document.getElementById("taskDescription").value = task.desc || "";
+document.getElementById("taskPriority").value = task.priority || "medium";
+document.getElementById("taskDueDate").value = task.dueDate || "";
+document.getElementById("taskStatus").value = task.status || "todo";
+
+const modal = document.getElementById("modal");
+if (modal) modal.style.display = "flex";
+};
+
+
+// 🔥 SEARCH & FILTER LISTENER
+
+let currentSearch = "";
+let currentFilterStatus = "all";
+
+window.updateTasksView = function () {
+let filtered = allTasks;
+if (currentSearch) {
+filtered = filtered.filter((task) => task.title.toLowerCase().includes(currentSearch));
+}
+if (currentFilterStatus !== "all") {
+filtered = filtered.filter((task) => task.status && task.status.toLowerCase() === currentFilterStatus);
+}
+renderTasks(filtered, currentFilterStatus);
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+const searchInput = document.getElementById("searchInput");
+
+if (searchInput) {
+searchInput.addEventListener("input", () => {
+currentSearch = searchInput.value.toLowerCase();
+updateTasksView();
+});
+}
+
+const filterSelect = document.getElementById("filterSelect");
+if (filterSelect) {
+filterSelect.addEventListener("change", (e) => {
+if (e.target.value !== "default") {
+currentFilterStatus = e.target.value;
+updateTasksView();
+filterSelect.value = "default";
+}
+});
+}
+});
+
+// MENU SWITCH LOGIC
+
+const menuItems = document.querySelectorAll(".menu-item");
+
+menuItems.forEach((item) => {
+item.addEventListener("click", () => {
+// remove active from all
+menuItems.forEach((i) => i.classList.remove("active"));
+
+// add active to clicked
+item.classList.add("active");
+});
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+const menuItems = document.querySelectorAll(".menu-item");
+
+// detect current page
+const path = window.location.pathname;
+
+let currentPage = "";
+
+if (path.includes("index.html") || path === "/") {
+currentPage = "dashboard";
+} else if (path.includes("tasks.html")) {
+currentPage = "tasks";
+} else if (path.includes("team")) {
+currentPage = "team";
+} else if (path.includes("activity")) {
+currentPage = "activity";
+}
+
+// apply active class
+menuItems.forEach((item) => {
+item.classList.remove("active");
+
+if (item.dataset.page === currentPage) {
+item.classList.add("active");
+}
+});
+});
+
+// ================= MODAL & CREATE TASK =================
+const modal = document.getElementById("modal");
+const openBtn = document.getElementById("openModal");
+const cancelBtn = document.getElementById("cancelModal");
+
+if (openBtn) openBtn.addEventListener("click", () => { if (modal) modal.style.display = "flex"; });
+if (cancelBtn) cancelBtn.addEventListener("click", () => { if (modal) modal.style.display = "none"; });
+if (modal) {
+modal.addEventListener("click", (e) => {
+if (e.target === modal) modal.style.display = "none";
+});
+}
+
+const createBtn = document.getElementById("createTaskBtn");
+if (createBtn) {
+createBtn.addEventListener("click", async () => {
+try {
+const title = document.getElementById("taskTitle").value.trim();
+const desc = document.getElementById("taskDescription").value.trim();
+const priority = document.getElementById("taskPriority").value;
+const dueDate = document.getElementById("taskDueDate").value;
+const status = document.getElementById("taskStatus").value;
+const assignee = document.getElementById("taskAssignee").value;
+
+if (!title) {
+alert("Task title is required");
+return;
+}
+
+// 🔥 EDIT MODE
+if (editingTaskId) {
+await updateDoc(doc(db, "tasks", editingTaskId), {
+title,
+desc,
+priority,
+dueDate,
+status,
+assignee,
+});
+
+await logActivity("Task Updated", title);
+
+editingTaskId = null;
+} else {
+// 🔥 CREATE MODE
+await createTask({ title, desc, priority, dueDate, status, assignee });
+}
+
+// reset form
+document.getElementById("taskTitle").value = "";
+document.getElementById("taskDescription").value = "";
+document.getElementById("taskDueDate").value = "";
+
+if (modal) modal.style.display = "none";
+
+} catch (error) {
+console.error(error);
+alert("Task failed");
+}
+});
+}
+
+document.addEventListener("click", (e) => {
+const menu = e.target.closest(".task-menu");
+
+// close all first
+document.querySelectorAll(".task-menu").forEach(m => m.classList.remove("active"));
+
+if (menu) {
+menu.classList.add("active");
+}
+});
+
+
+
+
+<!-- CSS   TASKS -->
+
+
+
 @font-face {
-  font-family: poppins;
-  src: url("./Assets/fonts/Poppins-SemiBold.ttf");
+font-family: poppins;
+src: url("./Assets/fonts/Poppins-SemiBold.ttf");
 }
 
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: poppins;
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+font-family: poppins;
 }
 
 /* ================= BODY ================= */
 body {
-  background: #ffffff;
-  color: #111;
-  padding: 20px;
-  overflow-x: hidden;
-   height: 100vh;
-  overflow: hidden;
+background: #ffffff;
+color: #111;
+height: 100vh;
+overflow: hidden;
 }
 
-/* ================= APP LAYOUT ================= */
+/* ================= LAYOUT ================= */
 .app-layout {
-  display: flex;
-  height: 100vh;
+display: flex;
+height: 100vh;
 }
 
-/* ================= SIDEBAR ================= */
-.sidebar {
-  position: fixed;
-  top: 0;
-  left: -100%;
-  width: 70%;
-  max-width: 260px;
-  height: 100vh;
-  background: linear-gradient(180deg, #0f172a, #020617);
-  color: #cbd5f5;
-  padding: 20px 15px;
-  transition: 0.3s ease;
-  z-index: 100;
-}
-
-.sidebar.open {
-  left: 0;
-}
-
-.sidebar {
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-footer {
-    
-  margin-top: auto;
-}
-
-.logout-btn {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  padding: 12px 15px;
-  border-radius: 10px;
-
-  text-decoration: none;
-  color: #9ca3af;
-}
-
-.logout-btn:hover {
-  background: rgba(255,255,255,0.05);
-  color: #fff;
-}
-
-.logout-btn .icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* ================= OVERLAY ================= */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.25);
-  backdrop-filter: blur(10px);
-  opacity: 0;
-  pointer-events: none;
-  transition: 0.3s;
-  z-index: 90;
-}
-
-.overlay.show {
-  opacity: 1;
-  pointer-events: all;
-}
-
-/* ================= LOGO ================= */
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 30px;
-  color: #fff;
-  font-size: 18px;
-text-decoration: none;
-}
-
-.logo-icon {
-  width: 35px;
-  height: 35px;
-  background: #3b82f6;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo-icon-1 {
-  width: 22px;
-  height: 22px;
-}
-
-.logo-link,
-.logo-link:visited,
-.logo-link:hover,
-.logo-link:active {
-  text-decoration: none;
-  color: inherit;
-}
-
-/* ================= MENU ================= */
-
-.menu-list {
-  list-style: none;
-}
-
-.menu-list li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.menu-list li:hover {
-  background: rgba(255,255,255,0.05);
-}
-
-.menu-list li.active {
-  background: rgba(59,130,246,0.2);
-  color: #fff;
-}
-
-.menu-link {
-  text-decoration: none;
-  color: inherit;
-  display: block;
-}
-
-
-
-.menu-item {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-/* ICON FIX */
-.menu-item .icon {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* IMAGE CENTERING */
-.menu-item .icon img {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-}
-
-/* TEXT ALIGNMENT */
-.menu-item .text {
-  display: flex;
-  align-items: center;
-}
-
-
-.menu-item.active {
-  background: rgba(59,130,246,0.2);
-  color: #fff;
-  transform: translateX(3px);
-}
-
-/* ================= MAIN ================= */
+/* ================= MAIN CONTENT ================= */
 .main-content {
-  flex: 1;
-   height: 100vh;
-  overflow-y: auto;
-  padding: 16px;
+flex: 1;
+height: 100vh;
+overflow-y: auto;
+scrollbar-width: none;
+-ms-overflow-style: none;
 }
 
-/* ================= TOPBAR ================= */
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 25px; /* 🔥 spacing fix */
+.main-content::-webkit-scrollbar {
+display: none;
 }
 
-.menu-icon {
-  width: 24px;
-  cursor: pointer;
+.main-content>*:not(.topbar) {
+padding-left: 20px;
+padding-right: 20px;
 }
 
-.title {
-  font-weight: bold;
+.main-content>*:last-child {
+padding-bottom: 30px;
 }
 
-/* 🔥 SEARCH FIX */
-.search {
-  width: 250px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 2px solid #cad5e2;
+/* ================= TASKS ================= */
+.tasks-page {
+display: flex;
+flex-direction: column;
 }
 
-/* ================= SECTIONS ================= */
-.welcome,
-.overview,
-.tasks, 
-.activity {
-  margin-bottom: 25px; /* 🔥 spacing fix */
-   flex: 1;
-  display: flex;
-  flex-direction: column;
-}                                                     
-
-.overview-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px; /* 🔥 spacing */
+.tasks-list {
+display: flex;
+flex-direction: column;
+gap: 14px;
 }
 
-/* ================= BUTTONS ================= */
-.primary-btn,
-.cta-btn {
-  background: #155dfc;
-  color: white;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-top: 10px;
+/* ================= TASK CARD ================= */
+.task-card {
+border: 2px solid #cad5e2;
+border-radius: 12px;
+padding: 14px;
+background: #fff;
+box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+border-left: 4px solid #f59e0b;
+transition: 0.2s ease;
+margin-bottom: 20px;
 }
 
-/* 🔥 MODAL BUTTONS FIXED */
-.button-primary {
-  width: 100%;
-  background: linear-gradient(90deg,#3b82f6,#2563eb);
-  color: #fff;
-  border: none;
-  padding: 12px;
-  border-radius: 12px;
-  margin-top: 15px;
-  cursor: pointer;
+.task-card.priority-high {
+border-left-color: #ef4444;
+/* bright red */
 }
 
-.button-secondary {
-  width: 100%;
-  margin-top: 10px;
-  padding: 10px;
-  border-radius: 12px;
-  border: 2px solid #cad5e2;
-  background: #fff;
-  cursor: pointer;
+.task-card:hover {
+transform: translateY(-2px);
 }
 
-/* ================= CARDS ================= */
-.cards {
-  display: grid;
-  gap: 15px; /* 🔥 more breathing */
-  margin-top: 10px;
+.task-card-inner {
+display: flex;
+flex-direction: column;
+gap: 10px;
 }
 
-.stat-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 2px solid #cad5e2;
-  border-radius: 10px;
-  padding: 15px;
+.task-top {
+display: flex;
+justify-content: space-between;
+align-items: center;
 }
 
-.icon-me{
-  width: 44px;
-  height: 45px;
+.task-priority {
+font-size: 12px;
+font-weight: 600;
+padding: 4px 10px;
+border-radius: 20px;
+text-transform: capitalize;
 }
 
-.icon img {
-  width: 20px;
+.task-priority.high {
+color: #b91c1c;
+background: #fee2e2;
 }
 
-.value{
-    font-size: 35px;
+.task-priority.medium {
+color: #92400e;
+background: #fef3c7;
 }
 
-/* ================= EMPTY STATES ================= */
-.empty-tasks,
-.empty-activity {
-  border-radius: 12px;
-  padding: 25px;
+.task-priority.low {
+color: #065f46;
+background: #d1fae5;
 }
 
-.empty-tasks {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 10px;
-  border: 2px dashed #cad5e2;
-  padding: 15px;
-  margin-top: 20px;
+.task-status {
+font-size: 12px;
+font-weight: 600;
 }
 
-.empty-tasks h4 {
-    margin-bottom: 10px;
+.task-title {
+font-size: 15px;
+font-weight: 600;
 }
 
-.empty-activity {
-  border: 2px solid #cad5e2;
-  text-align: center;
-   margin-top: 20px;
+.task-bottom {
+display: flex;
+justify-content: flex-end;
 }
 
-
-.empty-activity p{
-    margin-bottom: 10px;
+.task-date {
+font-size: 11px;
+color: #6b7280;
 }
 
-/* ================= MODAL ================= */
+.task-actions {
+display: flex;
+gap: 10px;
+margin-top: 10px;
+}
+
+.task-actions button {
+flex: 1;
+padding: 8px;
+border-radius: 8px;
+border: none;
+font-size: 13px;
+cursor: pointer;
+}
+
+.task-actions button:nth-child(1) {
+background: #dbeafe;
+color: #1d4ed8;
+}
+
+.task-actions button:nth-child(2) {
+background: #dcfce7;
+color: #15803d;
+}
+
+.task-actions button:nth-child(3) {
+background: #fee2e2;
+color: #b91c1c;
+}
+
+/* STATUS COLORS */
+.task-card.todo {
+border-left-color: #cd1010;
+}
+
+.task-card.in-progress {
+border-left-color: #f59e0b;
+}
+
+.task-card.done {
+border-left-color: #10b981;
+/* green */
+}
+
+/* ================= MODAL & FORMS (Copied from dashboard) ================= */
 .modal-overlay {
-  position: fixed;
-  inset: 0;
-  display: none;
-  justify-content: center;
-  align-items: center;
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(10px);
-  z-index: 200;
-  padding: 20px;
+position: fixed;
+inset: 0;
+display: none;
+justify-content: center;
+align-items: center;
+background: rgba(0, 0, 0, 0.35);
+backdrop-filter: blur(10px);
+z-index: 200;
+padding: 20px;
 }
 
 .modal-card {
-  width: 100%;
-  max-width: 450px;
+width: 100%;
+max-width: 450px;
 }
 
 .modal-content {
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  border: 2px solid #cad5e2;
+background: #fff;
+border-radius: 16px;
+padding: 20px;
+border: 2px solid #cad5e2;
 }
 
-/* ================= FORM ================= */
 label {
-  font-size: 13px;
-  font-weight: 600;
-  margin: 10px 0 5px;
+display: block;
+font-size: 13px;
+font-weight: 600;
+margin: 10px 0 5px;
 }
 
 input,
 textarea,
 select {
-  width: 100%;
-  padding: 10px;
-  border-radius: 10px;
-  border: 2px solid #cad5e2;
+width: 100%;
+padding: 10px;
+border-radius: 10px;
+border: 2px solid #cad5e2;
+font-family: inherit;
 }
 
 input:focus,
 textarea:focus,
 select:focus {
-  border: 3px solid #9ca3af;
+border: 3px solid #9ca3af;
+outline: none;
 }
 
 .row {
-  display: flex;
-  gap: 10px;
+display: flex;
+gap: 10px;
 }
 
-
-/* ================= MOBILE ================= */
-
-
-@media (max-width: 480px) {
-    .title{
-        display: none
-    }
+.row .field {
+flex: 1;
 }
 
-/* ================= TABLET ================= */
-@media (min-width: 768px) and (max-width: 1023px) {
-
-  body {
-    padding: 0;
-  }
-
-  .sidebar {
-    position: relative;
-    left: 0;
-    width: 220px;
-  }
-
-  .overlay {
-    display: none !important;
-  }
-
-  .menu-icon {
-    display: none;
-  }
-
-  .main-content {
-    padding: 25px;
-  }
-
-  .cards {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .dashboard-grid {
-    display: flex;
-  gap: 25px;
-  flex: 1;
-  }
+.button-primary {
+width: 100%;
+background: linear-gradient(90deg, #3b82f6, #2563eb);
+color: #fff;
+border: none;
+padding: 12px;
+border-radius: 12px;
+margin-top: 15px;
+cursor: pointer;
+font-family: inherit;
+font-weight: bold;
 }
 
-/* ================= DESKTOP ================= */
+.button-secondary {
+width: 100%;
+margin-top: 10px;
+padding: 10px;
+border-radius: 12px;
+border: 2px solid #cad5e2;
+background: #fff;
+cursor: pointer;
+font-family: inherit;
+font-weight: bold;
+}
+
+/* ================= TASKS ACTIONS ================= */
+
+.tasks-header-wrapper {
+display: flex;
+flex-direction: column;
+}
+
+.tasks-actions {
+display: flex;
+gap: 15px;
+margin-top: 25px;
+margin-bottom: 25px;
+}
+
 @media (min-width: 1024px) {
-
-  body {
-    padding: 0;
-  }
-
-  .sidebar {
-    position: relative;
-    left: 0;
-    width: 260px;
-  }
-
-  .overlay {
-    display: none !important;
-  }
-
-  .menu-icon {
-    display: none;
-  }
-
-  .main-content {
-    padding: 30px 40px;
-  }
-
-  .cards {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .dashboard-grid {
-  display: flex;
-  gap: 25px;
-  flex: 1;
-  }
-
-  /* 🔥 SEARCH POSITION FIX */
-  .topbar {
-    justify-content: space-between;
-  }
-
-  .search {
-    width: 300px;
-  }
+.tasks-header-wrapper {
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
 }
 
-/* TASK */
-
-.task-card {
-  border: 2px solid #cad5e2;
-  padding: 10px;
-  border-radius: 12px;
-  margin-bottom: 10px;
-  background: #fff;
-   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  border-left: 3px solid #f59e0b;
-  display: flex;
-  flex-direction: column;
+.tasks-actions {
+margin-top: 0;
+margin-bottom: 0;
+}
 }
 
-
-.task-bottom {
-  margin-top: auto;
-}
-/* TASK CARD STRUCTURE */
-
-
-/* INNER LAYOUT */
-.task-card-inner {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-/* TOP ROW */
-.task-top {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  font-weight: 500;
+.primary-btn {
+padding: 12px 24px;
+background-color: #155dfc;
+color: white;
+border: none;
+border-radius: 10px;
+cursor: pointer;
+font-size: 14px;
+font-weight: bold;
+font-family: inherit;
+display: flex;
+align-items: center;
+justify-content: center;
 }
 
-/* PRIORITY */
-/* BASE STYLE (applies to all priorities) */
-.task-priority {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 20px;
-  text-transform: capitalize;
-  display: inline-block;
+.filter-wrapper {
+position: relative;
+display: flex;
+align-items: center;
 }
 
-/* HIGH PRIORITY */
-.task-priority.high {
-  color: #b91c1c;            /* dark red text */
-  background-color: #fee2e2; /* light red background */
+.filter-icon {
+position: absolute;
+left: 12px;
+width: 16px;
+height: 16px;
+stroke: #333;
+fill: none;
+stroke-width: 2;
+stroke-linecap: round;
+stroke-linejoin: round;
+pointer-events: none;
+z-index: 10;
 }
 
-/* MEDIUM PRIORITY */
-.task-priority.medium {
-  color: #92400e;            /* dark orange text */
-  background-color: #fef3c7; /* light orange/yellow */
+.filter-dropdown {
+padding: 12px 16px 12px 36px;
+background-color: #ffffff;
+color: #333;
+border: 1px solid #cad5e2;
+border-radius: 10px;
+cursor: pointer;
+font-size: 14px;
+font-weight: bold;
+font-family: inherit;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+appearance: none;
+-webkit-appearance: none;
+background-image:
+url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+background-repeat: no-repeat;
+background-position: right 12px top 50%;
+background-size: 10px auto;
+width: 110px;
+transition: background-color 0.2s;
 }
 
-/* LOW PRIORITY */
-.task-priority.low {
-  color: #065f46;            /* dark green text */
-  background-color: #d1fae5; /* light green background */
+.filter-dropdown:hover {
+background-color: #f8fafc;
 }
 
-/* STATUS */
-.task-status {
-  text-transform: capitalize;
-   font-size: 12px;
-  font-weight: 600;
-    padding: 2px 0;
-}
-
-/* TITLE (CENTER) */
-.task-title {
-  text-align: center;
-  font-size: 14px;
-  font-weight: 600;
-  margin: 10px 0;
-}
-
-/* BOTTOM ROW */
-.task-bottom {
-   margin-top: auto;
-  display: flex;
-  justify-content: flex-end;
-}
-
-/* DATE */
-.task-date {
-  font-size: 10px;
-  color: #777;
-}
-
-
-.task-priority.high { color: red; }
-.task-priority.medium { color: orange; }
-.task-priority.low { color: green; }
-
-
-
-/* card status */
-
-.task-card.todo {
-  border-left-color: #3b82f6; /* blue */
-}
-
-.task-card-progress {
-  border-left-color: #f59e0b; /* orange */
-}
-
-.task-card.done {
-  border-left-color: #10b981; /* green */
-}
-
-
-<html></html>
-
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WorkBoard Dashboard</title>
-
-  <link rel="stylesheet" href="../dashboard.css"/>
-</head>
-
-<body>
-
-    <div class="app-layout">
-             
-<!-- ================= OVERLAY ================= -->
-<div class="overlay" id="overlay"></div>
-
-
-<!-- ================= SIDEBAR ================= -->
-  <aside class="sidebar" id="sidebar">
-
-  <a href="../index.html" class="logo-link">
-    <div class="logo">
-      <div class="logo-icon">
-        <img class="logo-icon-1" src="../Assets/icons/icons8-dashboard-24.png" alt="logo">
-      </div>
-      <span>WorkBoard</span>
-    </div>
-  </a>
-
-     <a href="dashboard.html" class="menu-link"></a>
-  <ul class="menu-list">
-    <li class="menu-item" data-page="dashboard">
-      <span class="icon">
-        <img src="../Assets/icons/icons8-dashboard-24.png" alt="dashboard">
-      </span>
-      <span class="text">Dashboard</span>
-    </li>
-    </a>
-
-   <a href="./tasks.html" class="menu-link">
-  <li class="menu-item" data-page="task">
-    <span class="icon">
-      <img src="../Assets/icons/icons8-activity-feed-24.png" alt="tasks">
-    </span>
-    <span class="text">Tasks</span>
-  </li>
-</a>
-
-    <li class="menu-item" data-page="team">
-      <span class="icon">
-        <img src="../Assets/icons/icons8-user-account-48.png" alt="team">
-      </span>
-      <span class="text">Team</span>
-    </li>
-
-    <li class="menu-item" data-page="activity">
-      <span class="icon">
-        <img src="../Assets/icons/icons8-notification-48.png" alt="notifications">
-      </span>
-      <span class="text">Activity</span>
-    </li>
-  </ul>
-
-  <!-- ✅ LOGOUT INSIDE SIDEBAR -->
-  <div class="sidebar-footer">
-    <a href="./log-in.html" class="logout-btn">
-      <span class="icon">
-        <img src="../Assets/icons/icons8-logout-48.png" alt="logout">
-      </span>
-      <span class="text">Logout</span>
-    </a>
-  </div>
-
-</aside>
-
-<!-- ================= TOP BAR ================= -->
-
-<main class="main-content">
-
-    <header class="topbar">
-
-  <!-- ONLY MENU BUTTON (WORKS NOW) -->
-  <img
-    src="../Assets/icons/icons8-menu-50.png"
-    class="menu-icon"
-    id="menuBtn"
-    alt="menu"
-  />
-
-  <div class="title">Dashboard</div>
-  <input type="text" class="search" placeholder="Search..."/>
-</header>
-
-<!-- ================= WELCOME ================= -->
-<section class="welcome">
-  <h1>Welcome back,</h1>
-  <p>Here’s what’s happening with your project today.</p>
-</section>
-
-<!-- ================= OVERVIEW ================= -->
-<section class="overview">
-
-  <div class="overview-header">
-    <h3>Project Overview</h3>
-    <button class="primary-btn" id="openModal">+ Create Task</button>
-  </div>
-
-  <div class="cards">
-
-    <div class="stat-card">
-      <div class="card-text task-card-progress">
-        <h4>In Progress</h4>
-        <p class="value">0</p>
-        <span>No tasks yet</span>
-      </div>
-      <img class="icon" src="../Assets/icons/icons8-in-progress-48.png"/>
-    </div>
-
-    <div class="stat-card">
-      <div class="card-text">
-        <h4>Upcoming</h4>
-        <p class="value">0</p>
-        <span>Nothing scheduled</span>
-      </div>
-      <img class="icon icon-me" src="../Assets/icons/icons8-today-64.png"/>
-    </div>
-
-    <div class="stat-card">
-      <div class="card-text">
-        <h4>Completion</h4>
-        <p class="value">0%</p>
-        <span>No progress yet</span>
-      </div>
-      <img class="icon" src="../Assets/icons/icons8-task-completed-48.png"/>
-    </div>
-
-  </div>
-</section>
-
-  <div class="dashboard-grid">
-            
-<!-- ================= TASKS ================= -->
-<section class="tasks">
-  <h3>Recent Active Tasks</h3>
-
-  <div class="empty-tasks">
-    <h4>No tasks yet</h4>
-    <p>Start organizing your work by creating your first task.</p>
-
-    <button class="cta-btn" id="openModal2">+ Create Task</button>
-  </div>
-</section>
-
-<!-- ================= ACTIVITY ================= -->
-<section class="activity">
-  <h3>Activity Feed</h3>
-
-  <div class="empty-activity">
-    <p>No activity yet</p>
-    <span>Your actions will appear here once you start creating tasks.</span>
-  </div>
-</section>
-
-  </div>
-
-<!-- ================= MODAL ================= -->
-    <!-- ================= MODAL ================= -->
-<div class="modal-overlay" id="modal">
-
-  <div class="modal-card">
-    <div class="modal-content">
-
-      <div class="header">
-        <h2>Create New Task</h2>
-      </div>
-
-      <div class="subtitle">
-        Add a new task to your project board. Fill in the details below.
-      </div>
-
-      <!-- TASK TITLE -->
-      <label>Task Title</label>
-      <input 
-        type="text" 
-        id="taskTitle"
-        placeholder="e.g. Design new landing page"
-      />
-
-      <!-- DESCRIPTION -->
-      <label>Description</label>
-      <textarea 
-        id="taskDescription"
-        placeholder="Describe the task in detail..."
-      ></textarea>
-
-      <div class="row">
-        <div class="field">
-          <label>Priority</label>
-          <select id="taskPriority">
-            <option value="medium">medium</option>
-            <option value="low">low</option>
-            <option value="high">high</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Due Date</label>
-          <input type="date" id="taskDueDate"/>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="field">
-          <label>Status</label>
-          <select id="taskStatus">
-            <option value="todo">todo</option>
-            <option value="in progress">in progress</option>
-            <option value="done">done</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Assignee</label>
-          <select id="taskAssignee">
-            <option value="u1">u1</option>
-            <option value="u2">u2</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- ACTION BUTTONS -->
-      <button class="button-primary" id="createTaskBtn">
-        Create Task
-      </button>
-
-      <button class="button-secondary" id="cancelModal">
-        Cancel
-      </button>
-
-    </div>
-  </div>
-
-</div>
-    
-
-</main>
-    </div>
-
-<!-- ================= SCRIPT ================= -->
-  <script type="module" src="../scripts/ui1.js"></script>
-
-</body>
-</html>
-
-
-
-h
-h
-h
-hh
-
-h
-h
-h
-
-
-
-h@font-face {
-  font-family: poppins;
-  src: url("./Assets/fonts/Poppins-SemiBold.ttf");
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: poppins;
-}
-
-/* ================= BODY ================= */
-body {
-  background: #ffffff;
-  color: #111;
-  height: 100vh;
-  overflow: hidden;
-}
-
-/* ================= LAYOUT ================= */
-.app-layout {
-  display: flex;
-  height: 100vh;
-}
-
-/* ================= MAIN CONTENT ================= */
-.main-content {
-  flex: 1;
-  height: 100vh;
-  overflow-y: auto;
-  padding: 20px;
-}
-
-/* ================= TASKS ================= */
-.tasks-page {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-}
-
-.tasks-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-/* ================= TASK CARD ================= */
-.task-card {
-  border: 2px solid #cad5e2;
-  border-radius: 12px;
-  padding: 14px;
-  background: #fff;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  border-left: 4px solid #f59e0b;
-  transition: 0.2s ease;
-}
-
-.task-card:hover {
-  transform: translateY(-2px);
-}
-
-.task-card-inner {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.task-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.task-priority {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 20px;
-  text-transform: capitalize;
-}
-
-.task-priority.high {
-  color: #b91c1c;
-  background: #fee2e2;
-}
-
-.task-priority.medium {
-  color: #92400e;
-  background: #fef3c7;
-}
-
-.task-priority.low {
-  color: #065f46;
-  background: #d1fae5;
-}
-
-.task-status {
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.task-title {
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.task-bottom {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.task-date {
-  font-size: 11px;
-  color: #6b7280;
-}
-
-.task-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.task-actions button {
-  flex: 1;
-  padding: 8px;
-  border-radius: 8px;
-  border: none;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.task-actions button:nth-child(1) {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.task-actions button:nth-child(2) {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.task-actions button:nth-child(3) {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-/* STATUS COLORS */
-.task-card.todo {
-  border-left-color: #3b82f6;
-}
-
-.task-card.in-progress {
-  border-left-color: #f59e0b;
-}
-
-.task-card.done {
-  border-left-color: #10b981;
+.filter-dropdown:focus {
+border-color: #9ca3af;
+outline: none;
 }
 
 /* ================= SIDEBAR ================= */
 .sidebar {
-  position: fixed;
-  top: 0;
-  left: -100%;
-  width: 70%;
-  max-width: 260px;
-  height: 100vh;
-  background: linear-gradient(180deg, #0f172a, #020617);
-  color: #cbd5f5;
-  padding: 20px 15px;
-  transition: 0.3s ease;
-  z-index: 100;
+position: fixed;
+top: 0;
+left: -100%;
+width: 70%;
+max-width: 260px;
+height: 100vh;
+background: linear-gradient(180deg, #0f172a, #020617);
+color: #cbd5f5;
+padding: 20px 15px;
+transition: 0.3s ease;
+z-index: 100;
 
-  display: flex;
-  flex-direction: column;
+display: flex;
+flex-direction: column;
 }
 
 .sidebar.open {
-  left: 0;
+left: 0;
 }
 
 /* ================= MENU ================= */
-.menu-list {
-  list-style: none;
+.menu-link {
+flex-direction: row;
+/* horizontal icon + text */
+align-items: center;
+/* vertical center */
+gap: 12px;
+
+text-decoration: none;
+color: inherit;
+width: 100%;
 }
 
 .menu-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: 0.2s ease;
+display: flex;
+/* ✅ forces horizontal */
+/* align-items: center; */
+gap: 12px;
+padding: 12px;
+border-radius: 10px;
+cursor: pointer;
 }
 
 .menu-item:hover {
-  background: rgba(255,255,255,0.05);
+background: rgba(255, 255, 255, 0.05);
 }
 
 .menu-item.active {
-  background: rgba(59,130,246,0.2);
-  color: #fff;
-  transform: translateX(3px);
+background: rgba(59, 130, 246, 0.2);
+color: #fff;
+transform: translateX(3px);
 }
 
 /* ICON */
 .menu-item .icon {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+width: 24px;
+height: 24px;
+display: flex;
+align-items: center;
+justify-content: center;
 }
 
 .menu-item .icon img {
-  width: 20px;
+width: 20px;
 }
 
 /* LINKS */
 .menu-link {
-  text-decoration: none;
-  color: inherit;
-  display: block;
+text-decoration: none;
+color: inherit;
+display: flex;
+/* keep as flex so earlier flex-direction isn't overridden */
 }
 
 /* ================= LOGOUT ================= */
 .sidebar-footer {
-  margin-top: auto;
+margin-top: auto;
+display: flex;
 }
 
 .logout-btn {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 10px;
-  text-decoration: none;
-  color: #9ca3af;
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 12px;
+border-radius: 10px;
+text-decoration: none;
+color: #9ca3af;
+}
+
+.logout-btn .icon {
+width: 25px;
+height: 25px;
+
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.logout-btn .icon img {
+width: 20px;
+/* 🔥 smaller icon */
+height: 20px;
 }
 
 .logout-btn:hover {
-  background: rgba(255,255,255,0.05);
-  color: #fff;
+background: rgba(255, 255, 255, 0.05);
+color: #fff;
 }
 
 /* ================= LOGO ================= */
 .logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 30px;
-  color: #fff;
+display: flex;
+align-items: center;
+gap: 10px;
+margin-bottom: 30px;
+color: #fff;
 }
 
 .logo-link {
-  text-decoration: none;
-  color: inherit;
+text-decoration: none;
+color: inherit;
+}
+
+.logo-icon {
+width: 35px;
+height: 35px;
+background: #3b82f6;
+/* 🔵 blue box */
+border-radius: 8px;
+
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.logo-icon img {
+width: 20px;
+height: 20px;
 }
 
 /* ================= TOPBAR ================= */
 .topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+display: flex;
+align-items: center;
+justify-content: space-between;
+position: sticky;
+top: 0;
+z-index: 80;
+padding: 15px 20px;
+margin-bottom: 10px;
+background: rgba(255, 255, 255, 0.8);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.topbar-left {
+display: flex;
+align-items: center;
+gap: 15px;
+}
+
+.topbar-right {
+display: flex;
+align-items: center;
+gap: 15px;
+}
+
+.topbar-title {
+font-weight: bold;
+font-size: 20px;
+color: #111;
+white-space: nowrap;
+}
+
+.topbar-user {
+font-weight: bold;
+font-size: 14px;
+text-transform: uppercase;
+color: #333;
+white-space: nowrap;
+}
+
+.tasks-header {
+margin: 10px 0 10px 0;
+}
+
+.tasks-header .title {
+font-size: 22px;
+}
+
+@media (max-width: 767px) {
+.topbar-title {
+display: none;
+}
+}
+
+@media (min-width: 768px) {
+.tasks-header {
+margin: 20px 0 15px 0;
+}
+
+.tasks-header .title {
+font-size: 28px;
+}
+}
+
+@media (max-width: 1023px) {
+.topbar-user {
+display: none;
+}
+}
+
+.notif-btn {
+background-color: #334155;
+border: none;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 6px;
+border-radius: 8px;
+transition: background-color 0.2s;
+}
+
+.notif-btn:hover {
+background-color: #475569;
+}
+
+.notif-btn img {
+width: 24px;
+height: 24px;
+filter: brightness(0) invert(1);
 }
 
 .menu-icon {
-  width: 24px;
-  cursor: pointer;
+width: 24px;
+cursor: pointer;
 }
 
 .search {
-  width: 250px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 2px solid #cad5e2;
+width: 250px;
+padding: 8px 10px;
+border-radius: 8px;
+border: 2px solid #cad5e2;
+}
+
+@media (max-width: 360px) {
+.search {
+width: 150px;
+}
+
+.topbar-left {
+gap: 10px;
+}
 }
 
 .title {
-  margin-top: 20px;
+margin-top: 20px;
 }
 
 /* ================= OVERLAY ================= */
 .overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.25);
-  backdrop-filter: blur(10px);
-  opacity: 0;
-  pointer-events: none;
-  transition: 0.3s;
-  z-index: 90;
+position: fixed;
+inset: 0;
+background: rgba(0, 0, 0, 0.25);
+backdrop-filter: blur(10px);
+opacity: 0;
+pointer-events: none;
+transition: 0.3s;
+z-index: 90;
 }
 
 .overlay.show {
-  opacity: 1;
-  pointer-events: all;
+opacity: 1;
+pointer-events: all;
 }
 
 /* ================= DESKTOP FIX ================= */
 @media (min-width: 768px) {
+.sidebar {
+position: relative;
+left: 0;
+width: 240px;
+max-width: none;
+height: 100vh;
+flex-shrink: 0;
+}
 
-  .sidebar {
-    position: relative;
-    left: 0;
-    width: 240px;
-    max-width: none;
-    height: 100vh;
-    flex-shrink: 0;
-  }
+.overlay {
+display: none;
+}
 
-  .overlay {
-    display: none;
-  }
+.menu-icon {
+display: none;
+}
+}
 
-  .menu-icon {
-    display: none;
-  }
+
+
+.column-tasks {
+display: flex;
+flex-direction: column;
+gap: 15px;
+/* 🔥 THIS separates cards properly */
+}
+
+.task-card {
+border-radius: 12px;
+padding: 10px;
+}
+
+
+.column-title {
+font-size: 16px;
+font-weight: 600;
+
+margin-bottom: 15px;
+/* small breathing space */
+}
+
+
+
+/* TASK TOP RIGHT (status + menu) */
+.task-top-right {
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+/* MENU BUTTON */
+.menu-btn {
+background: transparent;
+border: none;
+font-size: 16px;
+cursor: pointer;
+padding: 4px;
+}
+
+/* DROPDOWN */
+.task-menu {
+position: relative;
+}
+
+.menu-dropdown {
+position: absolute;
+top: 28px;
+right: 0;
+background: #fff;
+border: 1px solid #cad5e2;
+border-radius: 8px;
+display: none;
+flex-direction: column;
+min-width: 100px;
+z-index: 20;
+}
+
+.menu-dropdown button {
+padding: 8px;
+border: none;
+background: none;
+cursor: pointer;
+text-align: left;
+font-size: 13px;
+}
+
+.menu-dropdown button:hover {
+background: #f1f5f9;
+}
+
+/* SHOW DROPDOWN */
+.task-menu.active .menu-dropdown {
+display: flex;
+}
+
+
+
+/* ================= MOBILE ================= */
+.kanban-board {
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+
+.kanban-right {
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+
+/* ================= TABLET (2 COLUMNS) ================= */
+@media (min-width: 768px) {
+.kanban-board {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 20px;
+align-items: start;
+}
+
+/* LEFT: TODO */
+.kanban-column {
+width: 100%;
+}
+
+/* RIGHT: IN PROGRESS + DONE stacked */
+.kanban-right {
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+}
+
+/* ================= DESKTOP (3 COLUMNS) ================= */
+@media (min-width: 1024px) {
+.kanban-board {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 24px;
+}
+
+/* unwrap right side into full columns */
+.kanban-right {
+display: contents;
+}
+}
+
+
+<!-- CSS TASKS -->
+
+
+
+/* ================= MOBILE ================= */
+.kanban-board {
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+
+.kanban-right {
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+
+/* ================= TABLET (2 COLUMNS) ================= */
+@media (min-width: 768px) {
+
+
+/* LEFT: TODO */
+.kanban-column {
+width: 100%;
+}
+
+/* RIGHT: IN PROGRESS + DONE stacked */
+.kanban-right {
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+}
+
+/* ================= DESKTOP (3 COLUMNS) ================= */
+@media (min-width: 1024px) {
+.kanban-board {
+/* display: flex; */
+/* flex-direction: column; */
+/* width: 30%; */
+}
+/* unwrap right side into full columns */
+.kanban-right {
+/* display: flex; */
+/* flex-direction: column; */
+/* width: 30%; */
+}
+
+.kanban-column {
+/* display: flex; */
+/* flex-direction: column; */
+/* width: 30%; */
+}
 
 }
+
+
+
+
+new test
+
+
+/* ================= MOBILE ================= */
+.tasks-list {
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+
+/* ================= TABLET (2 COLUMNS) ================= */
+@media (min-width: 768px) {
+
+.tasks-list{
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 24px;
+align-items: flex-start;
+min-width: 0;
+}
+
+/* LEFT: TODO */
+.kanban-column {
+grid-column: 2;
+}
+
+/* RIGHT: IN PROGRESS + DONE stacked */
+.kanban-right {
+
+}
+}
+
+/* ================= DESKTOP (3 COLUMNS) ================= */
+@media (min-width: 1024px) {
+
+.tasks-list{
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 24px;
+align-items: flex-start;
+min-width: 0;
+}
+
+.kanban-board {
+
+}
+
+.kanban-right {
+display: contents;
+}
+
+.kanban-column {
+
+}
+
+}
+
+
+
+
+UI1 . 1S 1 S1 W 1S 1 <S>
+
+</S>
+
+import { createTask } from "./task-engine.js";
+import { db } from "./firebase.js";
+import {
+collection,
+onSnapshot,
+query,
+orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+
+
+// ================= MODAL =================
+const modal = document.getElementById("modal");
+const openBtn1 = document.getElementById("openModal");
+const openBtn2 = document.getElementById("openModal2");
+const cancelBtn = document.getElementById("cancelModal");
+
+function openModal() {
+if (modal) modal.style.display = "flex";
+}
+
+function closeModal() {
+if (modal) modal.style.display = "none";
+}
+
+if (openBtn1) openBtn1.addEventListener("click", openModal);
+if (openBtn2) openBtn2.addEventListener("click", openModal);
+
+if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+
+if (modal) {
+modal.addEventListener("click", (e) => {
+if (e.target === modal) closeModal();
+});
+}
+
+const createBtn = document.getElementById("createTaskBtn");
+
+createBtn?.addEventListener("click", async () => {
+console.log("CREATE CLICKED");
+
+try {
+const title = document.getElementById("taskTitle").value.trim();
+const desc = document.getElementById("taskDescription").value.trim();
+const priority = document.getElementById("taskPriority").value;
+const dueDate = document.getElementById("taskDueDate").value;
+const status = document.getElementById("taskStatus").value;
+const assignee = document.getElementById("taskAssignee").value;
+
+if (!title) {
+alert("Task title is required");
+return;
+}
+
+// 🔥 WAIT for Firebase
+await createTask({
+title,
+desc,
+priority,
+dueDate,
+status,
+assignee
+});
+
+console.log("TASK CREATED SUCCESS");
+
+// ✅ clear inputs
+document.getElementById("taskTitle").value = "";
+document.getElementById("taskDescription").value = "";
+document.getElementById("taskDueDate").value = "";
+
+// ✅ CLOSE MODAL
+closeModal();
+
+} catch (error) {
+console.error("CREATE ERROR:", error);
+alert("Task failed to create");
+}
+});
+
+
+// RENDER FUNCTION
+
+function renderTasks(tasks) {
+const container = document.querySelector(".empty-tasks");
+
+if (!tasks.length) {
+container.innerHTML = `
+<h4>No tasks yet</h4>
+<p>Start organizing your work by creating your first task.</p>
+<button class="cta-btn" id="openModal2">+ Create Task</button>
+`;
+return;
+}
+
+container.innerHTML = ""; // 🔥 clears duplicates
+
+tasks.forEach(task => {
+const div = document.createElement("div");
+div.className = `task-card ${task.status.toLowerCase().replace(" ", "-")}`;
+
+div.innerHTML = `
+<div class="task-card-inner">
+
+  <div class="task-top">
+    <span class="task-priority ${task.priority}">${task.priority}</span>
+    <span class="task-status ${task.status.toLowerCase()}">${task.status}</span>
+  </div>
+
+  <div class="task-title">
+    ${task.title}
+  </div>
+
+  <div class="task-bottom">
+    <span class="task-date">
+      ${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ""}
+    </span>
+  </div>
+
+</div>
+`;
+
+container.appendChild(div);
+});
+}
+
+
+// ONSNAPSHOT
+
+const tasksContainer = document.querySelector(".empty-tasks");
+
+const tasksRef = collection(db, "tasks");
+
+const q = query(tasksRef, orderBy("createdAt", "desc"));
+
+onSnapshot(q, (snapshot) => {
+const tasks = snapshot.docs.map(doc => ({
+id: doc.id,
+...doc.data()
+}));
+
+const limitedTasks = tasks.slice(0, 5);
+renderTasks(limitedTasks);
+
+});
+
+// NOMENCLATURE
+
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const auth = getAuth();
+
+onAuthStateChanged(auth, (user) => {
+const welcomeHeader = document.querySelector(".welcome h1");
+
+if (user && welcomeHeader) {
+const name = user.email.split("@")[0];
+welcomeHeader.textContent = `Welcome back, ${name}`;
+}
+});
+
+// AUTO SWITCH ACTRIVE MENU
+
+document.addEventListener("DOMContentLoaded", () => {
+
+const menuItems = document.querySelectorAll(".menu-item");
+
+// detect current page
+const path = window.location.pathname;
+
+let currentPage = "";
+
+if (path.includes("dashboard.html") || path === "/") {
+currentPage = "dashboard";
+}
+else if (path.includes("tasks.html")) {
+currentPage = "tasks";
+}
+else if (path.includes("team")) {
+currentPage = "team";
+}
+else if (path.includes("activity")) {
+currentPage = "activity";
+}
+
+// apply active class
+menuItems.forEach(item => {
+item.classList.remove("active");
+
+if (item.dataset.page === currentPage) {
+item.classList.add("active");
+}
+});
+
+});
+
+
+
+latest desktop column
+@media (min-width: 1024px) {
+.tasks-list {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 24px;
+align-items: flex-start;
+min-width: 0;
+}
+
+.kanban-column:nth-child(3) {
+grid-column: 3;
+}
+
+.kanban-board {
+}
+
+.kanban-right {
+display: contents;
+}
+
+.kanban-column {
+}
+}
+
+
+
+
+TASK <HTML>
+
+</HTML>
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tasks - FlowZard</title>
+  <link rel="stylesheet" href="../tasks.css" />
+</head>
+
+<body>
+
+  <div class="app-layout">
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ================= SIDEBAR ================= -->
+
+
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+
+
+      <header class="topbar">
+        <div class="topbar-left">
+          <!-- ONLY MENU BUTTON (WORKS NOW) -->
+          <img src="../Assets/icons/icons8-menu-50.png" class="menu-icon" id="menuBtn" alt="menu" />
+          <div class="topbar-title">tasks</div>
+        </div>
+
+        <div class="topbar-right">
+          <input type="text" id="searchInput" class="search" placeholder="Search..." />
+          <button class="notif-btn"><img src="../Assets/icons/icons8-notification-48.png"
+              alt="notifications" /></button>
+          <div class="topbar-user" id="navUsername"></div>
+        </div>
+      </header>
+
+      <!-- HEADER FOR MOBILE ONLY -->
+      <header class="tasks-header">
+        <h1 class="title">Tasks Board</h1>
+      </header>
+
+      <div class="tasks-header-wrapper">
+        <!-- ================= WELCOME ================= -->
+        <section class="welcome">
+          <p>Manage and track your team's progress across all states.</p>
+        </section>
+
+        <!-- ================= ACTIONS ================= -->
+        <div class="tasks-actions">
+          <button class="primary-btn" id="openModal">New Task</button>
+          <div class="filter-wrapper">
+            <svg viewBox="0 0 24 24" class="filter-icon">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            <select id="filterSelect" class="filter-dropdown">
+              <option value="default" disabled selected hidden>Filter</option>
+              <option value="all">All</option>
+              <option value="todo">Todo</option>
+              <option value="in progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- TASK LIST -->
+      <section class="tasks-page">
+
+        <div id="tasksList" class="tasks-list">
+          <!-- tasks will render here -->
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- ================= MODAL ================= -->
+    <div class="modal-overlay" id="modal">
+      <div class="modal-card">
+        <div class="modal-content">
+          <div class="header">
+            <h2>Create New Task</h2>
+          </div>
+          <div class="subtitle">
+            Add a new task to your project board. Fill in the details below.
+          </div>
+          <label>Task Title</label>
+          <input type="text" id="taskTitle" placeholder="e.g. Design new landing page" />
+          <label>Description</label>
+          <textarea id="taskDescription" placeholder="Describe the task in detail..."></textarea>
+          <div class="row">
+            <div class="field">
+              <label>Priority</label>
+              <select id="taskPriority">
+                <option value="medium">medium</option>
+                <option value="low">low</option>
+                <option value="high">high</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Due Date</label>
+              <input type="date" id="taskDueDate" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>Status</label>
+              <select id="taskStatus">
+                <option value="todo">todo</option>
+                <option value="in progress">in progress</option>
+                <option value="done">done</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Assignee</label>
+              <select id="taskAssignee">
+                <option value="u1">u1</option>
+                <option value="u2">u2</option>
+              </select>
+            </div>
+          </div>
+          <button class="button-primary" id="createTaskBtn">Create Task</button>
+          <button class="button-secondary" id="cancelModal">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="../scripts/tasks.js"></script>
+  <script type="module">
+    import { loadSidebar } from "../scripts/layout.js";
+    loadSidebar();
+  </script>
+
+</body>
+
+</html>
+
+
+UPDATED TASKS js
+import { db } from "./firebase.js";
+import { createTask } from "./task-engine.js";
+import {
+collection,
+onSnapshot,
+doc,
+deleteDoc,
+updateDoc,
+query,
+orderBy,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { logActivity } from "./activity-engine.js";
+
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+
+
+let editingTaskId = null;
+
+const container = document.getElementById("tasksList");
+
+const tasksRef = collection(db, "tasks");
+
+// 🔥 REALTIME LISTENER
+
+let allTasks = [];
+
+const q = query(tasksRef, orderBy("createdAt", "desc"));
+
+onSnapshot(q, (snapshot) => {
+allTasks = snapshot.docs.map((doc) => ({
+id: doc.id,
+...doc.data(),
+}));
+
+if (typeof updateTasksView === "function") {
+updateTasksView();
+} else {
+renderTasks(allTasks);
+}
+});
+
+// 🎯 RENDER FUNCTION
+
+function renderTasks(tasks, filterStatus = "all") {
+// 🔥 GROUP TASKS BY STATUS
+const grouped = {
+todo: [],
+"in progress": [],
+done: [],
+};
+
+tasks.forEach((task) => {
+const status = task.status || "todo";
+if (grouped[status]) {
+grouped[status].push(task);
+}
+});
+
+// 🎯 RENDER COLUMNS
+
+let html = `<div class="kanban-board">`;
+
+  // 🔥 ALWAYS WORK WITH ACTUAL TASKS (NOT PRE-GROUPED EMPTY STRUCTURE)
+  const hasSearch = currentSearch.length > 0;
+  const hasFilter = filterStatus !== "all";
+
+  // 🎯 IF SEARCH OR FILTER IS ACTIVE → FLAT MODE (NO EMPTY COLUMNS)
+  if (hasSearch || hasFilter) {
+  const visibleTasks = tasks;
+
+  const renderFlatColumn = (title, statusKey) => {
+  const filtered = visibleTasks.filter(
+  (t) => (t.status || "todo") === statusKey
+  );
+
+  if (filtered.length === 0) return "";
+
+  return `
+  <div class="kanban-column ${statusKey.replace(" ", " -")}">
+    <h3 class="column-title">${title}</h3>
+
+    <div class="column-tasks">
+      ${filtered
+      .map(
+      (task) => `
+      <div class="task-card ${task.status}">
+        <div class="task-card-inner">
+
+          <div class="task-top">
+
+            <span class="task-priority ${task.priority}">
+              ${task.priority}
+            </span>
+
+            <div class="task-top-right">
+              <span class="task-status">${task.status}</span>
+
+              <div class="task-menu">
+                <button class="menu-btn">⋮</button>
+
+                <div class="menu-dropdown">
+                  <button onclick="openEditTask('${task.id}')">Edit</button>
+                  <button onclick="deleteTask('${
+                    task.id
+                  }', \`${task.title.replace(/`/g, "")}\`)">Delete</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <h4 class="task-title">${task.title}</h4>
+
+          ${task.desc ? `<p class="task-desc">${task.desc}</p>` : ""}
+
+        </div>
+      </div>
+      `
+      )
+      .join("")}
+    </div>
+  </div>
+  `;
+  };
+
+  html += renderFlatColumn("Todo", "todo") || "";
+  html += renderFlatColumn("In Progress", "in progress") || "";
+  html += renderFlatColumn("Done", "done") || "";
+  } else {
+  // 🎯 DEFAULT KANBAN MODE
+  html += `
+  ${renderColumn("Todo", grouped["todo"], "todo")}
+
+  <div class="kanban-right">
+    ${renderColumn("In Progress", grouped["in progress"], "in-progress")}
+    ${renderColumn("Done", grouped["done"], "done")}
+  </div>
+  `;
+  }
+
+  html += `
+</div>`;
+container.innerHTML = html;
+}
+
+function renderColumn(title, tasks, status) {
+return `
+<div class="kanban-column ${status.replace(" ", " -")}">
+
+  <h3 class="column-title">${title}</h3>
+
+  <div class="column-tasks">
+    ${
+    tasks.length === 0
+    ? `<div class="empty-column-card">
+      <h4>No ${title.toLowerCase()} tasks</h4>
+      <p>Tasks in this section will appear here when created or moved.</p>
+    </div>`
+    : tasks
+    .map(
+    (task) => `
+    <div class="task-card ${task.status} priority-${task.priority}">
+
+      <div class="task-top">
+
+        <span class="task-priority ${task.priority}">
+          ${task.priority}
+        </span>
+
+        <div class="task-top-right">
+          <span class="task-status">${task.status}</span>
+
+          <div class="task-menu">
+            <button class="menu-btn">⋮</button>
+
+            <div class="menu-dropdown">
+              <button onclick="openEditTask('${task.id}')">Edit</button>
+              <button onclick="deleteTask('${task.id}', \`${task.title.replace(
+                /`/g,
+                ""
+              )}\`)">Delete</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <h4 class="task-title">${task.title}</h4>
+
+      ${task.desc ? `<p class="task-desc">${task.desc}</p>` : ""}
+
+      <div class="task-bottom">
+        <span class="task-date">
+          ${
+          task.createdAt
+          ? new Date(task.createdAt.seconds * 1000).toLocaleDateString()
+          : ""
+          }
+        </span>
+      </div>
+
+      <div class="task-actions">
+        <button onclick="updateStatus('${
+          task.id
+        }', 'todo', \`${task.title.replace(/`/g, "")}\`)"> Todo</button>
+        <button onclick="updateStatus('${
+          task.id
+        }', 'in progress', \`${task.title.replace(/`/g, "")}\`)">Start</button>
+        <button onclick="updateStatus('${
+          task.id
+        }', 'done', \`${task.title.replace(/`/g, "")}\`)">Done</button>
+      </div>
+    </div>
+
+  </div>
+  `
+  )
+  .join("")
+  }
+</div>
+
+</div>
+`;
+}
+
+// DELETE FUNCTION
+
+window.deleteTask = async (id, title) => {
+await deleteDoc(doc(db, "tasks", id));
+
+await logActivity("Task Deleted", title);
+};
+
+// UPDATE STATUS
+
+window.updateStatus = async (id, status, title) => {
+await updateDoc(doc(db, "tasks", id), {
+status,
+});
+
+await logActivity(`Task Updated (${status})`, title);
+};
+
+// EDIT TASK
+window.openEditTask = (id) => {
+const task = allTasks.find((t) => t.id === id);
+if (!task) return;
+
+editingTaskId = id;
+
+document.getElementById("taskTitle").value = task.title || "";
+document.getElementById("taskDescription").value = task.desc || "";
+document.getElementById("taskPriority").value = task.priority || "medium";
+document.getElementById("taskDueDate").value = task.dueDate || "";
+document.getElementById("taskStatus").value = task.status || "todo";
+
+const modal = document.getElementById("modal");
+if (modal) modal.style.display = "flex";
+};
+
+// 🔥 SEARCH & FILTER LISTENER
+
+let currentSearch = "";
+let currentFilterStatus = "all";
+
+window.updateTasksView = function () {
+let filtered = allTasks;
+if (currentSearch) {
+filtered = filtered.filter((task) =>
+task.title.toLowerCase().includes(currentSearch)
+);
+}
+if (currentFilterStatus !== "all") {
+filtered = filtered.filter(
+(task) => task.status && task.status.toLowerCase() === currentFilterStatus
+);
+}
+renderTasks(filtered, currentFilterStatus);
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+const searchInput = document.getElementById("searchInput");
+
+if (searchInput) {
+searchInput.addEventListener("input", () => {
+currentSearch = searchInput.value.toLowerCase();
+updateTasksView();
+});
+}
+
+const filterSelect = document.getElementById("filterSelect");
+if (filterSelect) {
+filterSelect.addEventListener("change", (e) => {
+if (e.target.value !== "default") {
+currentFilterStatus = e.target.value;
+updateTasksView();
+filterSelect.value = "default";
+}
+});
+}
+});
+
+// MENU SWITCH LOGIC
+
+const menuItems = document.querySelectorAll(".menu-item");
+
+menuItems.forEach((item) => {
+item.addEventListener("click", () => {
+// remove active from all
+menuItems.forEach((i) => i.classList.remove("active"));
+
+// add active to clicked
+item.classList.add("active");
+});
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+const menuItems = document.querySelectorAll(".menu-item");
+
+// detect current page
+const path = window.location.pathname;
+
+let currentPage = "";
+
+if (path.includes("index.html") || path === "/") {
+currentPage = "dashboard";
+} else if (path.includes("tasks.html")) {
+currentPage = "tasks";
+} else if (path.includes("team")) {
+currentPage = "team";
+} else if (path.includes("activity")) {
+currentPage = "activity";
+}
+
+// apply active class
+menuItems.forEach((item) => {
+item.classList.remove("active");
+
+if (item.dataset.page === currentPage) {
+item.classList.add("active");
+}
+});
+});
+
+// ================= MODAL & CREATE TASK =================
+const modal = document.getElementById("modal");
+const openBtn = document.getElementById("openModal");
+const cancelBtn = document.getElementById("cancelModal");
+
+if (openBtn)
+openBtn.addEventListener("click", () => {
+if (modal) modal.style.display = "flex";
+});
+if (cancelBtn)
+cancelBtn.addEventListener("click", () => {
+if (modal) modal.style.display = "none";
+});
+if (modal) {
+modal.addEventListener("click", (e) => {
+if (e.target === modal) modal.style.display = "none";
+});
+}
+
+const createBtn = document.getElementById("createTaskBtn");
+if (createBtn) {
+createBtn.addEventListener("click", async () => {
+try {
+const title = document.getElementById("taskTitle").value.trim();
+const desc = document.getElementById("taskDescription").value.trim();
+const priority = document.getElementById("taskPriority").value;
+const dueDate = document.getElementById("taskDueDate").value;
+const status = document.getElementById("taskStatus").value;
+const assignee = document.getElementById("taskAssignee").value;
+
+if (!title) {
+alert("Task title is required");
+return;
+}
+
+// 🔥 EDIT MODE
+if (editingTaskId) {
+await updateDoc(doc(db, "tasks", editingTaskId), {
+title,
+desc,
+priority,
+dueDate,
+status,
+assignee,
+});
+
+await logActivity("Task Updated", title);
+
+editingTaskId = null;
+} else {
+// 🔥 CREATE MODE
+await createTask({ title, desc, priority, dueDate, status, assignee });
+}
+
+// reset form
+document.getElementById("taskTitle").value = "";
+document.getElementById("taskDescription").value = "";
+document.getElementById("taskDueDate").value = "";
+
+if (modal) modal.style.display = "none";
+} catch (error) {
+console.error(error);
+alert("Task failed");
+}
+});
+}
+
+document.addEventListener("click", (e) => {
+const menu = e.target.closest(".task-menu");
+
+// close all first
+document
+.querySelectorAll(".task-menu")
+.forEach((m) => m.classList.remove("active"));
+
+if (menu) {
+menu.classList.add("active");
+}
+});
+
+
+const auth = getAuth();
+
+onAuthStateChanged(auth, (user) => {
+const topbarUser = document.querySelector(".topbar-user");
+const welcomeHeader = document.querySelector(".welcome h1");
+
+if (user) {
+const name = user.email.split("@")[0];
+
+// RIGHT CORNER NAVBAR (task page)
+if (topbarUser) {
+topbarUser.textContent = name.toUpperCase();
+}
+
+// optional: if task page also has welcome text
+if (welcomeHeader) {
+welcomeHeader.textContent = `Welcome back, ${name}`;
+}
+}
+});
+
+
+
+
+
+
+UI1 JS
+
+
+import { createTask } from "./task-engine.js";
+import { db } from "./firebase.js";
+import {
+collection,
+onSnapshot,
+query,
+orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+
+
+// ================= MODAL =================
+const modal = document.getElementById("modal");
+const openBtn1 = document.getElementById("openModal");
+const openBtn2 = document.getElementById("openModal2");
+const cancelBtn = document.getElementById("cancelModal");
+
+function openModal() {
+if (modal) modal.style.display = "flex";
+}
+
+function closeModal() {
+if (modal) modal.style.display = "none";
+}
+
+if (openBtn1) openBtn1.addEventListener("click", openModal);
+if (openBtn2) openBtn2.addEventListener("click", openModal);
+
+if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+
+if (modal) {
+modal.addEventListener("click", (e) => {
+if (e.target === modal) closeModal();
+});
+}
+
+const createBtn = document.getElementById("createTaskBtn");
+
+createBtn?.addEventListener("click", async () => {
+console.log("CREATE CLICKED");
+
+try {
+const title = document.getElementById("taskTitle").value.trim();
+const desc = document.getElementById("taskDescription").value.trim();
+const priority = document.getElementById("taskPriority").value;
+const dueDate = document.getElementById("taskDueDate").value;
+const status = document.getElementById("taskStatus").value;
+const assignee = document.getElementById("taskAssignee").value;
+
+if (!title) {
+alert("Task title is required");
+return;
+}
+
+// 🔥 WAIT for Firebase
+await createTask({
+title,
+desc,
+priority,
+dueDate,
+status,
+assignee
+});
+
+console.log("TASK CREATED SUCCESS");
+
+// ✅ clear inputs
+document.getElementById("taskTitle").value = "";
+document.getElementById("taskDescription").value = "";
+document.getElementById("taskDueDate").value = "";
+
+// ✅ CLOSE MODAL
+closeModal();
+
+} catch (error) {
+console.error("CREATE ERROR:", error);
+alert("Task failed to create");
+}
+});
+
+
+// RENDER FUNCTION
+
+function renderTasks(tasks) {
+const container = document.querySelector(".empty-tasks");
+
+if (!tasks.length) {
+container.innerHTML = `
+<h4>No tasks yet</h4>
+<p>Start organizing your work by creating your first task.</p>
+<button class="cta-btn" id="openModal2">+ Create Task</button>
+`;
+return;
+}
+
+container.innerHTML = ""; // 🔥 clears duplicates
+
+tasks.forEach(task => {
+const div = document.createElement("div");
+div.className = `task-card ${task.status.toLowerCase().replace(" ", "-")}`;
+
+div.innerHTML = `
+<div class="task-card-inner">
+
+  <div class="task-top">
+    <span class="task-priority ${task.priority}">${task.priority}</span>
+    <span class="task-status ${task.status.toLowerCase()}">${task.status}</span>
+  </div>
+
+  <div class="task-title">
+    ${task.title}
+  </div>
+
+  <div class="task-bottom">
+    <span class="task-date">
+      ${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ""}
+    </span>
+  </div>
+
+</div>
+`;
+
+container.appendChild(div);
+});
+}
+
+
+// ONSNAPSHOT
+
+const tasksContainer = document.querySelector(".empty-tasks");
+
+const tasksRef = collection(db, "tasks");
+
+const q = query(tasksRef, orderBy("createdAt", "desc"));
+
+onSnapshot(q, (snapshot) => {
+const tasks = snapshot.docs.map(doc => ({
+id: doc.id,
+...doc.data()
+}));
+
+const limitedTasks = tasks.slice(0, 5);
+renderTasks(limitedTasks);
+
+});
+
+// NOMENCLATURE
+
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const auth = getAuth();
+
+onAuthStateChanged(auth, (user) => {
+const welcomeHeader = document.querySelector(".welcome h1");
+const topbarUser = document.querySelector(".topbar-user");
+
+if (user) {
+const name = user.email.split("@")[0];
+
+// dashboard greeting
+if (welcomeHeader) {
+welcomeHeader.textContent = `Welcome back, ${name}`;
+}
+
+// topbar display (RIGHT CORNER)
+if (topbarUser) {
+topbarUser.textContent = name.toUpperCase();
+}
+}
+});
+
+// AUTO SWITCH ACTRIVE MENU
+
+document.addEventListener("DOMContentLoaded", () => {
+
+const menuItems = document.querySelectorAll(".menu-item");
+
+// detect current page
+const path = window.location.pathname;
+
+let currentPage = "";
+
+if (path.includes("dashboard.html") || path === "/") {
+currentPage = "dashboard";
+}
+else if (path.includes("tasks.html")) {
+currentPage = "tasks";
+}
+else if (path.includes("team")) {
+currentPage = "team";
+}
+else if (path.includes("activity")) {
+currentPage = "activity";
+}
+
+// apply active class
+menuItems.forEach(item => {
+item.classList.remove("active");
+
+if (item.dataset.page === currentPage) {
+item.classList.add("active");
+}
+});
+
+});
+
+UI1 JS
+
+
+LATEST UI 1 JS
+
+
+
+import { createTask } from "./task-engine.js";
+import { db } from "./firebase.js";
+import { 
+  collection, 
+  onSnapshot, 
+  query, 
+  orderBy 
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+function updateDashboardStats(tasks) {
+  const total = tasks.length;
+
+  const todo = tasks.filter(t => t.status === "todo").length;
+  const inProgress = tasks.filter(t => t.status === "in progress").length;
+  const done = tasks.filter(t => t.status === "done").length;
+
+  // optional DOM targets (match your HTML IDs/classes)
+  const totalEl = document.getElementById("totalTasks");
+  const todoEl = document.getElementById("todoTasks");
+  const progressEl = document.getElementById("inProgressTasks");
+  const doneEl = document.getElementById("doneTasks");
+  
+  if (totalEl) totalEl.textContent = total;
+  if (todoEl) todoEl.textContent = todo;
+  if (progressEl) progressEl.textContent = inProgress;
+  if (doneEl) doneEl.textContent = done;
+}
+
+// ================= MODAL =================
+const modal = document.getElementById("modal");
+const openBtn1 = document.getElementById("openModal");
+const openBtn2 = document.getElementById("openModal2");
+const cancelBtn = document.getElementById("cancelModal");
+
+function openModal() {
+  if (modal) modal.style.display = "flex";
+}
+
+function closeModal() {
+  if (modal) modal.style.display = "none";
+}
+
+if (openBtn1) openBtn1.addEventListener("click", openModal);
+if (openBtn2) openBtn2.addEventListener("click", openModal);
+
+if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+
+if (modal) {
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+}
+
+const createBtn = document.getElementById("createTaskBtn");
+
+createBtn?.addEventListener("click", async () => {
+  console.log("CREATE CLICKED");
+
+  try {
+    const title = document.getElementById("taskTitle").value.trim();
+    const desc = document.getElementById("taskDescription").value.trim();
+    const priority = document.getElementById("taskPriority").value;
+    const dueDate = document.getElementById("taskDueDate").value;
+    const status = document.getElementById("taskStatus").value;
+    const assignee = document.getElementById("taskAssignee").value;
+
+    if (!title) {
+      alert("Task title is required");
+      return;
+    }
+
+    // 🔥 WAIT for Firebase
+    await createTask({
+      title,
+      desc,
+      priority,
+      dueDate,
+      status,
+      assignee
+    });
+
+    console.log("TASK CREATED SUCCESS");
+
+    // ✅ clear inputs
+    document.getElementById("taskTitle").value = "";
+    document.getElementById("taskDescription").value = "";
+    document.getElementById("taskDueDate").value = "";
+
+    // ✅ CLOSE MODAL
+    closeModal();
+
+  } catch (error) {
+    console.error("CREATE ERROR:", error);
+    alert("Task failed to create");
+  }
+});
+
+
+// RENDER FUNCTION
+
+function renderTasks(tasks) {
+  const container = document.querySelector(".empty-tasks");
+
+  if (!tasks.length) {
+    container.innerHTML = `
+      <h4>No tasks yet</h4>
+      <p>Start organizing your work by creating your first task.</p>
+      <button class="cta-btn" id="openModal2">+ Create Task</button>
+    `;
+    return;
+  }
+
+  container.innerHTML = ""; // 🔥 clears duplicates
+
+  tasks.forEach(task => {
+    const div = document.createElement("div");
+    div.className = `task-card ${task.status.toLowerCase().replace(" ", "-")}`;
+
+   div.innerHTML = `
+  <div class="task-card-inner">
+
+    <div class="task-top">
+   <span class="task-priority ${task.priority}">${task.priority}</span>
+     <span class="task-status ${task.status.toLowerCase()}">${task.status}</span>
+    </div>
+
+    <div class="task-title">
+      ${task.title}
+    </div>
+
+    <div class="task-bottom">
+      <span class="task-date">
+       ${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ""}
+      </span>
+    </div>
+
+  </div>
+`;
+
+    container.appendChild(div);
+  });
+}
+
+
+// ONSNAPSHOT
+
+ const tasksContainer = document.querySelector(".empty-tasks");
+
+const tasksRef = collection(db, "tasks");
+
+const q = query(tasksRef, orderBy("createdAt", "desc"));
+
+onSnapshot(q, (snapshot) => {
+  const tasks = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+
+  updateDashboardStats(tasks);
+
+  const limitedTasks = tasks.slice(0, 5);
+renderTasks(limitedTasks);
+
+});
+
+// NOMENCLATURE
+
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const auth = getAuth();
+
+onAuthStateChanged(auth, (user) => {
+  const welcomeHeader = document.querySelector(".welcome h1");
+  const topbarUser = document.querySelector(".topbar-user");
+
+  if (user) {
+    const name = user.email.split("@")[0];
+
+    // dashboard greeting
+    if (welcomeHeader) {
+      welcomeHeader.textContent = `Welcome back, ${name}`;
+    }
+
+    // topbar display (RIGHT CORNER)
+    if (topbarUser) {
+      topbarUser.textContent = name.toUpperCase();
+    }
+  }
+});
+
+// AUTO SWITCH ACTRIVE MENU
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const menuItems = document.querySelectorAll(".menu-item");
+
+  // detect current page
+  const path = window.location.pathname;
+
+  let currentPage = "";
+
+  if (path.includes("dashboard.html") || path === "/") {
+    currentPage = "dashboard";
+  } 
+  else if (path.includes("tasks.html")) {
+    currentPage = "tasks";
+  } 
+  else if (path.includes("team")) {
+    currentPage = "team";
+  } 
+  else if (path.includes("activity")) {
+    currentPage = "activity";
+  }
+
+  // apply active class
+  menuItems.forEach(item => {
+    item.classList.remove("active");
+
+    if (item.dataset.page === currentPage) {
+      item.classList.add("active");
+    }
+  });
+
+});

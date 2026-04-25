@@ -5,4 +5,4 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "no-referrer"
-    Content-Security-Policy = "default-src 'self' https://www.gstatic.com https://www.googleapis.com; script-src 'self' https://www.gstatic.com https://www.googleapis.com; connect-src https://www.googleapis.com https://identitytoolkit.googleapis.com;"
+    Content-Security-Policy = "default-src 'self' https://www.gstatic.com https://www.googleapis.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com; script-src 'self' https://www.gstatic.com https://www.googleapis.com; connect-src 'self' https://www.gstatic.com https://www.googleapis.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://*.firebaseio.com; img-src 'self' data: https:;"
