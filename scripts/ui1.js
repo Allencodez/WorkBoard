@@ -4,29 +4,55 @@ import {
   collection, 
   onSnapshot, 
   query, 
-  orderBy 
+  orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 
 function updateDashboardStats(tasks) {
-  const total = tasks.length;
 
-  const todo = tasks.filter(t => t.status === "todo").length;
-  const inProgress = tasks.filter(t => t.status === "in progress").length;
-  const done = tasks.filter(t => t.status === "done").length;
+  // ✅ filter valid tasks ONLY
+  const validTasks = tasks.filter(task =>
+    task &&
+    task.status &&
+    ["todo", "in progress", "done"].includes(task.status)
+  );
 
-  // optional DOM targets (match your HTML IDs/classes)
+  const total = validTasks.length;
+
+  const todo = validTasks.filter(t => t.status === "todo").length;
+  const inProgress = validTasks.filter(t => t.status === "in progress").length;
+  const done = validTasks.filter(t => t.status === "done").length;
+
   const totalEl = document.getElementById("totalTasks");
   const todoEl = document.getElementById("todoTasks");
   const progressEl = document.getElementById("inProgressTasks");
   const doneEl = document.getElementById("doneTasks");
-  
-  if (totalEl) animateNumber(totalEl, total);
-if (todoEl) animateNumber(todoEl, todo);
-if (progressEl) animateNumber(progressEl, inProgress);
-if (doneEl) animateNumber(doneEl, done, "%");
-}
 
+  if (totalEl) animateNumber(totalEl, total);
+  if (todoEl) animateNumber(todoEl, todo);
+  if (progressEl) animateNumber(progressEl, inProgress);
+
+  // ✅ correct percentage
+  const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+  if (doneEl) animateNumber(doneEl, percent, "%");
+
+  // ===== HELPER TEXT =====
+  const progressText = document.getElementById("progressText");
+  const todoText = document.getElementById("todoText");
+  const completionText = document.getElementById("completionText");
+
+  if (progressText) {
+    progressText.style.display = inProgress > 0 ? "none" : "block";
+  }
+
+  if (todoText) {
+    todoText.style.display = todo > 0 ? "none" : "block";
+  }
+
+  if (completionText) {
+    completionText.style.display = total > 0 ? "none" : "block";
+  }
+}
 
 // EMPTY TEXT HELPER SPAN 
 const progressText = document.getElementById("progressText");
@@ -63,22 +89,7 @@ function animateNumber(element, target, suffix = "") {
   }, duration / steps);
 }
 
-                            // PERCENTAGE CHECKER
-
-                            function updateCompletionPercentage(tasks) {
-  const total = tasks.length;
-
-  const done = tasks.filter(t => t.status === "done").length;
-
-  const percent = total === 0 ? 0 : Math.round((done / total) * 100);
-
-  const completionEl = document.getElementById("doneTasks");
-
-  if (completionEl) {
-    completionEl.textContent = `${percent}%`;
-  }
-}
-
+  
 // ================= MODAL =================
 const modal = document.getElementById("modal");
 const openBtn1 = document.getElementById("openModal");
@@ -210,7 +221,7 @@ onSnapshot(q, (snapshot) => {
   }));
 
  updateDashboardStats(tasks);
-updateCompletionPercentage(tasks); 
+// updateCompletionPercentage(tasks); 
 
   const limitedTasks = tasks.slice(0, 5);
 renderTasks(limitedTasks);
@@ -226,6 +237,7 @@ const auth = getAuth();
 onAuthStateChanged(auth, (user) => {
   const welcomeHeader = document.querySelector(".welcome h1");
   const topbarUser = document.querySelector(".topbar-user");
+
 
   if (user) {
     const name = user.email.split("@")[0];
@@ -275,4 +287,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+});
+
+// ACTIVITY BUTTON CLICKER
+
+const activityBtn = document.getElementById("activityBtn");
+activityBtn.addEventListener("click", () => {
+   activityBtn.style.transform = "scale(0.95)";
+   setTimeout(() => {
+    window.location.href = "./activity.html";
+  }, 100);
 });

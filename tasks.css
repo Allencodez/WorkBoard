@@ -177,6 +177,70 @@ body {
   /* green */
 }
 
+/* Tasks header wrapper 
+responsiveness */
+
+.tasks-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+
+  .tasks-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .stat-card {
+    width: 100%;
+  }
+
+  .tasks-actions {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+  }
+}
+
+@media (min-width: 601px) {
+
+  .tasks-toolbar {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .stat-card {
+    margin-top: 10px; 
+    margin-bottom: 10px; /* 🔥 overrides old bug */
+    width: 45%;
+  }
+
+}
+
+@media (min-width: 1025px) {
+
+  .tasks-toolbar {
+    justify-content: space-between; /* LEFT + RIGHT separation */
+    flex-direction: row;
+  }
+
+  .stat-card {
+    /* margin-top: 0; */
+    /* flex-shrink: 0; */
+    max-width: 33%;
+  }
+
+  .tasks-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end; /* pushes buttons to the right */
+  }
+}
+
 /* ================= MODAL & FORMS (Copied from dashboard) ================= */
 .modal-overlay {
   position: fixed;
@@ -261,11 +325,6 @@ select:focus {
 }
 
 /* ================= TASKS ACTIONS ================= */
-
-.tasks-header-wrapper {
-  display: flex;
-  flex-direction: column;
-}
 
 .tasks-actions {
   display: flex;
@@ -823,4 +882,20 @@ EMPTY CARD DISPLAY STATE */
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+/* ================= STATS ================= */
+
+.stat-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 2px solid #cad5e2;
+  border-radius: 10px;
+  padding:10px;
+  margin-top: 10px;
+}
+
+.value {
+  font-size: 35px;
 }

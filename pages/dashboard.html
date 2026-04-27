@@ -35,7 +35,7 @@
 
       <div class="topbar-right">
         <input type="text" id="dashboardSearch" class="search" placeholder="Search..."/>
-        <button class="notif-btn"><img src="../Assets/icons/icons8-notification-48.png" alt="notifications"/></button>
+        <button class="notif-btn" id="activityBtn" type="button"><img src="../Assets/icons/icons8-notification-48.png" alt="notifications"/></button>
         <span class="topbar-user" id="navUsername"></span>
       </div>
     </header>
@@ -171,10 +171,9 @@
 
         <div class="field">
           <label>Assignee</label>
-          <select id="taskAssignee">
-            <option value="u1">u1</option>
-            <option value="u2">u2</option>
-          </select>
+         <select id="taskAssignee">
+          <option value="" id="currentUserOption">You</option>
+         </select>
         </div>
       </div>
 
@@ -198,8 +197,7 @@
 
 <!-- ================= SCRIPT ================= -->
   <script type="module" src="../scripts/ui1.js"></script>
-  <script type="module" src="../scripts/layout.js"></script>
-  <script type="module" src="../scripts/activity-ui.js"></script>
+  <script type="module" src="../scripts/activity-ui2.js"></script>
 <script type="module">
   import { loadSidebar } from "../scripts/layout.js";
   loadSidebar();

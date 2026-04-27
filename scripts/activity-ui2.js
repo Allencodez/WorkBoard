@@ -96,7 +96,7 @@ function renderActivities(activities, currentUserEmail) {
 
           <div class="activity-text">
             ${displayActor} <span>${actionText}</span> 
-            <p>“${act.taskTitle}”</p>
+            <strong>“${act.taskTitle}”</strong>
           </div>
 
         </div>
@@ -123,7 +123,7 @@ onAuthStateChanged(auth, (user) => {
   const q = query(
     collection(db, "activities"),
     orderBy("timestamp", "desc"),
-    limit(10)
+    limit(5)
   );
 
   onSnapshot(q, (snapshot) => {

@@ -31,7 +31,7 @@
 
         <div class="topbar-right">
           <input type="text" id="searchInput" class="search" placeholder="Search..." />
-          <button class="notif-btn"><img src="../Assets/icons/icons8-notification-48.png"
+          <button class="notif-btn" id="activityBtn" type="button"><img src="../Assets/icons/icons8-notification-48.png"
               alt="notifications" /></button>
            <div class="topbar-user" id="navUsername"></div>
         </div>
@@ -47,6 +47,18 @@
         <section class="welcome">
           <p>Manage and track your team's progress across all states.</p>
         </section>
+
+            <div class="tasks-toolbar">
+
+            
+             
+         <div class="stat-card">
+       <div class="card-text">
+        <h4>Total tasks</h4>
+        <p class="value" id="totalTasks">0</p>
+       </div>
+       <img class="icon" src="../Assets/icons/icons8-list-48.png"/>
+       </div>
 
         <!-- ================= ACTIONS ================= -->
         <div class="tasks-actions">
@@ -64,6 +76,10 @@
             </select>
           </div>
         </div>
+
+
+            </div>
+
       </div>
 
       <!-- TASK LIST -->

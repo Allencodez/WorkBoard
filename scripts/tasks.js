@@ -13,36 +13,88 @@ import { logActivity } from "./activity-engine.js";
 
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-
-
 let editingTaskId = null;
 
 const container = document.getElementById("tasksList");
 
 const tasksRef = collection(db, "tasks");
 
+
+// TASKS STATS
+
+function updateTotalTasks(tasks) {
+
+  // ✅ only count valid tasks
+  const validTasks = tasks.filter(task => 
+    task && 
+    task.status && 
+    ["todo", "in progress", "done"].includes(task.status)
+  );
+
+  const total = validTasks.length;
+
+  const totalEl = document.getElementById("totalTasks");
+  if (totalEl) animateNumber(totalEl, total);
+  
+}
+
+
 // 🔥 REALTIME LISTENER
+
 
 let allTasks = [];
 
 const q = query(tasksRef, orderBy("createdAt", "desc"));
 
-onSnapshot(q, (snapshot) => {
+ onSnapshot(q, (snapshot) => {
   allTasks = snapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
   }));
 
-   if (allTasks.length === 0) {
-    return; 
-  }
+   updateTotalTasks(allTasks);
+
+
+  //  if (allTasks.length === 0) {
+  //   return; 
+  // }
 
   if (typeof updateTasksView === "function") {
     updateTasksView();
   } else {
     renderTasks(allTasks);
   }
+  
 });
+
+
+
+//  ANIMATION 
+
+function animateNumber(element, target, suffix = "") {
+  if (!element) return;
+
+  const start = parseInt(element.textContent) || 0;
+  const duration = 600;
+  const steps = 30;
+  const increment = (target - start) / steps;
+
+  let current = start;
+  let frame = 0;
+
+  const interval = setInterval(() => {
+    frame++;
+
+    current += increment;
+
+    element.textContent = Math.round(current) + suffix;
+
+    if (frame >= steps) {
+      element.textContent = target + suffix;
+      clearInterval(interval);
+    }
+  }, duration / steps);
+}
 
 // 🎯 RENDER FUNCTION
 
@@ -243,7 +295,7 @@ window.updateStatus = async (id, status, title) => {
     status,
   });
 
-  await logActivity(`Task Updated (${status})`, title);
+  await logActivity(`Updated (${status})`, title);
 };
 
 // EDIT TASK
@@ -447,4 +499,14 @@ onAuthStateChanged(auth, (user) => {
       welcomeHeader.textContent = `Welcome back, ${name}`;
     }
   }
+});
+
+// ACTIVITY BUTTON CLICKER
+
+const activityBtn = document.getElementById("activityBtn");
+activityBtn.addEventListener("click", () => {
+   activityBtn.style.transform = "scale(0.95)";
+   setTimeout(() => {
+    window.location.href = "./activity.html";
+  }, 100);
 });

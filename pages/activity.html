@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tasks - FlowZard</title>
+  <link rel="stylesheet" href="../activity.css" />
+</head>
+
+<body>
+
+  <div class="app-layout">
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ================= SIDEBAR ================= -->
+
+
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+
+
+      <header class="topbar">
+        <div class="topbar-left">
+          <!-- ONLY MENU BUTTON (WORKS NOW) -->
+          <img src="../Assets/icons/icons8-menu-50.png" class="menu-icon" id="menuBtn" alt="menu" />
+          <div class="topbar-title">activity</div>
+        </div>
+
+        <div class="topbar-right">
+          <button class="notif-btn" id="activityBtn" type="button"><img src="../Assets/icons/icons8-notification-48.png"
+              alt="notifications" /></button>
+           <div class="topbar-user" id="navUsername"></div>
+        </div>
+      </header>
+
+      <!-- HEADER FOR MOBILE ONLY -->
+      <div class="activity-header-wrapper">
+
+             <header class="tasks-header">
+        <h1 class="title">Activity Feed</h1>
+      </header>
+
+      <div class="tasks-header-wrapper">
+        <!-- ================= WELCOME ================= -->
+        <section class="welcome">
+          <p>Stay updated with the latest changes in your workspace.</p>
+          <div id="activityFeedList" class="activity-feed-list"></div>
+        </section>
+         
+
+  <div class="empty-activity">
+    <div> <p>No activity yet</p></div>
+    <div>    <span>Your actions will appear here once you start creating tasks.</span></div>
+  </div>
+
+<div id="activityFeedList" class="activity-feed-list"></div>
+
+      </div>
+
+      </main>
+     
+  </div>
+
+  <script type="module" src="../scripts/activity-page.js"></script>
+    <script type="module" src="../scripts/activity-ui.js"></script>
+  <script type="module">
+    import { loadSidebar } from "../scripts/layout.js";
+    loadSidebar();
+  </script>
+
+</body>
+
+</html>
