@@ -10,6 +10,11 @@ import {
 
 import { createProject, joinProject } from "./team-engine.js";
 
+// ================= SCOPE IDENTITY =================
+
+let currentProjectId = null;
+let currentUserId = null;
+
 // ================= DOM =================
 const auth = getAuth();
 const formContainer = document.getElementById("teamFormContainer");
@@ -23,13 +28,28 @@ document.addEventListener("DOMContentLoaded", () => {
   onAuthStateChanged(auth, (user) => {
     const topbarUser = document.getElementById("navUsername");
 
-    if (user && topbarUser) {
-      const name = user.email.split("@")[0];
-      topbarUser.textContent = name.toUpperCase();
+    if (user) {
+      // ================= UI =================
+      if (topbarUser) {
+        const name = user.email.split("@")[0];
+        topbarUser.textContent = name.toUpperCase();
+      }
+
+      // ================= GLOBAL STATE =================
+      currentUserId = user.uid;
+
+      // 🔥 IMPORTANT: only load data AFTER user is known
+      loadProjects();
+
+    } else {
+      currentUserId = null;
+
+      // optional safety reset
+      list.innerHTML = "";
+      showEmptyState();
     }
   });
 
-  loadProjects();
 });
 
 // ================= BUTTON EVENTS =================
@@ -123,19 +143,39 @@ function renderProject(project) {
     ? project.members.length
     : 0;
 
-  const isAdmin = project.owner === auth.currentUser?.email;
+  const currentUser = auth.currentUser?.email;
 
-  const roleBadge = isAdmin
+  const isAdmin = project.owner === currentUser;
+
+  const isMember =
+    Array.isArray(project.members) &&
+    project.members.includes(currentUser);
+
+  // ================= BADGES =================
+
+  const adminBadge = isAdmin
     ? `
-      <div class="project-role-badge">
+      <div class="project-role-badge admin">
         <img src="../Assets/icons/icons8-shield-48.png" class="role-icon" />
         <span>Admin</span>
       </div>
     `
     : "";
 
+  const memberBadge = isMember && !isAdmin
+    ? `
+      <div class="project-role-badge member">
+        <img src="../Assets/icons/icons8-member-48.png" class="role-icon" />
+        <span>Member</span>
+      </div>
+    `
+    : "";
+
+  // ================= RENDER =================
+
   div.innerHTML = `
-    ${roleBadge}
+    ${adminBadge}
+    ${memberBadge}
 
     <h3>${project.name}</h3>
     <p>${description}</p>
@@ -159,6 +199,15 @@ function renderProject(project) {
 
     </div>
   `;
+
+   div.addEventListener("click", () => {
+  currentProjectId = project.id;
+
+  console.log("Active Project:", currentProjectId);
+
+  // 🔥 optional (next step later)
+  // window.location.href = "./project.html";
+});
 
   list.appendChild(div);
 }
@@ -194,27 +243,47 @@ function loadProjects() {
   onSnapshot(q, (snapshot) => {
     list.innerHTML = "";
 
-    if (snapshot.empty) {
+    const userEmail = auth.currentUser?.email;
+
+    if (!userEmail) {
       showEmptyState();
       return;
     }
 
-    hideEmptyState();
+    let hasProjects = false;
 
     snapshot.forEach(docSnap => {
-  const project = docSnap.data();
+      const project = docSnap.data();
 
-  renderProject({
-    name: project.name,
-    description: project.description,
-    inviteCode: project.inviteCode,
-    members: project.members,
-    owner: project.owner
-  });
+      const isOwner = project.owner === userEmail;
+
+      const isMember =
+        Array.isArray(project.members) &&
+        project.members.includes(userEmail);
+
+      // 🔥 ONLY SHOW IF USER BELONGS
+      if (isOwner || isMember) {
+        hasProjects = true;
+
+        
+        renderProject({
+  id: docSnap.id, // 🔥 THIS IS CRITICAL
+  name: project.name,
+  description: project.description,
+  inviteCode: project.inviteCode,
+  members: project.members,
+  owner: project.owner
 });
+        
+      }
+    });
 
+    if (!hasProjects) {
+      showEmptyState();
+    } else {
+      hideEmptyState();
+    }
   });
-
 }
 
 // ================= ACTIVITY BUTTON =================

@@ -556,3 +556,14 @@ textarea:focus {
 .role-icon {
   width: 14px;
 }
+
+.project-role-badge.member {
+  color: #10b981; /* green */
+  border: 1px solid #cad5e2;
+  background: #f0fdf4;
+}
+
+.project-role-badge.admin {
+  color: #2563eb;
+  background: #eff6ff;
+}

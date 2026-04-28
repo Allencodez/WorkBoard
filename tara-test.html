@@ -1,10 +1,24 @@
 import { db } from "./firebase.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-document.addEventListener("DOMContentLoaded", () => {
+import {
+  collection,
+  onSnapshot,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // ================= AUTH =================
-  const auth = getAuth();
+import { createProject, joinProject } from "./team-engine.js";
+
+// ================= DOM =================
+const auth = getAuth();
+const formContainer = document.getElementById("teamFormContainer");
+const newProjectBtn = document.getElementById("newProjectBtn");
+const joinProjectBtn = document.getElementById("joinProjectBtn");
+const list = document.getElementById("projectList");
+
+// ================= AUTH =================
+document.addEventListener("DOMContentLoaded", () => {
 
   onAuthStateChanged(auth, (user) => {
     const topbarUser = document.getElementById("navUsername");
@@ -15,24 +29,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-   // ================= LOAD PROJECTS =================
   loadProjects();
-
 });
 
+// ================= BUTTON EVENTS =================
+newProjectBtn?.addEventListener("click", showCreateForm);
+joinProjectBtn?.addEventListener("click", showJoinForm);
 
-    //    BUTTON EVENTS
-
-const newProjectBtn = document.getElementById("newProjectBtn");
-const joinProjectBtn = document.getElementById("joinProjectBtn");
-const formContainer = document.getElementById("teamFormContainer");
-
-newProjectBtn.addEventListener("click", showCreateForm);
-joinProjectBtn.addEventListener("click", showJoinForm);
-
-
-        //   CREATE PROJECT FORM
- function showCreateForm() {
+// ================= CREATE FORM =================
+function showCreateForm() {
   formContainer.innerHTML = `
     <div class="team-form-card">
       <h3>Create New Project</h3>
@@ -47,13 +52,27 @@ joinProjectBtn.addEventListener("click", showJoinForm);
     </div>
   `;
 
-    document.getElementById("cancelBtn").addEventListener("click", clearForm);
-  document.getElementById("createBtn").addEventListener("click", createProject);
+  document.getElementById("cancelBtn").onclick = clearForm;
+
+  document.getElementById("createBtn").onclick = async () => {
+    const name = document.getElementById("projectName").value.trim();
+    const desc = document.getElementById("projectDesc").value.trim();
+    const user = auth.currentUser;
+
+    if (!name) return alert("Project name required");
+
+    try {
+      await createProject(name, desc, user); // 🔥 ENGINE CALL
+      clearForm();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to create project");
+    }
+  };
 }
 
-                    // JOIN FORM
-
-                    function showJoinForm() {
+// ================= JOIN FORM =================
+function showJoinForm() {
   formContainer.innerHTML = `
     <div class="team-form-card">
       <h3>Join a Project</h3>
@@ -66,149 +85,134 @@ joinProjectBtn.addEventListener("click", showJoinForm);
       </div>
     </div>
   `;
-  document.getElementById("cancelBtn").addEventListener("click", clearForm);
-  document.getElementById("joinBtn").addEventListener("click", joinProject);
+
+  document.getElementById("cancelBtn").onclick = clearForm;
+
+  document.getElementById("joinBtn").onclick = async () => {
+    const code = document.getElementById("inviteCode").value.trim();
+    const user = auth.currentUser;
+
+    if (!code) return alert("Invite code required");
+
+    try {
+      await joinProject(code, user); // 🔥 ENGINE CALL
+      clearForm();
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
+  };
 }
 
-                // CLEAR FORM
-
-                function clearForm() {
+// ================= CLEAR FORM =================
+function clearForm() {
   formContainer.innerHTML = "";
 }
 
+// ================= RENDER PROJECT =================
 
-                   // CREATE PROJECT LOGIC
-
-     import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-async function createProject() {
-  const name = document.getElementById("projectName").value.trim();
-  const desc = document.getElementById("projectDesc").value.trim();
-
-  if (!name) {
-    alert("Project name required");
-    return;
-  }
-
-  const code = generateCode();
-  const auth = getAuth();
-  const user = auth.currentUser;
-
-  try {
-    await addDoc(collection(db, "projects"), {
-      name,
-      desc,
-      code,
-      members: 1,
-      owner: user.email,
-      createdAt: serverTimestamp()
-    });
-
-    clearForm();
-  } catch (err) {
-    console.error("PROJECT CREATE ERROR:", err);
-  }
-}
-
-              // RENDER PROJECT CARD
-
-              function renderProject(project) {
-  const list = document.getElementById("projectList");
-
+function renderProject(project) {
   const div = document.createElement("div");
   div.className = "project-card";
 
+  // ✅ normalize data safely
+  const description = project.description || "";
+  const code = project.inviteCode || "NO-CODE";
 
-  const roleBadge = project.role === "admin" 
-  ? `
-    <div class="project-role-badge">
-      <img src="../Assets/icons/icons8-shield-48.png" class="role-icon" />
-      <span>Admin</span>
-    </div>
-  `
-  : "";
+  const members = Array.isArray(project.members)
+    ? project.members.length
+    : 0;
+
+  const currentUser = auth.currentUser?.email;
+
+  const isAdmin = project.owner === currentUser;
+
+  const isMember =
+    Array.isArray(project.members) &&
+    project.members.includes(currentUser);
+
+  // ================= BADGES =================
+
+  const adminBadge = isAdmin
+    ? `
+      <div class="project-role-badge admin">
+        <img src="../Assets/icons/icons8-shield-48.png" class="role-icon" />
+        <span>Admin</span>
+      </div>
+    `
+    : "";
+
+  const memberBadge = isMember && !isAdmin
+    ? `
+      <div class="project-role-badge member">
+        <img src="../Assets/icons/icons8-member-48.png" class="role-icon" />
+        <span>Member</span>
+      </div>
+    `
+    : "";
+
+  // ================= RENDER =================
 
   div.innerHTML = `
-    ${roleBadge}
+    ${adminBadge}
+    ${memberBadge}
 
     <h3>${project.name}</h3>
-    <p>${project.desc}</p>
+    <p>${description}</p>
 
-   <div class="project-bottom">
+    <div class="project-bottom">
 
-  <!-- LEFT: CODE + COPY -->
-  <div class="project-code-wrapper">
-    <span class="project-code">
-      Code: <strong id="code-${project.code}">${project.code}</strong>
-    </span>
+      <div class="project-code-wrapper">
+        <span class="project-code">
+          Code: <strong>${code}</strong>
+        </span>
 
-    <img src="../Assets/icons/icons8-copy-24.png" 
-         class="copy-icon" 
-         data-code="${project.code}" />
-  </div>
+        <img src="../Assets/icons/icons8-copy-24.png"
+             class="copy-icon"
+             data-code="${code}" />
+      </div>
 
-  <!-- RIGHT: MEMBERS ICON -->
-  <div class="project-members">
-    <img src="../Assets/icons/icons8-add-user-male-48.png" class="members-icon" />
-    <span>${project.members}</span>
-  </div>
+      <div class="project-members">
+        <img src="../Assets/icons/icons8-add-user-male-48.png" class="members-icon" />
+        <span>${members}</span>
+      </div>
 
-</div>
+    </div>
   `;
 
-list.appendChild(div);
-
+  list.appendChild(div);
 }
 
-
-// COPY FUNCTINALITY
-
-  document.addEventListener("click", (e) => {
+// ================= COPY =================
+document.addEventListener("click", (e) => {
   if (e.target.classList.contains("copy-icon")) {
     const icon = e.target;
     const code = icon.dataset.code;
 
     navigator.clipboard.writeText(code);
 
-    // 🔥 ANIMATION TRIGGER
     icon.classList.add("copied");
-
-    setTimeout(() => {
-      icon.classList.remove("copied");
-    }, 300);
+    setTimeout(() => icon.classList.remove("copied"), 300);
   }
 });
 
-               // EMPTY STATE CONTROL
-
-    function hideEmptyState() {
+// ================= EMPTY STATE =================
+function hideEmptyState() {
   const empty = document.getElementById("emptyProject");
-
-  if (empty) {
-    empty.style.display = "none";
-    empty.remove(); // 🔥 removes it completely (bulletproof)
-  }
+  if (empty) empty.style.display = "none";
 }
 
-        //   GENERATE INVITE CODE
-
-     function generateCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+function showEmptyState() {
+  const empty = document.getElementById("emptyProject");
+  if (empty) empty.style.display = "flex";
 }
 
-
-
-    // LOAD PROJECT AFTER REFRESH
-
-      import { onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+// ================= LOAD PROJECTS =================
 function loadProjects() {
-  const list = document.getElementById("projectList");
-
   const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
 
   onSnapshot(q, (snapshot) => {
-    list.innerHTML = ""; // clear UI
+    list.innerHTML = "";
 
     if (snapshot.empty) {
       showEmptyState();
@@ -217,34 +221,29 @@ function loadProjects() {
 
     hideEmptyState();
 
-    snapshot.docs.forEach(doc => {
-      const project = doc.data();
+    snapshot.forEach(docSnap => {
+  const project = docSnap.data();
 
-      renderProject({
-        ...project,
-        role: project.owner === getAuth().currentUser?.email ? "admin" : "member"
-      });
-    });
+  renderProject({
+    name: project.name,
+    description: project.description,
+    inviteCode: project.inviteCode,
+    members: project.members,
+    owner: project.owner
   });
+});
+
+  });
+
 }
 
-
-
-
-function showEmptyState() {
-  const empty = document.getElementById("emptyProject");
-  if (empty) empty.style.display = "flex";
-}
-
-
-
-
-// ACTIVITY BUTTON CLICKER
-
+// ================= ACTIVITY BUTTON =================
 const activityBtn = document.getElementById("activityBtn");
-activityBtn.addEventListener("click", () => {
-   activityBtn.style.transform = "scale(0.95)";
-   setTimeout(() => {
+
+activityBtn?.addEventListener("click", () => {
+  activityBtn.style.transform = "scale(0.95)";
+
+  setTimeout(() => {
     window.location.href = "./activity.html";
   }, 100);
 });

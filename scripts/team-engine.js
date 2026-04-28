@@ -38,7 +38,11 @@ export async function createProject(name, description, user) {
 
 // ================= JOIN PROJECT =================
 export async function joinProject(inviteCode, user) {
-  const q = query(collection(db, "projects"), where("inviteCode", "==", inviteCode));
+  const q = query(
+    collection(db, "projects"),
+    where("inviteCode", "==", inviteCode)
+  );
+
   const snap = await getDocs(q);
 
   if (snap.empty) {
@@ -46,12 +50,21 @@ export async function joinProject(inviteCode, user) {
   }
 
   const projectDoc = snap.docs[0];
+  const projectData = projectDoc.data();
 
+  const currentMembers = projectData.members || [];
+
+  // 🔥 CHECK: already a member
+  if (currentMembers.includes(user.email)) {
+    throw new Error("You're already in this project");
+  }
+
+  // 🔥 ADD USER
   await updateDoc(doc(db, "projects", projectDoc.id), {
     members: arrayUnion(user.email)
   });
 
-  await logActivity("Joined project", projectDoc.data().name);
+  await logActivity("Joined project", projectData.name);
 
   return projectDoc.id;
 }
