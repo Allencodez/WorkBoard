@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team - FlowZard</title>
+  <link rel="stylesheet" href="../team.css" />
+</head>
+
+<body>
+
+  <div class="app-layout">
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ================= SIDEBAR ================= -->
+
+
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+
+
+      <header class="topbar">
+        <div class="topbar-left">
+          <!-- ONLY MENU BUTTON (WORKS NOW) -->
+          <img src="../Assets/icons/icons8-menu-50.png" class="menu-icon" id="menuBtn" alt="menu" />
+          <div class="topbar-title">team</div>
+        </div>
+
+        <div class="topbar-right">
+          <button class="notif-btn" id="activityBtn" type="button"><img src="../Assets/icons/icons8-notification-48.png"
+              alt="notifications" /></button>
+           <div class="topbar-user" id="navUsername"></div>
+        </div>
+      </header>
+      <!-- HEADER FOR MOBILE ONLY -->
+       
+      <section class="projects-section">
+
+            <div>
+                   <header class="tasks-header">
+                       <h1 class="title">Projects</h1>
+                   </header>
+
+                 <div class="tasks-header-wrapper">
+                    <!-- ================= WELCOME ================= -->
+                      <div class="welcome">
+                          <p>Click a project to open it's workspace.</p>
+                      </div>
+                 </div>
+            </div>
+
+
+              <div class="action-btn">
+                   <div>
+                      <button id="joinProjectBtn" class="btn-1"><img class="btn-icon" src="/Assets/icons/icons8-add-user-male-48.png" alt="join btn">Join</button>
+                   </div>
+
+                   <div>
+                      <button id="newProjectBtn" class="btn-2">+ New Project</button>
+                   </div>
+             </div>
+
+      </section>
+
+       <!-- DYNAMIC FORM AREA -->
+  <div id="teamFormContainer"></div>
+
+      <!-- ================= PROJECT LIST ================= -->
+<div id="projectList" class="project-list"></div>
+
+
+<!-- ================= EMPTY  STATE ================= -->
+     <div id="emptyProject" class="empty-project">
+           <img src="../Assets/icons/icons8-opened-folder-48.png" class="folder-img" alt="">
+          <p>No projects yet. Create one or join with an invite code.</p>
+     </div>
+
+
+
+
+
+      </main>
+     
+  </div>
+
+    <script type="module" src="../scripts/team-ui.js"></script>
+  <script type="module">
+    import { loadSidebar } from "../scripts/layout.js";
+    loadSidebar();
+  </script>
+
+</body>
+
+</html>

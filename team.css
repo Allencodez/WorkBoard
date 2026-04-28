@@ -1,0 +1,558 @@
+@font-face {
+  font-family: poppins;
+  src: url("./Assets/fonts/Poppins-Medium.ttf");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: poppins;
+}
+
+/* Body */
+body {
+  background: #ffffff;
+  color: #111;
+  overflow: hidden;
+}
+
+/* ================= LAYOUT ================= */
+.app-layout {
+  display: flex;
+  height: 100vh;
+}
+
+/* ================= MAIN CONTENT ================= */
+.main-content {
+  flex: 1;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.main-content > *:not(.topbar) {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.main-content > *:last-child {
+  padding-bottom: 30px;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 70%;
+  max-width: 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, #0f172a, #020617);
+  color: #cbd5f5;
+  padding: 20px 15px;
+  transition: 0.3s ease;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+/* ================= TOPBAR ================= */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  padding: 15px 20px;
+  margin-bottom: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.topbar-title {
+  font-weight: bold;
+  font-size: 20px;
+  color: #111;
+  white-space: nowrap;
+}
+
+.topbar-user {
+  font-weight: bold;
+  font-size: 20px;
+  text-transform: uppercase;
+  color: #333;
+  white-space: nowrap;
+}
+
+@media (max-width: 1023px) {
+  .topbar-user {
+    display: none;
+  }
+}
+
+.tasks-header {
+  margin: 10px 0;
+}
+
+.tasks-header .title {
+  font-size: 26px;
+}
+
+@media (max-width: 767px) {
+  .topbar-title {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .tasks-header {
+    margin: 20px 0 15px 0;
+  }
+
+  .tasks-header .title {
+    font-size: 28px;
+  }
+}
+
+/* ================= BUTTONS ================= */
+.notif-btn {
+  background-color: #334155;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.notif-btn:hover {
+  background-color: #475569;
+}
+
+.notif-btn img {
+  width: 24px;
+  height: 24px;
+  filter: brightness(0) invert(1);
+}
+
+.menu-icon {
+  width: 24px;
+  cursor: pointer;
+}
+
+.title {
+  margin-top: 20px;
+}
+
+/* ================= OVERLAY ================= */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.3s;
+  z-index: 90;
+}
+
+.overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ================= DESKTOP FIX ================= */
+@media (min-width: 768px) {
+  .sidebar {
+    position: relative;
+    left: 0;
+    width: 240px;
+    max-width: none;
+    height: 100vh;
+    flex-shrink: 0;
+  }
+
+  .overlay {
+    display: none;
+  }
+
+  .menu-icon {
+    display: none;
+  }
+}
+
+/* ================= SIDEBAR MENU ================= */
+.menu-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+}
+
+.menu-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.menu-item.active {
+  background: rgba(59, 130, 246, 0.2);
+  color: #fff;
+  transform: translateX(3px);
+}
+
+.menu-item .icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-item .icon img {
+  width: 20px;
+}
+
+/* ================= LOGOUT ================= */
+.sidebar-footer {
+  margin-top: auto;
+  display: flex;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #9ca3af;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+/* ================= LOGO ================= */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+  color: #fff;
+}
+
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo-icon {
+  width: 35px;
+  height: 35px;
+  background: #3b82f6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-icon img {
+  width: 20px;
+  height: 20px;
+}
+
+/* ================= WELCOME ================= */
+.welcome p {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: grey;
+}
+
+/* ================= PROJECT SECTION ================= */
+
+.projects-section {
+  display: flex;
+  justify-content: space-between;
+}
+
+.action-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-1 {
+  display: inline-flex; /* 🔥 key fix */
+  align-items: center;
+  gap: 8px;
+  padding: 24px 20px;
+  background-color: #ffffff;
+  color: #333;
+  border: 1px solid #cad5e2;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.btn-1:hover {
+  background-color: #f8fafc;
+}
+
+.btn-1:focus {
+  border-color: #9ca3af;
+  outline: none;
+}
+
+.btn-2 {
+  padding: 12px 24px;
+  background-color: #155dfc;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon {
+  width: 24px;
+  height: 24px;
+}
+
+@media (min-width: 1024px) {
+  .btn-2 {
+    padding: 24px 24px;
+  }
+}
+
+/* ================= EMPTY PROJECT CARD ================= */
+
+.empty-project {
+  margin: 20px 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+  border: 2px solid #cad5e2;
+  padding: 48px;
+  border-radius: 10px;
+  color: grey;
+}
+
+.empty-project p {
+  margin-bottom: 30px;
+}
+
+/* ================= PROJECT LIST ================= */
+.project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+/* FORM CARD */
+.team-form-card {
+  border: 2px solid #cad5e2;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.team-form-card h3 {
+  margin-bottom: 10px;
+}
+
+.team-form-card input,
+.team-form-card textarea {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1.5px solid #cad5e2;
+  color: grey;
+}
+
+input:focus {
+  border-color: #9ca3af;
+  outline: none;
+}
+
+textarea:focus {
+  border-color: #9ca3af;
+  outline: none;
+}
+
+.team-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* PROJECT CARD */
+
+.project-card {
+  border: 2px solid #cad5e2;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.project-bottom {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.project-code {
+  font-size: 15px;
+  letter-spacing: 1px;
+  color: grey;
+}
+
+.btn-3 {
+  padding: 3px 6px;
+  background-color: white;
+  color: grey;
+  border: 2px solid #cad5e2;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-family: inherit;
+}
+
+.btn-3:hover {
+  background-color: #f8fafc;
+}
+
+.btn-3:focus {
+  border-color: #9ca3af;
+  outline: none;
+}
+
+.btn-4 {
+  padding: 3px 12px;
+  background-color: #155dfc;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-family: inherit;
+}
+
+/* PROJECT CARD ICONS */
+
+.project-code-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.copy-icon {
+  width: 16px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.copy-icon:hover {
+  opacity: 1;
+}
+
+.project-members {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.members-icon {
+  width: 16px;
+}
+
+
+.copy-icon {
+  width: 16px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.copy-icon:hover {
+  opacity: 1;
+}
+
+/* 🔥 CLICK ANIMATION */
+.copy-icon.copied {
+  transform: scale(1.3);
+  opacity: 1;
+}
+
+
+
+
+/* BADGE */
+.project-role-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  padding: 4px 8px;
+  border: 1px solid #cad5e2;
+  border-radius: 20px;
+
+  background: #f1f5f9;
+  font-size: 12px;
+  color: #2563eb; /* 🔵 blue text */
+}
+
+.role-icon {
+  width: 14px;
+}
