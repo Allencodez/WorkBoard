@@ -4,9 +4,28 @@ import {
   collection, 
   onSnapshot, 
   query, 
-  orderBy
+  orderBy,
+  getDoc,
+  doc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+      // PROFILE NAME
+     
+         async function getUsername(user) {
+  if (!user) return "User";
+
+  const userRef = doc(db, "users", user.uid);
+  const snap = await getDoc(userRef);
+
+  if (snap.exists()) {
+    return snap.data().username;
+  }
+
+  // fallback (only if profile somehow missing)
+  return user.email.split("@")[0];
+}
+
+      // DASHBOARD STATS
 
 function updateDashboardStats(tasks) {
 
@@ -206,51 +225,67 @@ function renderTasks(tasks) {
 }
 
 
-// ONSNAPSHOT
-
- const tasksContainer = document.querySelector(".empty-tasks");
-
-const tasksRef = collection(db, "tasks");
-
-const q = query(tasksRef, orderBy("createdAt", "desc"));
-
-onSnapshot(q, (snapshot) => {
-  const tasks = snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
-
- updateDashboardStats(tasks);
-// updateCompletionPercentage(tasks); 
-
-  const limitedTasks = tasks.slice(0, 5);
-renderTasks(limitedTasks);
-
-});
-
 // NOMENCLATURE
-
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const auth = getAuth();
 
-onAuthStateChanged(auth, (user) => {
+// Helper to get user's projects
+async function loadUserProjects(userEmail) {
+  const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
+  const snap = await getDocs(q);
+  const projects = [];
+  snap.forEach(docSnap => {
+    const project = docSnap.data();
+    const isOwner = project.owner === userEmail;
+    const isMember = Array.isArray(project.members) && project.members.includes(userEmail);
+    if (isOwner || isMember) {
+      projects.push(docSnap.id);
+    }
+  });
+  return projects;
+}
+
+onAuthStateChanged(auth, async (user) => {
   const welcomeHeader = document.querySelector(".welcome h1");
   const topbarUser = document.querySelector(".topbar-user");
 
-
   if (user) {
-    const name = user.email.split("@")[0];
+    const userEmail = user.email;
+    const username = await getUsername(user);
 
     // dashboard greeting
     if (welcomeHeader) {
-      welcomeHeader.textContent = `Welcome back, ${name}`;
+      welcomeHeader.textContent = `Welcome back, ${username}`;
     }
 
     // topbar display (RIGHT CORNER)
     if (topbarUser) {
-      topbarUser.textContent = name.toUpperCase();
+      topbarUser.textContent = username.toUpperCase();
     }
+
+    // 🔥 SECURE TASK FETCHING
+    const userProjectIds = await loadUserProjects(userEmail);
+    const tasksRef = collection(db, "tasks");
+    const q = query(tasksRef, orderBy("createdAt", "desc"));
+
+    onSnapshot(q, (snapshot) => {
+      let tasks = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      // 🔥 APPLY SECURITY FILTER
+      tasks = tasks.filter(task => 
+        task.assignee === userEmail || userProjectIds.includes(task.projectId)
+      );
+
+      updateDashboardStats(tasks);
+
+      const limitedTasks = tasks.slice(0, 5);
+      renderTasks(limitedTasks);
+    });
   }
 });
 

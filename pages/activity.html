@@ -38,10 +38,22 @@
 
       <!-- HEADER FOR MOBILE ONLY -->
       <div class="activity-header-wrapper">
+            
+        <header class="tasks-header activity-header">
+  
+  <h1 class="title">Activity Feed</h1>
 
-             <header class="tasks-header">
-        <h1 class="title">Activity Feed</h1>
-      </header>
+  <!-- 🔥 FILTER DROPDOWN (PLACE HERE) -->
+  <div class="filter-wrapper">
+    <img src="../Assets/icons/icons8-funnel-50.png" class="filter-icon" />
+    <select id="activityFilter" class="filter-dropdown">
+      <option value="all" selected>All</option>
+      <option value="personal">Personal</option>
+      <!-- Projects will be dynamically inserted here -->
+    </select>
+  </div>
+
+</header>
 
       <div class="tasks-header-wrapper">
         <!-- ================= WELCOME ================= -->
@@ -56,7 +68,6 @@
     <div>    <span>Your actions will appear here once you start creating tasks.</span></div>
   </div>
 
-<div id="activityFeedList" class="activity-feed-list"></div>
 
       </div>
 

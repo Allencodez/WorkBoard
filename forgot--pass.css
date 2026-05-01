@@ -219,3 +219,24 @@ a{
   color: #2563eb;
   text-decoration: none;
 }
+
+/* ================= TOAST MESSAGE ================= */
+.form-message {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.form-message.success {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #34d399;
+}
+
+.form-message.error {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #f87171;
+}

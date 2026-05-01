@@ -11,13 +11,19 @@ import { logActivity } from "./activity-engine.js";
 // ================= CREATE TASK =================
 export async function createTask(task) {
   try {
+    const activeProjectId = localStorage.getItem("activeProjectId");
+
     const docRef = await addDoc(collection(db, "tasks"), {
       ...task,
+
+      // 🔥 IMPORTANT LINK TO PROJECT
+      projectId: activeProjectId,
+
       createdAt: new Date()
     });
 
     console.log("TASK CREATED:", docRef.id);
-    
+
     // Log the activity
     await logActivity("created", task.title);
 

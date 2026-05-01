@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-          // MEMBER RENDERING
+// MEMBER RENDERING
 
 
 function renderMembers(members, ctx, countMap) {
@@ -111,32 +111,32 @@ async function loadProject() {
 
     window.currentCtx = ctx;
 
-        ctx.currentUserEmail = auth.currentUser?.email || null;
+    ctx.currentUserEmail = auth.currentUser?.email || null;
 
     const data = ctx.projectData;
 
     // 🔥 get selected project
-localStorage.setItem("activeProjectId", projectId);
+    localStorage.setItem("activeProjectId", projectId);
 
     // PROJECT CONTEXT FOR LOGACTIVITY
 
     const projectCtx = {
-  projectId: projectId,
-  projectName: data.name
-};
+      projectId: projectId,
+      projectName: data.name
+    };
 
-// make it globally accessible
-window.projectCtx = projectCtx;
+    // make it globally accessible
+    window.projectCtx = projectCtx;
 
     const assignTaskBtn = document.getElementById("assignTaskBtn");
 
-if (assignTaskBtn) {
-  if (!ctx.isOwner) {
-    assignTaskBtn.disabled = true;
-    assignTaskBtn.classList.add("disabled-btn");
-    assignTaskBtn.title = "Only admins can assign tasks";
-  }
-}
+    if (assignTaskBtn) {
+      if (!ctx.isOwner) {
+        assignTaskBtn.disabled = true;
+        assignTaskBtn.classList.add("disabled-btn");
+        assignTaskBtn.title = "Only admins can assign tasks";
+      }
+    }
 
 
     // ================= OWNER =================
@@ -200,37 +200,37 @@ if (assignTaskBtn) {
       members.unshift(data.owner);
     }
 
-   if (membersCountEl) {
-  const target = members.length;
+    if (membersCountEl) {
+      const target = members.length;
 
-  const current = parseInt(membersCountEl.dataset.value || "0");
+      const current = parseInt(membersCountEl.dataset.value || "0");
 
-  // if no change, just ensure correct display
-  if (current === target) {
-    membersCountEl.textContent = `(${target})`;
-    return;
-  }
+      // if no change, just ensure correct display
+      if (current === target) {
+        membersCountEl.textContent = `(${target})`;
+        return;
+      }
 
-  let start = current;
+      let start = current;
 
-  const duration = 400;
-  const stepTime = 20;
-  const steps = duration / stepTime;
-  const increment = (target - current) / steps;
+      const duration = 400;
+      const stepTime = 20;
+      const steps = duration / stepTime;
+      const increment = (target - current) / steps;
 
-  const interval = setInterval(() => {
-    start += increment;
+      const interval = setInterval(() => {
+        start += increment;
 
-    if ((increment > 0 && start >= target) || (increment < 0 && start <= target)) {
-      start = target;
-      clearInterval(interval);
+        if ((increment > 0 && start >= target) || (increment < 0 && start <= target)) {
+          start = target;
+          clearInterval(interval);
+        }
+
+        membersCountEl.textContent = `(${Math.round(start)})`;
+      }, stepTime);
+
+      membersCountEl.dataset.value = target;
     }
-
-    membersCountEl.textContent = `(${Math.round(start)})`;
-  }, stepTime);
-
-  membersCountEl.dataset.value = target;
-}
 
 
     // ================= TASKS (REALTIME) =================
@@ -242,7 +242,7 @@ if (assignTaskBtn) {
     );
 
     onSnapshot(q, (snapshot) => {
-      
+
       taskList.innerHTML = "";
 
       const tasks = snapshot.docs.map((doc) => ({
@@ -250,47 +250,50 @@ if (assignTaskBtn) {
         ...doc.data(),
       }));
 
+      // 🔥 CACHE TASKS FOR CANCEL BUTTON
+      ctx.tasks = tasks;
+
 
       const memberStats = getMemberTaskDisplayCounts(
-  tasks,
-  ctx.userMap
-);
+        tasks,
+        ctx.userMap
+      );
 
-const countMap = {};
+      const countMap = {};
 
-memberStats.forEach(member => {
-  countMap[member.email] = member.count;
-});
+      memberStats.forEach(member => {
+        countMap[member.email] = member.count;
+      });
 
 
-renderMembers(members, ctx, countMap);
+      renderMembers(members, ctx, countMap);
 
-const taskCountEl = document.getElementById("taskCount");
+      const taskCountEl = document.getElementById("taskCount");
 
-if (taskCountEl) {
-  const current = parseInt(taskCountEl.dataset.value || "0");
+      if (taskCountEl) {
+        const current = parseInt(taskCountEl.dataset.value || "0");
 
-  let start = current;
-  const target = tasks.length;
+        let start = current;
+        const target = tasks.length;
 
-  const duration = 400;
-  const stepTime = 20;
-  const steps = duration / stepTime;
-  const increment = (target - current) / steps;
+        const duration = 400;
+        const stepTime = 20;
+        const steps = duration / stepTime;
+        const increment = (target - current) / steps;
 
-  const interval = setInterval(() => {
-    start += increment;
+        const interval = setInterval(() => {
+          start += increment;
 
-    if ((increment > 0 && start >= target) || (increment < 0 && start <= target)) {
-      start = target;
-      clearInterval(interval);
-    }
+          if ((increment > 0 && start >= target) || (increment < 0 && start <= target)) {
+            start = target;
+            clearInterval(interval);
+          }
 
-    taskCountEl.textContent = `(${Math.round(start)})`;
-  }, stepTime);
+          taskCountEl.textContent = `(${Math.round(start)})`;
+        }, stepTime);
 
-  taskCountEl.dataset.value = target;
-}
+        taskCountEl.dataset.value = target;
+      }
       tasks.forEach((task) => renderTaskCard(task, ctx));
 
     });
@@ -304,11 +307,11 @@ if (taskCountEl) {
 function renderTaskCard(task, ctx) {
   const taskList = document.getElementById("taskList");
 
-       // ONLY ASSIGNED MEMBERS CAN EDIT TASKS
+  // ONLY ASSIGNED MEMBERS CAN EDIT TASKS
 
- const canEdit =
-  ctx.isOwner ||
-  task.assignee === ctx.currentUserEmail;
+  const canEdit =
+    ctx.isOwner ||
+    task.assignee === ctx.currentUserEmail;
 
   const username =
     ctx.userMap?.[task.assignee] ||
@@ -320,48 +323,35 @@ function renderTaskCard(task, ctx) {
   const div = document.createElement("div");
   div.className = `task-card ${statusClass}`; // 🔥 KEY FIX
   div.dataset.id = task.id;
-   div.dataset.assignee = task.assignee || "";
+  div.dataset.assignee = task.assignee || "";
 
   div.innerHTML = `
-    <div class="task-card-top">
-
-      <div>
-        <h4 class="task-title">${task.title}</h4>
-        <p class="task-desc">${task.desc || ""}</p>
-      </div>
-
-     <div class="tag-actions">
-         
-          <div class="tag-actions">
-         <div class="task-tags">
+    <div class="task-card-top" style="justify-content: space-between; align-items: flex-start; display: flex;">
+      <div class="tag-actions" style="display: flex; gap: 8px;">
         <span class="priority ${task.priority}">
           ${task.priority}
         </span>
-      </div>
-
-      <!-- ✅ NEW STATUS BADGE -->
         <span class="status-badge ${statusClass}">
           ${task.status || "todo"}
         </span>
       </div>
 
-     ${canEdit ? `
-<div class="task-actions">
-  <button class="menu-btn">⋮</button>
+      ${canEdit ? `
+      <div class="task-actions" style="position: relative;">
+        <button class="menu-btn">⋮</button>
+        <div class="task-menu hidden">
+          <div class="menu-items" data-status="todo">To Do</div>
+          <div class="menu-items" data-status="in progress">In Progress</div>
+          <div class="menu-items" data-status="done">Done</div>
+          ${ctx.isOwner ? '<div class=" menu-delete">Delete</div>' : ""}
+        </div>
+      </div>
+      ` : ""}
+    </div>
 
-  <div class="task-menu hidden">
-    <div class="menu-items" data-status="todo">To Do</div>
-    <div class="menu-items" data-status="in progress">In Progress</div>
-    <div class="menu-items" data-status="done">Done</div>
-     ${ctx.isOwner ? `<div class=" menu-delete">Delete</div>` : ""}
-  </div>
-</div>
-` : ""}
-
-     </div>
-
-     </div>
-
+    <div class="task-card-middle" style="margin-top: 12px; margin-bottom: 12px;">
+      <h4 class="task-title">${task.title}</h4>
+      <p class="task-desc">${task.desc || ""}</p>
     </div>
 
     <div class="task-card-bottom">
@@ -400,28 +390,28 @@ document.addEventListener("click", async (e) => {
     const newStatus = e.target.dataset.status;
 
     console.log("clicked element:", e.target);
-console.log("status:", newStatus);
+    console.log("status:", newStatus);
 
-if (!newStatus) {
-  console.warn("Invalid status click:", e.target);
-  return;
-}
+    if (!newStatus) {
+      console.warn("Invalid status click:", e.target);
+      return;
+    }
 
-const taskId = card.dataset.id;
+    const taskId = card.dataset.id;
 
-const ctx = window.currentCtx;
-const isOwner = ctx?.isOwner;
+    const ctx = window.currentCtx;
+    const isOwner = ctx?.isOwner;
 
-// get assignee from UI (temporary method)
-const taskAssignee = card.dataset.assignee;
+    // get assignee from UI (temporary method)
+    const taskAssignee = card.dataset.assignee;
 
-// 🔐 permission check
-const canEdit = isOwner || taskAssignee;
+    // 🔐 permission check
+    const canEdit = isOwner || taskAssignee;
 
-if (!canEdit) {
-  console.warn("Blocked unauthorized status update");
-  return;
-}
+    if (!canEdit) {
+      console.warn("Blocked unauthorized status update");
+      return;
+    }
 
     // 🔥 UI UPDATE (instant feedback)
     card.classList.remove("todo", "in-progress", "done");
@@ -432,41 +422,41 @@ if (!canEdit) {
       status: newStatus,
     });
 
-   await logActivity(
-  `moved task to ${newStatus}`,
-  card.querySelector(".task-title")?.textContent || "Untitled",
-  window.projectCtx
-); 
+    await logActivity(
+      `moved task to ${newStatus}`,
+      card.querySelector(".task-title")?.textContent || "Untitled",
+      window.projectCtx
+    );
   }
 
   if (e.target.classList.contains("menu-delete")) {
-  const card = e.target.closest(".task-card");
-  const taskId = card.dataset.id;
+    const card = e.target.closest(".task-card");
+    const taskId = card.dataset.id;
 
-  const ctx = window.currentCtx;
+    const ctx = window.currentCtx;
 
-  // 🔐 Admin check
-  if (!ctx?.isOwner) {
-    console.warn("Unauthorized delete attempt");
-    return;
+    // 🔐 Admin check
+    if (!ctx?.isOwner) {
+      console.warn("Unauthorized delete attempt");
+      return;
+    }
+
+    const modal = document.getElementById("deleteModal");
+    const confirmBtn = document.getElementById("confirmDelete");
+    const cancelBtn = document.getElementById("cancelDelete");
+
+    // show modal
+    modal.classList.remove("hidden");
+
+    // store current task temporarily
+    modal.dataset.taskId = taskId;
+    modal.dataset.cardId = card.dataset.id;
   }
-
-  const modal = document.getElementById("deleteModal");
-const confirmBtn = document.getElementById("confirmDelete");
-const cancelBtn = document.getElementById("cancelDelete");
-
-// show modal
-modal.classList.remove("hidden");
-
-// store current task temporarily
-modal.dataset.taskId = taskId;
-modal.dataset.cardId = card.dataset.id;
-}
 
 });
 
 
-  const modal = document.getElementById("deleteModal");
+const modal = document.getElementById("deleteModal");
 const confirmBtn = document.getElementById("confirmDelete");
 const cancelBtn = document.getElementById("cancelDelete");
 
@@ -482,20 +472,20 @@ confirmBtn.addEventListener("click", async () => {
   if (!taskId) return;
 
   const card = document.querySelector(
-  `.task-card[data-id="${taskId}"]`
-);
+    `.task-card[data-id="${taskId}"]`
+  );
 
-const taskTitle =
-  card?.querySelector(".task-title")?.textContent || "Untitled";
+  const taskTitle =
+    card?.querySelector(".task-title")?.textContent || "Untitled";
 
   // delete from Firestore
   await deleteDoc(doc(db, "tasks", taskId));
 
-        await logActivity(
-  "deleted task",
-  taskTitle,
-  window.projectCtx
-);
+  await logActivity(
+    "deleted task",
+    taskTitle,
+    window.projectCtx
+  );
 
   // remove from UI
   if (card) card.remove();
@@ -589,8 +579,8 @@ function showTaskInlineForm(ctx) {
     </div>
 
     <div class="task-form-actions">
-      <button id="cancelTask" class="btn-cancel">Cancel</button>
-      <button id="saveTask" class="btn-create">Create</button>
+      <button id="cancelTask" type="button" class="btn-cancel">Cancel</button>
+      <button id="saveTask" type="button" class="btn-create">Create</button>
     </div>
 
   </div>
@@ -627,7 +617,15 @@ document.addEventListener("click", async (e) => {
   }
 
   if (e.target.id === "cancelTask") {
-    loadProject();
+    const taskList = document.getElementById("taskList");
+    if (taskList) {
+      taskList.innerHTML = "";
+    }
+    
+    // Restore the tasks from cache
+    if (window.currentCtx && window.currentCtx.tasks) {
+      window.currentCtx.tasks.forEach(task => renderTaskCard(task, window.currentCtx));
+    }
   }
 });
 
@@ -692,45 +690,3 @@ function renderMemberStats(stats) {
 document.getElementById("activityBtn")?.addEventListener("click", () => {
   window.location.href = "./activity.html";
 });
-
-
-Activity logs filter by project Id and personalabove
-
-
-
-ACTIVITY task-engine
-
-
-import { db } from "./firebase.js";
-import {
-  collection,
-  addDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import {
-  getAuth
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-// ================= LOG ACTIVITY =================
-export async function logActivity(action, taskTitle) {
-  try {
-    const auth = getAuth();
-    const user = auth.currentUser;
-
-    if (!user) {
-      console.warn("No authenticated user, activity not logged.");
-      return;
-    }
-
-    await addDoc(collection(db, "activities"), {
-      action: action,
-      taskTitle: taskTitle,
-      userEmail: user.email,
-      timestamp: serverTimestamp()
-    });
-
-    console.log("Activity logged:", action, taskTitle);
-  } catch (err) {
-    console.error("LOG ACTIVITY ERROR:", err);
-  }
-}

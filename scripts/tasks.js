@@ -4,6 +4,7 @@ import {
   collection,
   onSnapshot,
   doc,
+  getDoc,
   deleteDoc,
   updateDoc,
   query,
@@ -12,6 +13,21 @@ import {
 import { logActivity } from "./activity-engine.js";
 
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+              // USER PROFILE
+async function getUsername(user) {
+  if (!user) return "User";
+
+  const userRef = doc(db, "users", user.uid);
+  const snap = await getDoc(userRef);
+
+  if (snap.exists()) {
+    return snap.data().username;
+  }
+
+  // fallback (only if profile somehow missing)
+  return user.email.split("@")[0];
+}
 
 let editingTaskId = null;
 
@@ -39,34 +55,8 @@ function updateTotalTasks(tasks) {
 }
 
 
-// 🔥 REALTIME LISTENER
-
-
+// 🔥 REALTIME LISTENER (Moved to onAuthStateChanged)
 let allTasks = [];
-
-const q = query(tasksRef, orderBy("createdAt", "desc"));
-
- onSnapshot(q, (snapshot) => {
-  allTasks = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
-
-   updateTotalTasks(allTasks);
-
-
-  //  if (allTasks.length === 0) {
-  //   return; 
-  // }
-
-  if (typeof updateTasksView === "function") {
-    updateTasksView();
-  } else {
-    renderTasks(allTasks);
-  }
-  
-});
-
 
 
 //  ANIMATION 
@@ -482,22 +472,63 @@ document.addEventListener("click", (e) => {
 
 const auth = getAuth();
 
-onAuthStateChanged(auth, (user) => {
+import { getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+async function loadUserProjects(userEmail) {
+  const projQ = query(collection(db, "projects"), orderBy("createdAt", "desc"));
+  const snap = await getDocs(projQ);
+  const projects = [];
+  snap.forEach(docSnap => {
+    const project = docSnap.data();
+    const isOwner = project.owner === userEmail;
+    const isMember = Array.isArray(project.members) && project.members.includes(userEmail);
+    if (isOwner || isMember) {
+      projects.push(docSnap.id);
+    }
+  });
+  return projects;
+}
+
+onAuthStateChanged(auth, async (user) => {
   const topbarUser = document.querySelector(".topbar-user");
   const welcomeHeader = document.querySelector(".welcome h1");
 
   if (user) {
-    const name = user.email.split("@")[0];
+    const userEmail = user.email;
+    const username = await getUsername(user);
 
-    // RIGHT CORNER NAVBAR (task page)
     if (topbarUser) {
-      topbarUser.textContent = name.toUpperCase();
+      topbarUser.textContent = username.toUpperCase();
     }
 
-    // optional: if task page also has welcome text
     if (welcomeHeader) {
-      welcomeHeader.textContent = `Welcome back, ${name}`;
+      welcomeHeader.textContent = `Welcome back, ${username}`;
     }
+
+    // 🔥 SECURE TASK FETCHING
+    const userProjectIds = await loadUserProjects(userEmail);
+    const tasksRef = collection(db, "tasks");
+    const tasksQ = query(tasksRef, orderBy("createdAt", "desc"));
+
+    onSnapshot(tasksQ, (snapshot) => {
+      let tasks = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // 🔥 APPLY SECURITY FILTER
+      allTasks = tasks.filter(task => 
+        task.assignee === userEmail || userProjectIds.includes(task.projectId)
+      );
+
+      updateTotalTasks(allTasks);
+
+      if (typeof updateTasksView === "function") {
+        updateTasksView();
+      } else {
+        renderTasks(allTasks);
+      }
+    });
   }
 });
 

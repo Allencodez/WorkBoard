@@ -265,6 +265,42 @@ body {
   color: #fff;
 }
 
+/* ================= LOGOUT ================= */
+.sidebar-footer {
+  margin-top: auto;
+  display: flex;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #9ca3af;
+}
+
+.logout-btn .icon {
+  width: 25px;
+  height: 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logout-btn .icon img {
+  width: 20px;
+  /* 🔥 smaller icon */
+  height: 20px;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
 /* ================= LOGO ================= */
 .logo {
   display: flex;
@@ -390,6 +426,7 @@ body {
   flex-direction: column;
   gap: 12px;
   margin-top: 15px;
+  align-items: center; /* Center cards */
 }
 
 /* FORM CARD */
@@ -397,7 +434,11 @@ body {
   border: 2px solid #cad5e2;
   border-radius: 12px;
   padding: 15px;
-  margin-bottom: 15px;
+  margin-bottom: 30px; /* Increased gap */
+  width: 100%;
+  max-width: 600px; /* Recommended width */
+  margin-left: auto; /* Center align */
+  margin-right: auto;
 }
 
 .team-form-card h3 {
@@ -438,6 +479,8 @@ textarea:focus {
   padding: 15px;
   margin-bottom: 10px;
   position: relative;
+  width: 100%;
+  max-width: 600px; /* Recommended width */
 }
 
 .project-bottom {

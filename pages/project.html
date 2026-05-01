@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project - FlowZard</title>
+  <link rel="stylesheet" href="../project.css" />
+</head>
+
+<body>
+
+  <div class="app-layout">
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ================= SIDEBAR ================= -->
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+
+      <!-- ================= TOPBAR ================= -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <img src="../Assets/icons/icons8-menu-50.png" class="menu-icon" id="menuBtn" alt="menu" />
+          <div class="topbar-title">workspace</div>
+        </div>
+
+        <div class="topbar-right">
+          <button class="notif-btn" id="activityBtn" type="button">
+            <img src="../Assets/icons/icons8-notification-48.png" alt="notifications" />
+          </button>
+          <div class="topbar-user" id="navUsername"></div>
+        </div>
+      </header>
+
+      <!-- ================= BACK NAV ================= -->
+      <section class="project-nav-card">
+        <div class="back-btn" id="backToProjects">
+          <img src="../Assets/icons/icons8-left-arrow-48.png" class="arrow-icon" />
+          <p>Back to projects</p>
+        </div>
+      </section>
+
+      <!-- ================= PROJECT DETAILS CARD ================= -->
+      <section class="project-info-card">
+
+        <!-- ROW 1: TITLE + BADGE -->
+        <div class="project-title-row">
+          <h1 id="projectTitle">Project Name</h1>
+
+          <div class="role-badge" id="projectRoleBadge">
+            <!-- <img src="../Assets/icons/icons8-shield-48.png" /> -->
+            <span>User</span>
+          </div>
+        </div>
+
+        <!-- ROW 2: CREATOR + DATE -->
+        <div class="project-meta-row">
+          <p>Created by <span id="projectOwner">User</span></p>
+          <span id="projectDate">0000-00-00</span>
+        </div>
+
+        <!-- ROW 3: INVITE CODE -->
+        <div class="project-code-row">
+          <p>Invite:</p>
+
+          <div class="code-box">
+            <span id="projectCode">XXXXXX</span>
+            <img src="../Assets/icons/icons8-copy-24.png" class="copy-icon" id="copyCodeBtn" />
+          </div>
+        </div>
+
+        <!-- ROW 4: DESCRIPTION -->
+        <div class="project-desc-row">
+          <p id="projectDesc">
+            Project description goes here...
+          </p>
+        </div>
+
+      </section>
+
+      <!-- ================= CONTENT ROW (DESKTOP ALIGNMENT) ================= -->
+      <div class="project-content-row">
+
+      <!-- ================= MEMBERS CARD ================= -->
+      <section class="members-card">
+
+        <div class="members-header">
+          <img class="add-icon" src="../Assets/icons/icons8-add-user-male-48.png" />
+          <h3>Members</h3>
+          <span id="memberCount">(0)</span>
+        </div>
+
+        <div id="membersList" class="members-list">
+          <!-- JS inject members here -->
+
+          <div id="memberStatsContainer"></div>
+
+           <div class="members-empty">
+                 <p class="empty-title">No members yet</p>
+                <p class="empty-sub">Invite people using the project code</p>
+           </div>
+
+        </div>
+
+      </section>
+
+    
+      <!-- ================= TASKS WRAPPER ================= -->
+<section class="tasks-wrapper">
+
+  <!-- HEADER (INSIDE CARD) -->
+  <div class="tasks-reader">
+    <div class="tasks-left">
+      <img class="task-icon" src="../Assets/icons/icons8-in-progress-48.png" />
+      <h3>Tasks</h3>
+      <span id="taskCount">(0)</span>
+    </div>
+
+    <button class="assign-btn" id="assignTaskBtn">
+      Assign Task
+    </button>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <!-- <div id="taskEmptyState" class="task-empty">
+    <p>No tasks yet</p>
+    <span>Assign a member to get started</span>
+  </div> -->
+
+  <!-- TASK LIST -->
+  <div id="taskList" class="task-list">
+    <!-- JS inject task cards here -->
+  </div>
+
+  
+</section>
+      </div> <!-- End project-content-row -->
+
+    </main>
+  </div>
+
+  <script type="module" src="../scripts/project-ui.js"></script>
+
+  <script type="module">
+    import { loadSidebar } from "../scripts/layout.js";
+    loadSidebar();
+  </script>
+
+<div id="deleteModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Delete Task</h3>
+    <p>Are you sure you want to delete this task?</p>
+
+    <div class="modal-actions">
+      <button id="cancelDelete" class="btn-cancel">Cancel</button>
+      <button id="confirmDelete" class="btn-delete">Delete</button>
+    </div>
+  </div>
+</div>
+
+</body>
+
+</html>

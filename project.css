@@ -1,0 +1,1289 @@
+@font-face {
+  font-family: poppins;
+  src: url("./Assets/fonts/Poppins-Medium.ttf");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: poppins;
+}
+
+/* Body */
+body {
+  background: #ffffff;
+  color: #111;
+  overflow: hidden;
+}
+
+/* ================= LAYOUT ================= */
+.app-layout {
+  display: flex;
+  height: 100vh;
+}
+
+/* ================= MAIN CONTENT ================= */
+.main-content {
+  flex: 1;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.main-content > *:not(.topbar) {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.main-content > *:last-child {
+  padding-bottom: 30px;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 70%;
+  max-width: 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, #0f172a, #020617);
+  color: #cbd5f5;
+  padding: 20px 15px;
+  transition: 0.3s ease;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+/* ================= TOPBAR ================= */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  padding: 15px 20px;
+  margin-bottom: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.topbar-title {
+  font-weight: bold;
+  font-size: 20px;
+  color: #111;
+  white-space: nowrap;
+}
+
+.topbar-user {
+  font-weight: bold;
+  font-size: 20px;
+  text-transform: uppercase;
+  color: #333;
+  white-space: nowrap;
+}
+
+.tasks-header {
+  display: flex;
+  font-size: 14px;
+  gap: 10px;
+  align-items: center;
+
+  /* 🔥 smooth interaction */
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+width: fit-content;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* TEXT RESET */
+.tasks-header h1 {
+  margin: 0;
+  transition: color 0.2s ease;
+}
+
+/* ICON */
+.arrow-icon {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* ================= HOVER STATE ================= */
+
+/* text turns slightly darker for contrast */
+.tasks-header:hover h1 {
+  color: grey;
+}
+
+/* icon subtle movement effect */
+.tasks-header:hover .arrow-icon {
+  transform: translateX(-2px);
+  opacity: 0.8;
+}
+
+
+@media (max-width: 1023px) {
+  .topbar-user {
+    display: none;
+  }
+}
+
+.tasks-header {
+    display: flex;
+  font-size: 14px;
+  gap: 10px;
+}
+
+.tasks-header .title {
+  font-size: 14px;
+}
+
+@media (max-width: 767px) {
+  .topbar-title {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .tasks-header {
+    margin: 20px 0 15px 0;
+  }
+
+  .tasks-header .title {
+    font-size: 14px;
+  }
+}
+
+/* ================= BUTTONS ================= */
+.notif-btn {
+  background-color: #334155;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.notif-btn:hover {
+  background-color: #475569;
+}
+
+.notif-btn img {
+  width: 24px;
+  height: 24px;
+  filter: brightness(0) invert(1);
+}
+
+.menu-icon {
+  width: 24px;
+  cursor: pointer;
+}
+
+.title {
+  font-size: 12px;
+}
+
+/* ================= OVERLAY ================= */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.3s;
+  z-index: 90;
+}
+
+.overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ================= DESKTOP FIX ================= */
+@media (min-width: 768px) {
+  .sidebar {
+    position: relative;
+    left: 0;
+    width: 240px;
+    max-width: none;
+    height: 100vh;
+    flex-shrink: 0;
+  }
+
+  .overlay {
+    display: none;
+  }
+
+  .menu-icon {
+    display: none;
+  }
+}
+
+/* ================= SIDEBAR MENU ================= */
+.menu-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+}
+
+.menu-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.menu-item:hover {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.menu-item.active {
+  background: rgba(59, 130, 246, 0.2);
+  color: #fff;
+  transform: translateX(3px);
+}
+
+.menu-item .icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-item .icon img {
+  width: 20px;
+}
+
+
+/* ================= LOGOUT ================= */
+.sidebar-footer {
+  margin-top: auto;
+  display: flex;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #9ca3af;
+}
+
+.logout-btn .icon {
+  width: 25px;
+  height: 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logout-btn .icon img {
+  width: 20px;
+  /* 🔥 smaller icon */
+  height: 20px;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+/* ================= LOGO ================= */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+  color: #fff;
+}
+
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo-icon {
+  width: 35px;
+  height: 35px;
+  background: #3b82f6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-icon img {
+  width: 20px;
+  height: 20px;
+}
+
+
+/* =======================================================
+   🔥 FLOWZARD PROJECT PAGE STYLES (NEW LAYER)
+   ======================================================= */
+
+/* ================= PAGE CONTAINERS ================= */
+
+.project-nav-card {
+  margin: 15px 20px;
+  padding: 10px 12px;
+  border: 1px solid #cad5e2;
+  border-radius: 10px;
+  width: fit-content;
+  background: #fff;
+  transition: background 0.2s ease;
+}
+
+.project-nav-card:hover {
+  background: #f3f4f6;
+}
+
+/* Back button */
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.back-btn p {
+  font-size: 14px;
+  color: #374151;
+  margin: 0;
+}
+
+.arrow-icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s ease;
+}
+
+.project-nav-card:hover .arrow-icon {
+  transform: translateX(-3px);
+}
+
+/* ================= GLOBAL CARD STYLE ================= */
+
+.project-info-card,
+.members-card {
+  margin: 15px 20px;
+  padding: 15px;
+  border: 1px solid #cad5e2;
+  border-radius: 12px;
+  background: #fff;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.tasks-wrapper {
+  margin: 15px 20px;
+  padding: 15px;
+  border: 1px solid #cad5e2;
+  border-radius: 12px;
+  background: #fff;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.project-info-card:hover,
+.members-card:hover,
+.tasks-wrapper:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+/* ================= DESKTOP LAYOUT (CONTENT ROW) ================= */
+
+/* Override the .main-content > * padding for this wrapper */
+.main-content .project-content-row {
+  padding: 0;
+  margin: 0; /* Let children handle margins on mobile */
+}
+
+@media (min-width: 1024px) {
+  .main-content .project-content-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    margin: 15px 20px; /* Match project-info-card margins exactly */
+  }
+
+  .members-card {
+    flex: 1;
+    margin: 0;
+  }
+
+  .tasks-wrapper {
+    flex: 1;
+    margin: 0;
+  }
+}
+
+/* ================= PROJECT CARD ================= */
+
+.project-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.project-title-row h1 {
+  font-size: 22px;
+  margin: 0;
+  color: #111;
+}
+
+.role-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #cad5e2;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: #f3f4f6;
+  font-size: 12px;
+  /* color: #2563eb; */
+}
+
+/* .role-badge.admin {
+  color: #2563eb;
+}
+
+.role-badge.member {
+  color: #178b15;
+} */
+
+
+.role-badge.member {
+  color: #10b981; /* green */
+  border: 1px solid #cad5e2;
+  background: #f0fdf4;
+}
+
+.role-badge.admin {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.role-badge img {
+  width: 14px;
+}
+
+/* META ROW */
+.project-meta-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* CODE ROW */
+.project-code-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.code-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #111;
+}
+
+.copy-icon {
+  width: 16px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.copy-icon:hover {
+  opacity: 1;
+}
+
+.copy-icon.copied {
+  transform: scale(1.2);
+}
+
+/* DESCRIPTION */
+.project-desc-row {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.4;
+}
+
+/* ================= MEMBERS ================= */
+
+/* ================= MEMBERS ================= */
+
+.members-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 🔥 NORMAL weight (NOT bold) */
+.members-header h3 {
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* count on right */
+.members-header span {
+  margin-left: auto;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* list */
+.members-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* individual row */
+.member-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 8px 10px;
+  border-radius: 8px;
+
+  background: #fafafa;
+  border: 1px solid #e5e7eb;
+  transition: transform 0.2s ease;
+}
+
+.member-item:hover {
+  transform: translateY(-2px);
+}
+
+/* left side */
+.member-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.member-name {
+  font-size: 14px;
+}
+
+/* 🔥 admin tag inline */
+.admin-tag {
+  font-size: 12px;
+  color: #6b7280;
+  margin-left: 4px;
+}
+
+/* right side */
+.member-right {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* ================= TASKS EMPTY STATE ================= */
+
+.task-empty {
+  border: 1px dashed #cad5e2;
+  border-radius: 10px;
+  padding: 30px;
+  text-align: center;
+  color: #9ca3af;
+  background: #fafafa;
+}
+
+.task-empty p {
+  font-size: 15px;
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+.task-empty span {
+  font-size: 13px;
+}
+
+
+/* ================= TASK HEADER (INSIDE CARD) ================= */
+
+.tasks-reader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1px;
+  padding: 10px 1px;
+  overflow: hidden;
+  /* background: #ffffff; */
+
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+/* 🔥 hover feel like FlowZard cards */
+.tasks-reader:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+/* LEFT SIDE */
+.tasks-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.task-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* TITLE */
+.tasks-left h3 {
+  font-size: 15px;
+  margin: 0;
+  color: #111;
+}
+
+/* COUNT */
+.tasks-left span {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+
+.task-card {
+  border: 1px solid #cad5e2;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.task-card:hover {
+  transform: translateY(-2px);
+}
+
+/* 3 DOT MENU */
+.task-menu {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.task-menu:hover {
+  opacity: 1;
+}
+
+/* TASK CONTENT */
+.task-card h4 {
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.task-card p {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.task-meta {
+  font-size: 12px;
+  color: #9ca3af;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+
+.assign-btn {
+  padding: 6px 12px;    
+  font-size: 13px;
+  border: none;
+  border-radius: 10px;
+  background: #155dfc;
+  cursor: pointer;
+  color: white;
+  transition: background 0.2s ease;
+  margin: 0;
+}
+
+.assign-btn:hover {
+  background: #0f4de0;
+}
+
+/* ================= HOVER SYSTEM (GLOBAL FLOWZARD FEEL) ================= */
+
+/* Removed wrapper hover animations */
+
+/* smooth feel everywhere */
+.project-info-card,
+.members-card,
+.tasks-wrapper,
+.project-nav-card {
+  transition: all 0.2s ease;
+}
+
+.add-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.task-icon {
+  width: 20px;
+  height: 20px;
+}
+
+
+/* ================= MEMBERS EMPTY STATE ================= */
+
+.members-empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  text-align: center;
+
+  padding: 30px 10px;
+  min-height: 120px; /* keeps it visually balanced */
+
+  color: #6b7280; /* subtle grey */
+}
+
+.members-empty .empty-title {
+  font-size: 14px;
+  /* font-weight: 600; */
+  color: #374151; /* slightly darker for hierarchy */
+  margin-bottom: 4px;
+}
+
+.members-empty .empty-sub {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+         /* ================= TASK FORM ================= */
+
+.task-form-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+}
+
+.task-input,
+.task-textarea,
+.task-select {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+  background: #f9fafb;
+  transition: 0.2s ease;
+}
+
+.task-textarea {
+  resize: none;
+  min-height: 70px;
+}
+
+.task-input:focus,
+.task-textarea:focus,
+.task-select:focus {
+  border-color: #3b82f6;
+  background: #ffffff;
+}
+
+/* GRID like your image */
+.task-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* BUTTONS */
+.task-form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.task-form-actions button {
+  flex: 1; /* Equal width */
+}
+
+.btn-cancel {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+
+  padding: 6px 10px;
+  border-radius: 10px;
+
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-cancel:active {
+  transform: scale(0.94);
+  background: #e5e7eb;
+}
+
+.btn-create {
+  padding: 6px 12px;    
+  font-size: 13px;
+  border: none;
+  border-radius: 10px;
+  background: #155dfc;
+  cursor: pointer;
+  color: white;
+  transition: background 0.2s ease;
+  margin: 0;
+}
+
+.btn-create:hover {
+  background: #0f4de0;
+}
+
+.btn-create:active {
+   transform: scale(0.96);
+  background: #1d4ed8;
+   box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+}
+
+/* FORM STRUCTURE */
+
+.task-form-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* spacing between inputs */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+/* labels */
+.form-group label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* rows */
+.task-form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.task-form-row .form-group {
+  flex: 1;
+}
+
+/* inputs */
+.task-input,
+.task-textarea,
+.task-select,
+.task-date {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 13px;
+}
+
+/* textarea size */
+.task-textarea {
+  resize: none;
+  height: 60px;
+}
+
+     /* MAIN TASK CARD */
+
+     /* ================= TASK CARD ================= */
+
+.task-card {
+  background: #f9fafb;
+  border: 2px solid #cad5e2;
+  border-left: 4px solid;
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 10px;
+}
+
+.task-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.task-title {
+  font-size: 15px;
+  color: #333;
+  margin: 0;
+}
+
+.task-desc {
+  font-size: 13px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.task-tags {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+ }
+
+.priority {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 10px;
+  text-transform: capitalize;
+}
+
+.priority.high {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.priority.medium {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.priority.low {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+
+.status-select {
+  /* background: #9ca3af; */
+  border: 1px solid #9ca3af;
+  color: #333;
+  padding: 5px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* STATUS COLORS */
+.task-card.todo {
+  border-left-color: #cd1010;
+}
+
+.task-card.in-progress {
+  border-left-color: #f59e0b;
+}
+
+.task-card.done {
+  border-left-color: #10b981;
+}
+
+.task-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+
+/* TASK MENU */
+
+.task-actions {
+  position: relative;
+  overflow: visible;
+}
+
+.menu-btn {
+  width: 24px;
+  height: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  border: none;
+
+  background: #f3f4f6; /* light grey (Flowzard style) */
+  color: #374151;
+  font-size: 18px;
+  cursor: pointer;
+
+   transition: all 0.2s ease;
+
+    font-weight: 600;
+  line-height: 1;
+}
+
+.menu-btn:hover {
+  background: #e5e7eb;
+  transform: scale(1.05);
+}
+
+.menu-btn:active {
+  background: #d1d5db;
+  transform: scale(0.92);
+}
+
+.task-menu {
+  position: absolute;
+  bottom: 28px;
+  top: auto;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+  padding: 6px 0;
+  min-width: 160px;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.menu-items {
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.menu-delete {
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  color: #dc2626; /* red text for delete */
+}
+
+.menu-items:hover {
+  background: #f3f4f6;
+}
+
+.menu-delete:hover {
+  background: #fee2e2; /* light red background on hover */
+}
+
+.hidden {
+  display: none;
+}
+
+
+.tag-actions{
+  display: flex;
+  gap: 8px;
+}
+
+/* STATUS BADGE */
+
+.status-badge {
+  margin: auto;
+  font-size: 11px;
+  padding: 5px 8px;
+  border-radius: 12px;
+  text-transform: capitalize;
+  font-weight: 600;
+}
+
+/* MATCH YOUR COLORS */
+
+.status-badge.todo {
+  background: #fee2e2;
+  color: #cd1010;
+}
+
+.status-badge.in-progress {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.status-badge.done {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+/* ANIMATION FOR TASK COUNT */
+
+.member-tasks {
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+
+.member-tasks.updated {
+  transform: scale(1.2);
+  color: #3b82f6;
+}
+
+
+.member-tasks {
+  transition: transform 0.2s ease;
+}
+
+.member-item:hover .member-tasks {
+  transform: scale(1.05);
+}
+
+/* DISABLED BUTTON */
+
+.disabled-btn {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* DELETE MODAL STYLE */
+
+
+/* 🔐 Modal Overlay */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 999;
+}
+
+/* Hidden state */
+.modal.hidden {
+  display: none;
+}
+
+/* 📦 Modal Box */
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 320px;
+  max-width: 90%;
+
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+
+  animation: modalFade 0.2s ease;
+}
+
+/* ✨ Animation */
+@keyframes modalFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 🔘 Buttons */
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.btn-cancel {
+  flex: 1;
+  background: #e5e7eb;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-delete {
+  flex: 1;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Hover effects */
+.btn-delete:hover {
+  background: #dc2626;
+}
+
+.btn-cancel:hover {
+  background: #d1d5db;
+}
+
+.activity-project {
+  color: #6b7280;
+  font-size: 12px;
+  margin-left: 6px;
+}

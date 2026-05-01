@@ -1,249 +1,189 @@
 import { db } from "./firebase.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
 import {
   collection,
   onSnapshot,
   query,
-  orderBy
+  where,
+  orderBy,
+  limit,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-import { createProject, joinProject } from "./team-engine.js";
+const activityFeedList = document.getElementById("activityFeedList");
+const emptyActivity = document.querySelector(".empty-activity");
 
-// ================= DOM =================
-const auth = getAuth();
-const formContainer = document.getElementById("teamFormContainer");
-const newProjectBtn = document.getElementById("newProjectBtn");
-const joinProjectBtn = document.getElementById("joinProjectBtn");
-const list = document.getElementById("projectList");
+let activityFilter = "project";
+let allActivities = [];
+let userMapCache = {};
 
-// ================= AUTH =================
-document.addEventListener("DOMContentLoaded", () => {
+const fromProject = document.referrer.includes("project");
 
-  onAuthStateChanged(auth, (user) => {
-    const topbarUser = document.getElementById("navUsername");
+if (!fromProject) {
+  localStorage.removeItem("activeProjectId");
+}
 
-    if (user && topbarUser) {
-      const name = user.email.split("@")[0];
-      topbarUser.textContent = name.toUpperCase();
-    }
+/* ===============================
+   🟢 SECTION 1: HELPERS
+   (Formatting + Icons)
+================================ */
+
+function formatTimestamp(timestamp) {
+  if (!timestamp) return "Just now";
+
+  const date = timestamp.toDate();
+
+  const now = Date.now();
+  const time = date.getTime();
+
+  const diffMs = now - time;
+
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffSec < 60) return "Just now";
+  if (diffMin < 60) return `${diffMin} min${diffMin !== 1 ? "s" : ""} ago`;
+  if (diffHour < 24) return `${diffHour} hour${diffHour !== 1 ? "s" : ""} ago`;
+  return `${diffDay} day${diffDay !== 1 ? "s" : ""} ago`;
+}
+
+function getActivityIcon(action) {
+  if (!action) return "📌";
+
+  const normalized = action.toLowerCase().trim();
+
+  if (normalized.includes("created")) return "🟢";
+  if (normalized.includes("updated")) return "🟡";
+  if (normalized.includes("deleted")) return "🔴";
+  if (normalized.includes("completed")) return "✅";
+
+  return "📌";
+}
+
+/* ===============================
+   🟡 SECTION 2: UI RENDERING
+   (DOM rendering only)
+================================ */
+
+function renderActivities(activities, currentUserEmail, userMap) {
+  
+  if (!activityFeedList) return;
+
+  if (activities.length === 0) {
+    if (emptyActivity) emptyActivity.style.display = "flex";
+    activityFeedList.innerHTML = "";
+    return;
+  }
+
+  if (emptyActivity) emptyActivity.style.display = "none";
+
+  activityFeedList.innerHTML = activities.map(act => {
+    const actorEmail = act.userEmail || "";
+    const isCurrentUser = currentUserEmail && actorEmail === currentUserEmail;
+
+          const username = userMap?.[actorEmail] || actorEmail.split("@")[0];
+
+const displayActor = isCurrentUser
+  ? `<strong>You</strong>`
+  : `<strong>${username}</strong>`;
+
+
+
+    let actionMap = {
+      "Task Created": "created",
+      "Task Updated": "updated",
+      "Task Deleted": "deleted",
+      "Task Completed": "completed"
+    };
+
+    let actionText = actionMap[act.action] || act.action;
+
+    return `
+      <div class="activity-item ${actionText}">
+        <div class="activity-left">
+
+          <div class="activity-icon">
+            ${getActivityIcon(act.action)}
+          </div>
+
+          <div class="activity-text">
+            ${displayActor} <span>${actionText}</span> 
+             <p>
+                    “${act.taskTitle}”
+                   ${act.projectName ? `<span class="activity-project">in ${act.projectName}</span>` : ""}
+            </p>
+          </div>
+
+        </div>
+
+        <div class="activity-time">
+          ${formatTimestamp(act.timestamp)}
+        </div>
+
+      </div>
+    `;
+  }).join("");
+}
+
+
+      // USERNAME FETCHER
+
+      async function getUserMap() {
+  const snap = await getDocs(collection(db, "users"));
+
+  const map = {};
+
+  snap.forEach(doc => {
+    const data = doc.data();
+    map[data.email] = data.username || data.email.split("@")[0];
   });
 
-  loadProjects();
+  return map;
+}
+
+/* ===============================
+   🔵 SECTION 3: APP LOGIC
+   (Auth + Firestore listener)
+================================ */
+
+const auth = getAuth();
+
+onAuthStateChanged(auth, async (user) => {
+  const currentUserEmail = user ? user.email : null;
+
+  const userMap = await getUserMap(); // 🔥 LOAD USERNAMES ONCE
+
+  const projectId = localStorage.getItem("activeProjectId");
+
+  const q = query(
+    collection(db, "activities"),
+    where("projectId", "==", projectId),
+    orderBy("timestamp", "desc"),
+    limit(10)
+  );
+
+        
+     document.getElementById("activityFilter")?.addEventListener("change", (e) => {
+  activityFilter = e.target.value;
+
+  console.log("Filter changed to:", activityFilter);
+
+  renderActivities(allActivities, currentUserEmail, userMap);
 });
-
-// ================= BUTTON EVENTS =================
-newProjectBtn?.addEventListener("click", showCreateForm);
-joinProjectBtn?.addEventListener("click", showJoinForm);
-
-// ================= CREATE FORM =================
-function showCreateForm() {
-  formContainer.innerHTML = `
-    <div class="team-form-card">
-      <h3>Create New Project</h3>
-
-      <input id="projectName" placeholder="Project name" />
-      <textarea id="projectDesc" placeholder="Project description..."></textarea>
-
-      <div class="team-form-actions">
-        <button class="btn-3" id="cancelBtn">Cancel</button>
-        <button class="btn-4" id="createBtn">Create</button>
-      </div>
-    </div>
-  `;
-
-  document.getElementById("cancelBtn").onclick = clearForm;
-
-  document.getElementById("createBtn").onclick = async () => {
-    const name = document.getElementById("projectName").value.trim();
-    const desc = document.getElementById("projectDesc").value.trim();
-    const user = auth.currentUser;
-
-    if (!name) return alert("Project name required");
-
-    try {
-      await createProject(name, desc, user); // 🔥 ENGINE CALL
-      clearForm();
-    } catch (err) {
-      console.error(err);
-      alert("Failed to create project");
-    }
-  };
-}
-
-// ================= JOIN FORM =================
-function showJoinForm() {
-  formContainer.innerHTML = `
-    <div class="team-form-card">
-      <h3>Join a Project</h3>
-
-      <input id="inviteCode" placeholder="Enter invite code" />
-
-      <div class="team-form-actions">
-        <button class="btn-3" id="cancelBtn">Cancel</button>
-        <button class="btn-4" id="joinBtn">Join</button>
-      </div>
-    </div>
-  `;
-
-  document.getElementById("cancelBtn").onclick = clearForm;
-
-  document.getElementById("joinBtn").onclick = async () => {
-    const code = document.getElementById("inviteCode").value.trim();
-    const user = auth.currentUser;
-
-    if (!code) return alert("Invite code required");
-
-    try {
-      await joinProject(code, user); // 🔥 ENGINE CALL
-      clearForm();
-    } catch (err) {
-      console.error(err);
-      alert(err.message);
-    }
-  };
-}
-
-// ================= CLEAR FORM =================
-function clearForm() {
-  formContainer.innerHTML = "";
-}
-
-// ================= RENDER PROJECT =================
-
-function renderProject(project) {
-  const div = document.createElement("div");
-  div.className = "project-card";
-
-  // ✅ normalize data safely
-  const description = project.description || "";
-  const code = project.inviteCode || "NO-CODE";
-
-  const members = Array.isArray(project.members)
-    ? project.members.length
-    : 0;
-
-  const currentUser = auth.currentUser?.email;
-
-  const isAdmin = project.owner === currentUser;
-
-  const isMember =
-    Array.isArray(project.members) &&
-    project.members.includes(currentUser);
-
-  // ================= BADGES =================
-
-  const adminBadge = isAdmin
-    ? `
-      <div class="project-role-badge admin">
-        <img src="../Assets/icons/icons8-shield-48.png" class="role-icon" />
-        <span>Admin</span>
-      </div>
-    `
-    : "";
-
-  const memberBadge = isMember && !isAdmin
-    ? `
-      <div class="project-role-badge member">
-        <img src="../Assets/icons/icons8-member-48.png" class="role-icon" />
-        <span>Member</span>
-      </div>
-    `
-    : "";
-
-  // ================= RENDER =================
-
-  div.innerHTML = `
-    ${adminBadge}
-    ${memberBadge}
-
-    <h3>${project.name}</h3>
-    <p>${description}</p>
-
-    <div class="project-bottom">
-
-      <div class="project-code-wrapper">
-        <span class="project-code">
-          Code: <strong>${code}</strong>
-        </span>
-
-        <img src="../Assets/icons/icons8-copy-24.png"
-             class="copy-icon"
-             data-code="${code}" />
-      </div>
-
-      <div class="project-members">
-        <img src="../Assets/icons/icons8-add-user-male-48.png" class="members-icon" />
-        <span>${members}</span>
-      </div>
-
-    </div>
-  `;
-
-  list.appendChild(div);
-}
-
-// ================= COPY =================
-document.addEventListener("click", (e) => {
-  if (e.target.classList.contains("copy-icon")) {
-    const icon = e.target;
-    const code = icon.dataset.code;
-
-    navigator.clipboard.writeText(code);
-
-    icon.classList.add("copied");
-    setTimeout(() => icon.classList.remove("copied"), 300);
-  }
-});
-
-// ================= EMPTY STATE =================
-function hideEmptyState() {
-  const empty = document.getElementById("emptyProject");
-  if (empty) empty.style.display = "none";
-}
-
-function showEmptyState() {
-  const empty = document.getElementById("emptyProject");
-  if (empty) empty.style.display = "flex";
-}
-
-// ================= LOAD PROJECTS =================
-function loadProjects() {
-  const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
 
   onSnapshot(q, (snapshot) => {
-    list.innerHTML = "";
+    allActivities = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
 
-    if (snapshot.empty) {
-      showEmptyState();
-      return;
-    }
-
-    hideEmptyState();
-
-    snapshot.forEach(docSnap => {
-  const project = docSnap.data();
-
-  renderProject({
-    name: project.name,
-    description: project.description,
-    inviteCode: project.inviteCode,
-    members: project.members,
-    owner: project.owner
+    renderActivities(allActivities, currentUserEmail, userMap);
   });
-});
+}); 
 
-  });
-
-}
-
-// ================= ACTIVITY BUTTON =================
-const activityBtn = document.getElementById("activityBtn");
-
-activityBtn?.addEventListener("click", () => {
-  activityBtn.style.transform = "scale(0.95)";
-
-  setTimeout(() => {
-    window.location.href = "./activity.html";
-  }, 100);
-});
+Activity-ui for dropdown

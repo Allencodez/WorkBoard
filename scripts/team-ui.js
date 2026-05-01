@@ -5,7 +5,10 @@ import {
   collection,
   onSnapshot,
   query,
-  orderBy
+  orderBy,
+  getDocs,
+  doc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import { createProject, joinProject } from "./team-engine.js";
@@ -131,7 +134,8 @@ function clearForm() {
 
 // ================= RENDER PROJECT =================
 
-function renderProject(project) {
+   function renderProject(project, userMap) {
+
   const div = document.createElement("div");
   div.className = "project-card";
 
@@ -150,6 +154,10 @@ function renderProject(project) {
   const isMember =
     Array.isArray(project.members) &&
     project.members.includes(currentUser);
+
+  // ================= 🔥 OWNER FIX =================
+  const ownerName =
+    userMap?.[project.owner] || project.owner.split("@")[0];
 
   // ================= BADGES =================
 
@@ -200,14 +208,13 @@ function renderProject(project) {
     </div>
   `;
 
-   div.addEventListener("click", () => {
-  currentProjectId = project.id;
+  div.addEventListener("click", () => {
+    currentProjectId = project.id;
 
-  console.log("Active Project:", currentProjectId);
+    localStorage.setItem("activeProjectId", project.id);
 
-  // 🔥 optional (next step later)
-  // window.location.href = "./project.html";
-});
+    window.location.href = "../pages/project.html";
+  });
 
   list.appendChild(div);
 }
@@ -236,19 +243,33 @@ function showEmptyState() {
   if (empty) empty.style.display = "flex";
 }
 
-// ================= LOAD PROJECTS =================
-function loadProjects() {
+// ================= USER PROFILE =================
+
+async function getUserMap() {
+  const snap = await getDocs(collection(db, "users"));
+
+  const map = {};
+
+  snap.forEach(doc => {
+    const data = doc.data();
+    map[data.email] = data.username || data.email.split("@")[0];
+  });
+
+  return map;
+}
+
+// ================= LOAD PROJJECTS =================
+
+async function loadProjects() {
+  const userEmail = auth.currentUser?.email;
+  if (!userEmail) return;
+
+  const userMap = await getUserMap(); // 🔥 ADD THIS
+
   const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
 
   onSnapshot(q, (snapshot) => {
     list.innerHTML = "";
-
-    const userEmail = auth.currentUser?.email;
-
-    if (!userEmail) {
-      showEmptyState();
-      return;
-    }
 
     let hasProjects = false;
 
@@ -261,20 +282,18 @@ function loadProjects() {
         Array.isArray(project.members) &&
         project.members.includes(userEmail);
 
-      // 🔥 ONLY SHOW IF USER BELONGS
       if (isOwner || isMember) {
         hasProjects = true;
 
-        
         renderProject({
-  id: docSnap.id, // 🔥 THIS IS CRITICAL
-  name: project.name,
-  description: project.description,
-  inviteCode: project.inviteCode,
-  members: project.members,
-  owner: project.owner
-});
-        
+          id: docSnap.id,
+          name: project.name,
+          description: project.description,
+          inviteCode: project.inviteCode,
+          members: project.members,
+          owner: project.owner,
+          userMap // 🔥 pass map
+        });
       }
     });
 

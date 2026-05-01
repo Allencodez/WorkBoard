@@ -1,11 +1,13 @@
 // scripts/auth.js
 import { showToast } from "./ui.js";
-import { auth } from "./firebase.js";
+import { auth, db } from "./firebase.js";
 
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  updateProfile
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 
 /* =========================
@@ -38,6 +40,17 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // 🔥 CHECK RATE LIMIT
+    const lockTime = localStorage.getItem('login_lock_time');
+    if (lockTime && Date.now() - lockTime < 600000) {
+      const minsLeft = Math.ceil((600000 - (Date.now() - lockTime)) / 60000);
+      showToast(`Too many attempts. Try again in ${minsLeft} minutes.`);
+      return;
+    } else if (lockTime) {
+      localStorage.removeItem('login_lock_time');
+      localStorage.removeItem('login_attempts');
+    }
+
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
@@ -56,6 +69,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       localStorage.setItem("workboard_user", JSON.stringify(userData));
 
+      // 🔥 SUCCESS - RESET LIMITER
+      localStorage.removeItem('login_attempts');
+      localStorage.removeItem('login_lock_time');
+
       console.log("Logged in:", user);
       showToast("Login successful");
 
@@ -64,6 +81,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 1000);
     } catch (error) {
       console.log(error.code);
+
+      let attempts = parseInt(localStorage.getItem('login_attempts') || '0');
+      attempts++;
 
       let message = "Login failed. Try again.";
 
@@ -80,6 +100,13 @@ document.addEventListener("DOMContentLoaded", () => {
         case "auth/too-many-requests":
           message = "Too many attempts. Try later.";
           break;
+      }
+
+      if (attempts >= 5) {
+        localStorage.setItem('login_lock_time', Date.now());
+        message = "Too many attempts. Try again in 10 minutes.";
+      } else {
+        localStorage.setItem('login_attempts', attempts);
       }
 
       showToast(message);
@@ -117,6 +144,15 @@ document.addEventListener("DOMContentLoaded", () => {
         email,
         password
       );
+
+      // Save user profile and Firestore document
+      await updateProfile(userCredential.user, { displayName: name });
+      
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        email: email,
+        username: name,
+        createdAt: new Date()
+      });
 
       console.log("User created:", userCredential.user);
 
@@ -186,4 +222,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   password?.addEventListener("input", validatePassword);
   confirmPassword?.addEventListener("input", validatePassword);
+
+  /* =========================
+     PASSWORD VISIBILITY TOGGLE
+  ========================= */
+  document.querySelectorAll('.toggle-password').forEach(icon => {
+    icon.addEventListener('click', function() {
+      const input = this.previousElementSibling;
+      if (input.type === 'password') {
+        input.type = 'text';
+        this.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+      } else {
+        input.type = 'password';
+        this.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+      }
+    });
+  });
 });
