@@ -1,3 +1,4 @@
+
 import { db } from "./firebase.js";
 import {
   getAuth,
@@ -59,6 +60,38 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+// EXIT AND DELETE ACTIONS
+
+
+// ================= PROJECT ACTION VISIBILITY =================
+function setupProjectActions(projectData, currentUserEmail) {
+  const deleteBtn = document.getElementById("btnDeleteProject");
+  const exitBtn = document.getElementById("btnExitProject");
+
+  if (!deleteBtn || !exitBtn) return;
+
+  // 🔐 Always reset first (prevents role-switch bugs)
+  deleteBtn.classList.add("hidden");
+  exitBtn.classList.add("hidden");
+
+  // 🔐 Get members from your REAL source of truth
+  const membersList = window.currentCtx?.membersList || [];
+
+  const isOwner = projectData.owner === currentUserEmail;
+  const isMember = membersList.includes(currentUserEmail);
+
+  // 🗑️ Admin (Owner)
+  if (isOwner) {
+    deleteBtn.classList.remove("hidden");
+    return; // prevent showing both
+  }
+
+  // 🚪 Member (but not owner)
+  if (isMember) {
+    exitBtn.classList.remove("hidden");
+  }
+}
+
 
 // MEMBER RENDERING
 
@@ -114,6 +147,11 @@ async function loadProject() {
     ctx.currentUserEmail = auth.currentUser?.email || null;
 
     const data = ctx.projectData;
+
+    console.log("OWNER:", data.owner);
+console.log("USER:", ctx.currentUserEmail);
+    // set up project actions
+    setupProjectActions(data, ctx.currentUserEmail);
 
     // 🔥 get selected project
     localStorage.setItem("activeProjectId", projectId);
@@ -493,7 +531,102 @@ confirmBtn.addEventListener("click", async () => {
   modal.classList.add("hidden");
 });
 
+               // PROJECT DELETE UPDATE
 
+                       const projectModal = document.getElementById("projectDeleteModal");
+const confirmProjectBtn = document.getElementById("confirmProjectDelete");
+const cancelProjectBtn = document.getElementById("cancelProjectDelete");
+
+// ✅ Cancel project delete
+cancelProjectBtn?.addEventListener("click", () => {
+  projectModal.classList.add("hidden");
+});
+
+// ✅ Confirm project delete
+confirmProjectBtn?.addEventListener("click", async () => {
+  const projectId = localStorage.getItem("activeProjectId");
+  const ctx = window.currentCtx;
+
+  if (!projectId || !ctx?.isOwner) return;
+
+  const projectRef = doc(db, "projects", projectId);
+
+  await deleteDoc(projectRef);
+
+  await logActivity(
+    "deleted project",
+    ctx.projectData?.name || "Project",
+    window.projectCtx
+  );
+
+  projectModal.classList.add("hidden");
+
+  // redirect after delete
+  window.location.href = "./team.html";
+});
+
+
+                // PROJECT DELETE HOOK
+
+       document.getElementById("btnDeleteProject")?.addEventListener("click", () => {
+  const modal = document.getElementById("projectDeleteModal");
+
+  if (!modal) return;
+
+  modal.classList.remove("hidden");
+});
+
+
+                         // PROJECT EXIT UPDATE
+
+import { arrayRemove, } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const exitModal = document.getElementById("exitProjectModal");
+const confirmExitBtn = document.getElementById("confirmExitProject");
+const cancelExitBtn = document.getElementById("cancelExitProject");
+
+// ✅ Cancel exit
+cancelExitBtn?.addEventListener("click", () => {
+  exitModal.classList.add("hidden");
+});
+
+// ✅ Confirm exit
+confirmExitBtn?.addEventListener("click", async () => {
+  const projectId = localStorage.getItem("activeProjectId");
+  const userEmail = auth.currentUser?.email;
+
+  if (!projectId || !userEmail) return;
+
+  const projectRef = doc(db, "projects", projectId);
+
+  // 🔥 REMOVE USER FROM MEMBERS ARRAY
+  await updateDoc(projectRef, {
+    members: arrayRemove(userEmail),
+  });
+
+  await logActivity(
+    "left project",
+    window.currentCtx?.projectData?.name || "Project",
+    window.projectCtx
+  );
+
+  // 🚪 CLEAN LOCAL STATE
+  localStorage.removeItem("activeProjectId");
+
+  exitModal.classList.add("hidden");
+
+  // 🚀 REDIRECT OUT
+  window.location.href = "./team.html";
+});
+
+              // PROJECT EXIT HOOK
+
+                    document.getElementById("btnExitProject")?.addEventListener("click", () => {
+  const modal = document.getElementById("exitProjectModal");
+  if (!modal) return;
+
+  modal.classList.remove("hidden");
+});
 
 // ================= BACK NAV =================
 document.getElementById("backToProjects")?.addEventListener("click", (e) => {
@@ -690,3 +823,4 @@ function renderMemberStats(stats) {
 document.getElementById("activityBtn")?.addEventListener("click", () => {
   window.location.href = "./activity.html";
 });
+

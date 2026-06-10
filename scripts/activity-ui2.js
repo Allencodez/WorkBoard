@@ -3,6 +3,7 @@ import {
   collection,
   onSnapshot,
   query,
+  where,
   orderBy,
   limit,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -13,6 +14,9 @@ import {
 
 const activityFeedList = document.getElementById("activityFeedList");
 const emptyActivity = document.querySelector(".empty-activity");
+
+
+let userProjectIds = [];
 
 /* ===============================
    🟢 SECTION 1: HELPERS
@@ -118,13 +122,15 @@ function renderActivities(activities, currentUserEmail) {
 const auth = getAuth();
 
 onAuthStateChanged(auth, (user) => {
+
+  
   const currentUserEmail = user ? user.email : null;
 
-  const q = query(
-    collection(db, "activities"),
-    orderBy("timestamp", "desc"),
-    limit(5)
-  );
+     const q = query(
+  collection(db, "activities"),
+  orderBy("timestamp", "desc"),
+  limit(5)
+);
 
   onSnapshot(q, (snapshot) => {
     const activities = snapshot.docs.map(doc => ({
@@ -132,8 +138,18 @@ onAuthStateChanged(auth, (user) => {
       ...doc.data()
     }));
 
-    renderActivities(activities, currentUserEmail);
+    const filtered = activities.filter(act => {
+    // personal logs
+    if (act.userEmail === currentUserEmail && !act.projectId) return true;
+
+    // project logs (only if user belongs)
+    if (act.projectId && userProjectIds?.includes(act.projectId)) return true;
+
+    return false;
+  });
+
+    renderActivities(filtered, currentUserEmail);
   }, (error) => {
-    console.error("Activity fetch error:", error);
+    // console.error("Activity fetch error:", error);
   });
 });

@@ -1,18 +1,17 @@
-
 import { createTask } from "./task-engine.js";
 import { db } from "./firebase.js";
-import {
-  collection,
-  onSnapshot,
-  query,
+import { 
+  collection, 
+  onSnapshot, 
+  query, 
   orderBy,
   getDoc,
-  doc,
+  doc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// PROFILE NAME
-
-async function getUsername(user) {
+      // PROFILE NAME
+     
+         async function getUsername(user) {
   if (!user) return "User";
 
   const userRef = doc(db, "users", user.uid);
@@ -26,24 +25,22 @@ async function getUsername(user) {
   return user.email.split("@")[0];
 }
 
-// DASHBOARD STATS
+      // DASHBOARD STATS
 
 function updateDashboardStats(tasks) {
+
   // ✅ filter valid tasks ONLY
-  const validTasks = tasks.filter(
-    (task) =>
-      task &&
-      task.status &&
-      ["todo", "in progress", "done"].includes(task.status)
+  const validTasks = tasks.filter(task =>
+    task &&
+    task.status &&
+    ["todo", "in progress", "done"].includes(task.status)
   );
 
   const total = validTasks.length;
 
-  const todo = validTasks.filter((t) => t.status === "todo").length;
-  const inProgress = validTasks.filter(
-    (t) => t.status === "in progress"
-  ).length;
-  const done = validTasks.filter((t) => t.status === "done").length;
+  const todo = validTasks.filter(t => t.status === "todo").length;
+  const inProgress = validTasks.filter(t => t.status === "in progress").length;
+  const done = validTasks.filter(t => t.status === "done").length;
 
   const totalEl = document.getElementById("totalTasks");
   const todoEl = document.getElementById("todoTasks");
@@ -76,12 +73,15 @@ function updateDashboardStats(tasks) {
   }
 }
 
-// EMPTY TEXT HELPER SPAN
+// EMPTY TEXT HELPER SPAN 
 const progressText = document.getElementById("progressText");
 const todoText = document.getElementById("todoText");
 const completionText = document.getElementById("completionText");
 
-//  ANIMATION
+
+
+
+//  ANIMATION 
 
 function animateNumber(element, target, suffix = "") {
   if (!element) return;
@@ -108,8 +108,11 @@ function animateNumber(element, target, suffix = "") {
   }, duration / steps);
 }
 
+  
 // ================= MODAL =================
 const modal = document.getElementById("modal");
+const openBtn1 = document.getElementById("openModal");
+const openBtn2 = document.getElementById("openModal2");
 const cancelBtn = document.getElementById("cancelModal");
 
 function openModal() {
@@ -120,14 +123,8 @@ function closeModal() {
   if (modal) modal.style.display = "none";
 }
 
-document.addEventListener("click", (e) => {
-  if (
-    e.target.id === "openModal" ||
-    e.target.classList.contains("create-task-btn")
-  ) {
-    openModal();
-  }
-});
+if (openBtn1) openBtn1.addEventListener("click", openModal);
+if (openBtn2) openBtn2.addEventListener("click", openModal);
 
 if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
 
@@ -148,8 +145,7 @@ createBtn?.addEventListener("click", async () => {
     const priority = document.getElementById("taskPriority").value;
     const dueDate = document.getElementById("taskDueDate").value;
     const status = document.getElementById("taskStatus").value;
-    const user = await getAuth().currentUser;
-const assignee = user.email;
+    const assignee = document.getElementById("taskAssignee").value;
 
     if (!title) {
       alert("Task title is required");
@@ -163,7 +159,7 @@ const assignee = user.email;
       priority,
       dueDate,
       status,
-      assignee,
+      assignee
     });
 
     console.log("TASK CREATED SUCCESS");
@@ -175,11 +171,13 @@ const assignee = user.email;
 
     // ✅ CLOSE MODAL
     closeModal();
+
   } catch (error) {
     console.error("CREATE ERROR:", error);
     alert("Task failed to create");
   }
 });
+
 
 // RENDER FUNCTION
 
@@ -190,25 +188,23 @@ function renderTasks(tasks) {
     container.innerHTML = `
       <h4>No tasks yet</h4>
       <p>Start organizing your work by creating your first task.</p>
-      <button class="cta-btn create-task-btn">+ Create Task</button>
+      <button class="cta-btn" id="openModal2">+ Create Task</button>
     `;
     return;
   }
 
   container.innerHTML = ""; // 🔥 clears duplicates
 
-  tasks.forEach((task) => {
+  tasks.forEach(task => {
     const div = document.createElement("div");
     div.className = `task-card ${task.status.toLowerCase().replace(" ", "-")}`;
 
-    div.innerHTML = `
+   div.innerHTML = `
   <div class="task-card-inner">
 
     <div class="task-top">
    <span class="task-priority ${task.priority}">${task.priority}</span>
-     <span class="task-status ${task.status.toLowerCase()}">${
-      task.status
-    }</span>
+     <span class="task-status ${task.status.toLowerCase()}">${task.status}</span>
     </div>
 
     <div class="task-title">
@@ -228,11 +224,9 @@ function renderTasks(tasks) {
   });
 }
 
+
 // NOMENCLATURE
-import {
-  getAuth,
-  onAuthStateChanged,
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const auth = getAuth();
@@ -242,11 +236,10 @@ async function loadUserProjects(userEmail) {
   const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
   const snap = await getDocs(q);
   const projects = [];
-  snap.forEach((docSnap) => {
+  snap.forEach(docSnap => {
     const project = docSnap.data();
     const isOwner = project.owner === userEmail;
-    const isMember =
-      Array.isArray(project.members) && project.members.includes(userEmail);
+    const isMember = Array.isArray(project.members) && project.members.includes(userEmail);
     if (isOwner || isMember) {
       projects.push(docSnap.id);
     }
@@ -278,23 +271,15 @@ onAuthStateChanged(auth, async (user) => {
     const q = query(tasksRef, orderBy("createdAt", "desc"));
 
     onSnapshot(q, (snapshot) => {
-      let tasks = snapshot.docs.map((doc) => ({
+      let tasks = snapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data(),
+        ...doc.data()
       }));
 
-
-      tasks = tasks.filter((task) => {
-  const isPersonal = task.assignee === userEmail;
-
-  const isProject =
-    task.projectId &&
-    userProjectIds.includes(task.projectId);
-
-  return isPersonal || isProject;
-});
-
-
+      // 🔥 APPLY SECURITY FILTER
+      tasks = tasks.filter(task => 
+        task.assignee === userEmail || userProjectIds.includes(task.projectId)
+      );
 
       updateDashboardStats(tasks);
 
@@ -307,6 +292,7 @@ onAuthStateChanged(auth, async (user) => {
 // AUTO SWITCH ACTRIVE MENU
 
 document.addEventListener("DOMContentLoaded", () => {
+
   const menuItems = document.querySelectorAll(".menu-item");
 
   // detect current page
@@ -316,30 +302,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (path.includes("dashboard.html") || path === "/") {
     currentPage = "dashboard";
-  } else if (path.includes("tasks.html")) {
+  } 
+  else if (path.includes("tasks.html")) {
     currentPage = "tasks";
-  } else if (path.includes("team")) {
+  } 
+  else if (path.includes("team")) {
     currentPage = "team";
-  } else if (path.includes("activity")) {
+  } 
+  else if (path.includes("activity")) {
     currentPage = "activity";
   }
 
   // apply active class
-  menuItems.forEach((item) => {
+  menuItems.forEach(item => {
     item.classList.remove("active");
 
     if (item.dataset.page === currentPage) {
       item.classList.add("active");
     }
   });
+
 });
 
 // ACTIVITY BUTTON CLICKER
 
 const activityBtn = document.getElementById("activityBtn");
 activityBtn.addEventListener("click", () => {
-  activityBtn.style.transform = "scale(0.95)";
-  setTimeout(() => {
+   activityBtn.style.transform = "scale(0.95)";
+   setTimeout(() => {
     window.location.href = "./activity.html";
   }, 100);
 });

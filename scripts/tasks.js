@@ -12,9 +12,14 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { logActivity } from "./activity-engine.js";
 
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-              // USER PROFILE
+let currentUser = null;
+
+// USER PROFILE
 async function getUsername(user) {
   if (!user) return "User";
 
@@ -35,31 +40,27 @@ const container = document.getElementById("tasksList");
 
 const tasksRef = collection(db, "tasks");
 
-
 // TASKS STATS
 
 function updateTotalTasks(tasks) {
-
   // ✅ only count valid tasks
-  const validTasks = tasks.filter(task => 
-    task && 
-    task.status && 
-    ["todo", "in progress", "done"].includes(task.status)
+  const validTasks = tasks.filter(
+    (task) =>
+      task &&
+      task.status &&
+      ["todo", "in progress", "done"].includes(task.status)
   );
 
   const total = validTasks.length;
 
   const totalEl = document.getElementById("totalTasks");
   if (totalEl) animateNumber(totalEl, total);
-  
 }
-
 
 // 🔥 REALTIME LISTENER (Moved to onAuthStateChanged)
 let allTasks = [];
 
-
-//  ANIMATION 
+//  ANIMATION
 
 function animateNumber(element, target, suffix = "") {
   if (!element) return;
@@ -417,7 +418,14 @@ if (createBtn) {
       const priority = document.getElementById("taskPriority").value;
       const dueDate = document.getElementById("taskDueDate").value;
       const status = document.getElementById("taskStatus").value;
-      const assignee = document.getElementById("taskAssignee").value;
+      const user = getAuth().currentUser;
+
+      if (!user) {
+       alert("User not ready yet");
+      return;
+     }
+
+const assignee = user.email;
 
       if (!title) {
         alert("Task title is required");
@@ -438,10 +446,33 @@ if (createBtn) {
         await logActivity("Task Updated", title);
 
         editingTaskId = null;
-      } else {
-        // 🔥 CREATE MODE
-        await createTask({ title, desc, priority, dueDate, status, assignee });
-      }
+       
+        } else {
+  // 🔥 CREATE MODE
+
+  const user = getAuth().currentUser;
+
+  if (!user) {
+    alert("User not ready yet");
+    return;
+  }
+
+  const assignee = user.email;
+
+  await createTask({
+    title,
+    desc,
+    priority,
+    dueDate,
+    status,
+
+    assignee: assignee,
+
+    // 🔥 HARD CLASSIFICATION (STEP 2 FIX)
+    isProjectTask: false,
+    projectId: null,
+  });
+}
 
       // reset form
       document.getElementById("taskTitle").value = "";
@@ -469,7 +500,6 @@ document.addEventListener("click", (e) => {
   }
 });
 
-
 const auth = getAuth();
 
 import { getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -478,10 +508,11 @@ async function loadUserProjects(userEmail) {
   const projQ = query(collection(db, "projects"), orderBy("createdAt", "desc"));
   const snap = await getDocs(projQ);
   const projects = [];
-  snap.forEach(docSnap => {
+  snap.forEach((docSnap) => {
     const project = docSnap.data();
     const isOwner = project.owner === userEmail;
-    const isMember = Array.isArray(project.members) && project.members.includes(userEmail);
+    const isMember =
+      Array.isArray(project.members) && project.members.includes(userEmail);
     if (isOwner || isMember) {
       projects.push(docSnap.id);
     }
@@ -495,6 +526,7 @@ onAuthStateChanged(auth, async (user) => {
 
   if (user) {
     const userEmail = user.email;
+    currentUser = user;
     const username = await getUsername(user);
 
     if (topbarUser) {
@@ -516,10 +548,18 @@ onAuthStateChanged(auth, async (user) => {
         ...doc.data(),
       }));
 
+       
       // 🔥 APPLY SECURITY FILTER
-      allTasks = tasks.filter(task => 
-        task.assignee === userEmail || userProjectIds.includes(task.projectId)
-      );
+                allTasks = tasks.filter(task => {
+
+  // 🚫 HARD RULE: any task with projectId is NOT personal
+  if (task.projectId) {
+    return false;
+  }
+
+  // ✅ only personal tasks remain
+  return task.assignee === userEmail;
+});
 
       updateTotalTasks(allTasks);
 
@@ -536,8 +576,12 @@ onAuthStateChanged(auth, async (user) => {
 
 const activityBtn = document.getElementById("activityBtn");
 activityBtn.addEventListener("click", () => {
-   activityBtn.style.transform = "scale(0.95)";
-   setTimeout(() => {
+  activityBtn.style.transform = "scale(0.95)";
+  setTimeout(() => {
     window.location.href = "./activity.html";
   }, 100);
 });
+
+
+
+

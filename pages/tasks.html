@@ -33,7 +33,7 @@
           <input type="text" id="searchInput" class="search" placeholder="Search..." />
           <button class="notif-btn" id="activityBtn" type="button"><img src="../Assets/icons/icons8-notification-48.png"
               alt="notifications" /></button>
-           <div class="topbar-user" id="navUsername"></div>
+          <div class="topbar-user" id="navUsername"></div>
         </div>
       </header>
 
@@ -48,93 +48,93 @@
           <p>Manage and track your team's progress across all states.</p>
         </section>
 
-            <div class="tasks-toolbar">
-
-            
-             
-         <div class="stat-card">
-       <div class="card-text">
-        <h4>Total tasks</h4>
-        <p class="value" id="totalTasks">0</p>
-       </div>
-       <img class="icon" src="../Assets/icons/icons8-list-48.png"/>
-       </div>
-
-        <!-- ================= ACTIONS ================= -->
-        <div class="tasks-actions">
-          <button class="primary-btn" id="openModal">New Task</button>
-          <div class="filter-wrapper">
-            <svg viewBox="0 0 24 24" class="filter-icon">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-            </svg>
-            <select id="filterSelect" class="filter-dropdown">
-              <option value="default" disabled selected hidden>Filter</option>
-              <option value="all">All</option>
-              <option value="todo">Todo</option>
-              <option value="in progress">In Progress</option>
-              <option value="done">Done</option>
-            </select>
-          </div>
-        </div>
+        <div class="tasks-toolbar">
 
 
+
+          <div class="stat-card">
+            <div class="card-text">
+              <h4>Total tasks</h4>
+              <p class="value" id="totalTasks">0</p>
             </div>
+            <img class="icon" src="../Assets/icons/icons8-list-48.png" />
+          </div>
+
+          <!-- ================= ACTIONS ================= -->
+          <div class="tasks-actions">
+            <button class="primary-btn" id="openModal">New Task</button>
+            <div class="filter-wrapper">
+              <svg viewBox="0 0 24 24" class="filter-icon">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+              <select id="filterSelect" class="filter-dropdown">
+                <option value="default" disabled selected hidden>Filter</option>
+                <option value="all">All</option>
+                <option value="todo">Todo</option>
+                <option value="in progress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
+          </div>
+
+
+        </div>
 
       </div>
 
       <!-- TASK LIST -->
-     <section class="tasks-page">
+      <section class="tasks-page">
 
-  <div id="tasksList" class="tasks-list empty-state">
+        <div id="tasksList" class="tasks-list empty-state">
 
-    <div class="kanban-board">
+          <div class="kanban-board">
 
-      <!-- TODO -->
-      <div class="kanban-column">
-        <h3 class="column-title">Todo</h3>
+            <!-- TODO -->
+            <div class="kanban-column">
+              <h3 class="column-title">Todo</h3>
 
-        <div class="column-tasks">
-          <div class="empty-column-card">
-            <h4>No tasks</h4>
-            <p>Create a task to get started</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- RIGHT SIDE -->
-      <div class="kanban-right">
-
-        <!-- IN PROGRESS -->
-        <div class="kanban-column">
-          <h3 class="column-title">In Progress</h3>
-
-          <div class="column-tasks">
-            <div class="empty-column-card">
-              <h4>No tasks</h4>
-              <p>Tasks in progress will appear here</p>
+              <div class="column-tasks">
+                <div class="empty-column-card">
+                  <h4>No tasks</h4>
+                  <p>Create a task to get started</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <!-- DONE -->
-        <div class="kanban-column">
-          <h3 class="column-title">Done</h3>
+            <!-- RIGHT SIDE -->
+            <div class="kanban-right">
 
-          <div class="column-tasks">
-            <div class="empty-column-card">
-              <h4>No tasks</h4>
-              <p>Completed tasks will appear here</p>
+              <!-- IN PROGRESS -->
+              <div class="kanban-column">
+                <h3 class="column-title">In Progress</h3>
+
+                <div class="column-tasks">
+                  <div class="empty-column-card">
+                    <h4>No tasks</h4>
+                    <p>Tasks in progress will appear here</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- DONE -->
+              <div class="kanban-column">
+                <h3 class="column-title">Done</h3>
+
+                <div class="column-tasks">
+                  <div class="empty-column-card">
+                    <h4>No tasks</h4>
+                    <p>Completed tasks will appear here</p>
+                  </div>
+                </div>
+              </div>
+
             </div>
+
           </div>
+
         </div>
 
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
+      </section>
 
     </main>
 
@@ -178,8 +178,7 @@
             <div class="field">
               <label>Assignee</label>
               <select id="taskAssignee">
-                <option value="u1">u1</option>
-                <option value="u2">u2</option>
+                <option id="currentUserOption">You</option>
               </select>
             </div>
           </div>

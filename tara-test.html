@@ -187,3 +187,3460 @@ onAuthStateChanged(auth, async (user) => {
 }); 
 
 Activity-ui for dropdown
+
+
+
+project UI- 6TH
+
+import { db } from "./firebase.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  collection,
+  query,
+  where,
+  onSnapshot,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { logActivity } from "./activity-engine.js";
+import { loadProjectContext } from "./project-context.js";
+import { createTask } from "./task-engine.js";
+
+import { animateCount } from "./anime.js";
+
+const projectId = localStorage.getItem("activeProjectId");
+// ✅ SAFER EXIT
+if (!projectId) {
+  alert("No project selected");
+  window.location.href = "./team.html";
+  throw new Error("Missing projectId");
+}
+
+// ================= AUTH =================
+const auth = getAuth();
+
+document.addEventListener("DOMContentLoaded", () => {
+  onAuthStateChanged(auth, async (user) => {
+    const topbarUser = document.getElementById("navUsername");
+
+    if (user && topbarUser) {
+      const username = user.email.split("@")[0];
+      topbarUser.textContent = username.toUpperCase();
+
+      const userRef = doc(db, "users", user.uid);
+      const snap = await getDoc(userRef);
+
+      if (!snap.exists()) {
+        await setDoc(userRef, {
+          email: user.email,
+          username: username,
+          createdAt: new Date(),
+        });
+      }
+    }
+
+    if (user) {
+      loadProject(user);
+    } else {
+      alert("You are not logged in");
+      window.location.href = "./login.html";
+    }
+  });
+});
+
+
+// MEMBER RENDERING
+
+
+function renderMembers(members, ctx, countMap) {
+  const membersList = document.getElementById("membersList");
+  membersList.innerHTML = "";
+
+  members.forEach((memberEmail) => {
+    const isAdmin = memberEmail === ctx.projectData.owner;
+
+    const username =
+      ctx.userMap?.[memberEmail] || memberEmail.split("@")[0];
+
+    const div = document.createElement("div");
+    div.className = "member-item";
+
+    div.innerHTML = `
+      <div class="member-left">
+        <span class="member-name">
+          ${username}
+          ${isAdmin ? `<span class="admin-tag">(Admin)</span>` : ""}
+        </span>
+      </div>
+
+      <div class="member-right">
+        <span class="member-tasks">0 tasks</span>
+      </div>
+    `;
+
+    membersList.appendChild(div);
+
+    // ✅ SAFE ANIMATION LAYER (no core logic touched)
+    const span = div.querySelector(".member-tasks");
+    const target = countMap[memberEmail] || 0;
+
+    span.dataset.value = "0";
+    span.textContent = "0 tasks";
+
+    requestAnimationFrame(() => {
+      animateCount(span, target);
+    });
+  });
+}
+
+// ================= LOAD PROJECT =================
+async function loadProject() {
+  try {
+    const ctx = await loadProjectContext(projectId);
+
+    window.currentCtx = ctx;
+
+    ctx.currentUserEmail = auth.currentUser?.email || null;
+
+    const data = ctx.projectData;
+
+    // 🔥 get selected project
+    localStorage.setItem("activeProjectId", projectId);
+
+    // PROJECT CONTEXT FOR LOGACTIVITY
+
+    const projectCtx = {
+      projectId: projectId,
+      projectName: data.name
+    };
+
+    // make it globally accessible
+    window.projectCtx = projectCtx;
+
+    const assignTaskBtn = document.getElementById("assignTaskBtn");
+
+    if (assignTaskBtn) {
+      if (!ctx.isOwner) {
+        assignTaskBtn.disabled = true;
+        assignTaskBtn.classList.add("disabled-btn");
+        assignTaskBtn.title = "Only admins can assign tasks";
+      }
+    }
+
+
+    // ================= OWNER =================
+    const ownerEl = document.getElementById("projectOwner");
+    if (ownerEl) {
+      const ownerEmail = data.owner;
+      const ownerName = ctx.userMap?.[ownerEmail] || ownerEmail.split("@")[0];
+
+      ownerEl.textContent = ownerName;
+    }
+
+    // ================= DETAILS =================
+    document.getElementById("projectDesc").textContent =
+      data.description || "No description provided";
+
+    document.getElementById("projectCode").textContent =
+      data.inviteCode || "N/A";
+
+    const dateEl = document.getElementById("projectDate");
+    if (dateEl && data.createdAt) {
+      const date = data.createdAt.toDate
+        ? data.createdAt.toDate()
+        : new Date(data.createdAt);
+
+      dateEl.textContent = date.toLocaleDateString();
+    }
+
+    // ================= ROLE BADGE =================
+    const badgeEl = document.getElementById("projectRoleBadge");
+    if (badgeEl) {
+      if (ctx.isOwner) {
+        badgeEl.className = "role-badge admin";
+        badgeEl.innerHTML = `
+          <img src="../Assets/icons/icons8-shield-48.png" />
+          <span>Admin</span>
+        `;
+      } else if (ctx.isMember) {
+        badgeEl.className = "role-badge member";
+        badgeEl.innerHTML = `
+          <img src="../Assets/icons/icons8-member-48.png" />
+          <span>Member</span>
+        `;
+      } else {
+        badgeEl.style.display = "none";
+      }
+    }
+
+    // ================= TITLE =================
+    document.getElementById("projectTitle").textContent = data.name;
+
+    // ================= MEMBERS =================
+    const membersList = document.getElementById("membersList");
+    const membersCountEl = document.getElementById("memberCount");
+
+    membersList.innerHTML = "";
+
+    const rawMembers = ctx.membersList || [];
+    const members = [...new Set(rawMembers)];
+
+    if (!members.includes(data.owner)) {
+      members.unshift(data.owner);
+    }
+
+    if (membersCountEl) {
+      const target = members.length;
+
+      const current = parseInt(membersCountEl.dataset.value || "0");
+
+      // if no change, just ensure correct display
+      if (current === target) {
+        membersCountEl.textContent = `(${target})`;
+        return;
+      }
+
+      let start = current;
+
+      const duration = 400;
+      const stepTime = 20;
+      const steps = duration / stepTime;
+      const increment = (target - current) / steps;
+
+      const interval = setInterval(() => {
+        start += increment;
+
+        if ((increment > 0 && start >= target) || (increment < 0 && start <= target)) {
+          start = target;
+          clearInterval(interval);
+        }
+
+        membersCountEl.textContent = `(${Math.round(start)})`;
+      }, stepTime);
+
+      membersCountEl.dataset.value = target;
+    }
+
+
+    // ================= TASKS (REALTIME) =================
+    const taskList = document.getElementById("taskList");
+
+    const q = query(
+      collection(db, "tasks"),
+      where("projectId", "==", projectId)
+    );
+
+    onSnapshot(q, (snapshot) => {
+
+      taskList.innerHTML = "";
+
+      const tasks = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // 🔥 CACHE TASKS FOR CANCEL BUTTON
+      ctx.tasks = tasks;
+
+
+      const memberStats = getMemberTaskDisplayCounts(
+        tasks,
+        ctx.userMap
+      );
+
+      const countMap = {};
+
+      memberStats.forEach(member => {
+        countMap[member.email] = member.count;
+      });
+
+
+      renderMembers(members, ctx, countMap);
+
+      const taskCountEl = document.getElementById("taskCount");
+
+      if (taskCountEl) {
+        const current = parseInt(taskCountEl.dataset.value || "0");
+
+        let start = current;
+        const target = tasks.length;
+
+        const duration = 400;
+        const stepTime = 20;
+        const steps = duration / stepTime;
+        const increment = (target - current) / steps;
+
+        const interval = setInterval(() => {
+          start += increment;
+
+          if ((increment > 0 && start >= target) || (increment < 0 && start <= target)) {
+            start = target;
+            clearInterval(interval);
+          }
+
+          taskCountEl.textContent = `(${Math.round(start)})`;
+        }, stepTime);
+
+        taskCountEl.dataset.value = target;
+      }
+      tasks.forEach((task) => renderTaskCard(task, ctx));
+
+    });
+
+  } catch (err) {
+    console.error("PROJECT LOAD ERROR:", err);
+  }
+}
+
+// ================= TASK CARD =================
+function renderTaskCard(task, ctx) {
+  const taskList = document.getElementById("taskList");
+
+  // ONLY ASSIGNED MEMBERS CAN EDIT TASKS
+
+  const canEdit =
+    ctx.isOwner ||
+    task.assignee === ctx.currentUserEmail;
+
+  const username =
+    ctx.userMap?.[task.assignee] ||
+    task.assignee?.split("@")[0] ||
+    "Unassigned";
+
+  const statusClass = (task.status || "todo").replace(" ", "-");
+
+  const div = document.createElement("div");
+  div.className = `task-card ${statusClass}`; // 🔥 KEY FIX
+  div.dataset.id = task.id;
+  div.dataset.assignee = task.assignee || "";
+
+  div.innerHTML = `
+    <div class="task-card-top" style="justify-content: space-between; align-items: flex-start; display: flex;">
+      <div class="tag-actions" style="display: flex; gap: 8px;">
+        <span class="priority ${task.priority}">
+          ${task.priority}
+        </span>
+        <span class="status-badge ${statusClass}">
+          ${task.status || "todo"}
+        </span>
+      </div>
+
+      ${canEdit ? `
+      <div class="task-actions" style="position: relative;">
+        <button class="menu-btn">⋮</button>
+        <div class="task-menu hidden">
+          <div class="menu-items" data-status="todo">To Do</div>
+          <div class="menu-items" data-status="in progress">In Progress</div>
+          <div class="menu-items" data-status="done">Done</div>
+          ${ctx.isOwner ? '<div class=" menu-delete">Delete</div>' : ""}
+        </div>
+      </div>
+      ` : ""}
+    </div>
+
+    <div class="task-card-middle" style="margin-top: 12px; margin-bottom: 12px;">
+      <h4 class="task-title">${task.title}</h4>
+      <p class="task-desc">${task.desc || ""}</p>
+    </div>
+
+    <div class="task-card-bottom">
+      <span>Assigned to <strong>${username}</strong></span>
+      <span>${task.dueDate ? "Due " + task.dueDate : ""}</span>
+    </div>
+  `;
+
+  taskList.appendChild(div);
+}
+
+// ================= TOGGLE INTERACTION =================
+
+import { updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// TOGGLE MENU
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("menu-btn")) {
+    const menu = e.target.nextElementSibling;
+    menu.classList.toggle("hidden");
+  } else {
+    document.querySelectorAll(".task-menu").forEach((menu) => {
+      menu.classList.add("hidden");
+    });
+  }
+});
+
+// STATUS UPDATE
+document.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("menu-items")) {
+
+    // STATUS UPDATE PERMISSIONS
+
+    const card = e.target.closest(".task-card");
+
+    const newStatus = e.target.dataset.status;
+
+    console.log("clicked element:", e.target);
+    console.log("status:", newStatus);
+
+    if (!newStatus) {
+      console.warn("Invalid status click:", e.target);
+      return;
+    }
+
+    const taskId = card.dataset.id;
+
+    const ctx = window.currentCtx;
+    const isOwner = ctx?.isOwner;
+
+    // get assignee from UI (temporary method)
+    const taskAssignee = card.dataset.assignee;
+
+    // 🔐 permission check
+    const canEdit = isOwner || taskAssignee;
+
+    if (!canEdit) {
+      console.warn("Blocked unauthorized status update");
+      return;
+    }
+
+    // 🔥 UI UPDATE (instant feedback)
+    card.classList.remove("todo", "in-progress", "done");
+    card.classList.add((newStatus || "").replace(" ", "-"));
+
+    // 🔥 FIRESTORE UPDATE
+    await updateDoc(doc(db, "tasks", taskId), {
+      status: newStatus,
+    });
+
+    await logActivity(
+      `moved task to ${newStatus}`,
+      card.querySelector(".task-title")?.textContent || "Untitled",
+      window.projectCtx
+    );
+  }
+
+  if (e.target.classList.contains("menu-delete")) {
+    const card = e.target.closest(".task-card");
+    const taskId = card.dataset.id;
+
+    const ctx = window.currentCtx;
+
+    // 🔐 Admin check
+    if (!ctx?.isOwner) {
+      console.warn("Unauthorized delete attempt");
+      return;
+    }
+
+    const modal = document.getElementById("deleteModal");
+    const confirmBtn = document.getElementById("confirmDelete");
+    const cancelBtn = document.getElementById("cancelDelete");
+
+    // show modal
+    modal.classList.remove("hidden");
+
+    // store current task temporarily
+    modal.dataset.taskId = taskId;
+    modal.dataset.cardId = card.dataset.id;
+  }
+
+});
+
+
+const modal = document.getElementById("deleteModal");
+const confirmBtn = document.getElementById("confirmDelete");
+const cancelBtn = document.getElementById("cancelDelete");
+
+// ✅ Cancel
+cancelBtn.addEventListener("click", () => {
+  modal.classList.add("hidden");
+});
+
+// ✅ Confirm delete
+confirmBtn.addEventListener("click", async () => {
+  const taskId = modal.dataset.taskId;
+
+  if (!taskId) return;
+
+  const card = document.querySelector(
+    `.task-card[data-id="${taskId}"]`
+  );
+
+  const taskTitle =
+    card?.querySelector(".task-title")?.textContent || "Untitled";
+
+  // delete from Firestore
+  await deleteDoc(doc(db, "tasks", taskId));
+
+  await logActivity(
+    "deleted task",
+    taskTitle,
+    window.projectCtx
+  );
+
+  // remove from UI
+  if (card) card.remove();
+
+  modal.classList.add("hidden");
+});
+
+
+
+// ================= BACK NAV =================
+document.getElementById("backToProjects")?.addEventListener("click", (e) => {
+  e.currentTarget.style.transform = "scale(0.95)";
+  // 🔥 CLEAR PROJECT CONTEXT
+  localStorage.removeItem("activeProjectId");
+
+  setTimeout(() => {
+    window.location.href = "./team.html";
+  }, 100);
+});
+
+// ================= COPY =================
+document.getElementById("copyCodeBtn")?.addEventListener("click", () => {
+  const code = document.getElementById("projectCode").textContent;
+  navigator.clipboard.writeText(code);
+});
+
+// ================= INLINE FORM =================
+const assignTaskBtn = document.getElementById("assignTaskBtn");
+
+function showTaskInlineForm(ctx) {
+  const taskList = document.getElementById("taskList");
+
+  const members = [...new Set(ctx.membersList || [])];
+
+  if (!members.includes(ctx.projectData.owner)) {
+    members.unshift(ctx.projectData.owner);
+  }
+
+  const options = members
+    .map((email) => {
+      const name = ctx.userMap?.[email] || email.split("@")[0];
+
+      return `<option value="${email}">${name}</option>`;
+    })
+    .join("");
+
+  taskList.innerHTML = `
+  <div class="task-form-card">
+
+    <div class="form-group">
+      <input id="inlineTaskTitle" class="task-input" placeholder="Task title" />
+    </div>
+
+    <div class="form-group">
+      <textarea id="inlineTaskDesc" class="task-textarea" placeholder="Description..."></textarea>
+    </div>
+
+    <div class="task-form-row">
+      <div class="form-group">
+        <label>Assign</label>
+        <select id="inlineTaskAssignee" class="task-select">
+          <option value="">Assign to...</option>
+          ${options}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Priority</label>
+        <select id="inlineTaskPriority" class="task-select">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="task-form-row">
+      <div class="form-group">
+        <label>Status</label>
+        <select id="inlineTaskStatus" class="task-select">
+          <option value="todo">To Do</option>
+          <option value="in progress">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Due Date</label>
+        <input id="inlineTaskDue" type="date" class="task-date" />
+      </div>
+    </div>
+
+    <div class="task-form-actions">
+      <button id="cancelTask" type="button" class="btn-cancel">Cancel</button>
+      <button id="saveTask" type="button" class="btn-create">Create</button>
+    </div>
+
+  </div>
+`;
+}
+
+assignTaskBtn?.addEventListener("click", () => {
+  showTaskInlineForm(window.currentCtx); // or store ctx globally
+});
+
+// ================= CREATE TASK =================
+document.addEventListener("click", async (e) => {
+  if (e.target.id === "saveTask") {
+    const title = document.getElementById("inlineTaskTitle").value.trim();
+    const desc = document.getElementById("inlineTaskDesc").value.trim();
+    const priority = document.getElementById("inlineTaskPriority").value;
+    const dueDate = document.getElementById("inlineTaskDue").value;
+    const assignee = document.getElementById("inlineTaskAssignee").value;
+
+    if (!title) return alert("Task title required");
+    if (!desc) return alert("Task description required");
+
+    await createTask({
+      title,
+      desc,
+      priority,
+      dueDate,
+      status: "todo",
+      assignee: assignee,
+      projectId,
+    });
+
+    loadProject();
+  }
+
+  if (e.target.id === "cancelTask") {
+    const taskList = document.getElementById("taskList");
+    if (taskList) {
+      taskList.innerHTML = "";
+    }
+    
+    // Restore the tasks from cache
+    if (window.currentCtx && window.currentCtx.tasks) {
+      window.currentCtx.tasks.forEach(task => renderTaskCard(task, window.currentCtx));
+    }
+  }
+});
+
+// ================= TASK COUNT IMPLEMENTATION =================
+
+function getMemberTaskCounts(tasks) {
+  const counts = {};
+
+  tasks.forEach((task) => {
+    const member = task.assignee;
+
+    if (!member) return;
+
+    if (!counts[member]) {
+      counts[member] = 0;
+    }
+
+    counts[member] += 1;
+  });
+
+  return counts;
+}
+
+// ================= TASK COUNT + USERMAP IMPLEMENTATION =================
+
+function getMemberTaskDisplayCounts(tasks, userMap) {
+  const counts = {};
+
+  tasks.forEach((task) => {
+    const email = task.assignee;
+
+    if (!email) return;
+
+    if (!counts[email]) {
+      counts[email] = 0;
+    }
+
+    counts[email] += 1;
+  });
+
+  return Object.keys(counts).map((email) => ({
+    email,
+    name: userMap?.[email] || email.split("@")[0],
+    count: counts[email],
+  }));
+}
+
+// ================= RENDER TASK COUNT PER MEMBER =================
+
+function renderMemberStats(stats) {
+  const container = document.getElementById("memberStatsContainer");
+
+  container.innerHTML = stats.map(member => `
+    <div class="member-stat-card">
+      <div class="member-name">${member.name}</div>
+      <div class="member-count">${member.count} tasks</div>
+    </div>
+  `).join("");
+}
+
+// ================= ACTIVITY =================
+document.getElementById("activityBtn")?.addEventListener("click", () => {
+  window.location.href = "./activity.html";
+});
+
+
+
+delete project confirmation    
+
+import { db } from "./firebase.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  collection,
+  query,
+  where,
+  onSnapshot,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { logActivity } from "./activity-engine.js";
+import { loadProjectContext } from "./project-context.js";
+import { createTask } from "./task-engine.js";
+
+import { animateCount } from "./anime.js";
+
+const projectId = localStorage.getItem("activeProjectId");
+// ✅ SAFER EXIT
+if (!projectId) {
+  alert("No project selected");
+  window.location.href = "./team.html";
+  throw new Error("Missing projectId");
+}
+
+// ================= AUTH =================
+const auth = getAuth();
+
+document.addEventListener("DOMContentLoaded", () => {
+  onAuthStateChanged(auth, async (user) => {
+    const topbarUser = document.getElementById("navUsername");
+
+    if (user && topbarUser) {
+      const username = user.email.split("@")[0];
+      topbarUser.textContent = username.toUpperCase();
+
+      const userRef = doc(db, "users", user.uid);
+      const snap = await getDoc(userRef);
+
+      if (!snap.exists()) {
+        await setDoc(userRef, {
+          email: user.email,
+          username: username,
+          createdAt: new Date(),
+        });
+      }
+    }
+
+    if (user) {
+      loadProject(user);
+    } else {
+      alert("You are not logged in");
+      window.location.href = "./login.html";
+    }
+  });
+});
+
+// EXIT AND DELETE ACTIONS
+
+
+// ================= PROJECT ACTION VISIBILITY =================
+function setupProjectActions(projectData, currentUserEmail) {
+  const deleteBtn = document.getElementById("btnDeleteProject");
+  const exitBtn = document.getElementById("btnExitProject");
+
+  if (!deleteBtn || !exitBtn) return;
+
+  // 🔐 Always reset first (prevents role-switch bugs)
+  deleteBtn.classList.add("hidden");
+  exitBtn.classList.add("hidden");
+
+  // 🔐 Get members from your REAL source of truth
+  const membersList = window.currentCtx?.membersList || [];
+
+  const isOwner = projectData.owner === currentUserEmail;
+  const isMember = membersList.includes(currentUserEmail);
+
+  // 🗑️ Admin (Owner)
+  if (isOwner) {
+    deleteBtn.classList.remove("hidden");
+    return; // prevent showing both
+  }
+
+  // 🚪 Member (but not owner)
+  if (isMember) {
+    exitBtn.classList.remove("hidden");
+  }
+}
+
+
+// MEMBER RENDERING
+
+
+function renderMembers(members, ctx, countMap) {
+  const membersList = document.getElementById("membersList");
+  membersList.innerHTML = "";
+
+  members.forEach((memberEmail) => {
+    const isAdmin = memberEmail === ctx.projectData.owner;
+
+    const username =
+      ctx.userMap?.[memberEmail] || memberEmail.split("@")[0];
+
+    const div = document.createElement("div");
+    div.className = "member-item";
+
+    div.innerHTML = `
+      <div class="member-left">
+        <span class="member-name">
+          ${username}
+          ${isAdmin ? `<span class="admin-tag">(Admin)</span>` : ""}
+        </span>
+      </div>
+
+      <div class="member-right">
+        <span class="member-tasks">0 tasks</span>
+      </div>
+    `;
+
+    membersList.appendChild(div);
+
+    // ✅ SAFE ANIMATION LAYER (no core logic touched)
+    const span = div.querySelector(".member-tasks");
+    const target = countMap[memberEmail] || 0;
+
+    span.dataset.value = "0";
+    span.textContent = "0 tasks";
+
+    requestAnimationFrame(() => {
+      animateCount(span, target);
+    });
+  });
+}
+
+// ================= LOAD PROJECT =================
+async function loadProject() {
+  try {
+    const ctx = await loadProjectContext(projectId);
+
+    window.currentCtx = ctx;
+
+    ctx.currentUserEmail = auth.currentUser?.email || null;
+
+    const data = ctx.projectData;
+
+    console.log("OWNER:", data.owner);
+console.log("USER:", ctx.currentUserEmail);
+    // set up project actions
+    setupProjectActions(data, ctx.currentUserEmail);
+
+    // 🔥 get selected project
+    localStorage.setItem("activeProjectId", projectId);
+
+    // PROJECT CONTEXT FOR LOGACTIVITY
+
+    const projectCtx = {
+      projectId: projectId,
+      projectName: data.name
+    };
+
+    // make it globally accessible
+    window.projectCtx = projectCtx;
+
+    const assignTaskBtn = document.getElementById("assignTaskBtn");
+
+    if (assignTaskBtn) {
+      if (!ctx.isOwner) {
+        assignTaskBtn.disabled = true;
+        assignTaskBtn.classList.add("disabled-btn");
+        assignTaskBtn.title = "Only admins can assign tasks";
+      }
+    }
+
+
+    // ================= OWNER =================
+    const ownerEl = document.getElementById("projectOwner");
+    if (ownerEl) {
+      const ownerEmail = data.owner;
+      const ownerName = ctx.userMap?.[ownerEmail] || ownerEmail.split("@")[0];
+
+      ownerEl.textContent = ownerName;
+    }
+
+    // ================= DETAILS =================
+    document.getElementById("projectDesc").textContent =
+      data.description || "No description provided";
+
+    document.getElementById("projectCode").textContent =
+      data.inviteCode || "N/A";
+
+    const dateEl = document.getElementById("projectDate");
+    if (dateEl && data.createdAt) {
+      const date = data.createdAt.toDate
+        ? data.createdAt.toDate()
+        : new Date(data.createdAt);
+
+      dateEl.textContent = date.toLocaleDateString();
+    }
+
+    // ================= ROLE BADGE =================
+    const badgeEl = document.getElementById("projectRoleBadge");
+    if (badgeEl) {
+      if (ctx.isOwner) {
+        badgeEl.className = "role-badge admin";
+        badgeEl.innerHTML = `
+          <img src="../Assets/icons/icons8-shield-48.png" />
+          <span>Admin</span>
+        `;
+      } else if (ctx.isMember) {
+        badgeEl.className = "role-badge member";
+        badgeEl.innerHTML = `
+          <img src="../Assets/icons/icons8-member-48.png" />
+          <span>Member</span>
+        `;
+      } else {
+        badgeEl.style.display = "none";
+      }
+    }
+
+    // ================= TITLE =================
+    document.getElementById("projectTitle").textContent = data.name;
+
+    // ================= MEMBERS =================
+    const membersList = document.getElementById("membersList");
+    const membersCountEl = document.getElementById("memberCount");
+
+    membersList.innerHTML = "";
+
+    const rawMembers = ctx.membersList || [];
+    const members = [...new Set(rawMembers)];
+
+    if (!members.includes(data.owner)) {
+      members.unshift(data.owner);
+    }
+
+    if (membersCountEl) {
+      const target = members.length;
+
+      const current = parseInt(membersCountEl.dataset.value || "0");
+
+      // if no change, just ensure correct display
+      if (current === target) {
+        membersCountEl.textContent = `(${target})`;
+        return;
+      }
+
+      let start = current;
+
+      const duration = 400;
+      const stepTime = 20;
+      const steps = duration / stepTime;
+      const increment = (target - current) / steps;
+
+      const interval = setInterval(() => {
+        start += increment;
+
+        if ((increment > 0 && start >= target) || (increment < 0 && start <= target)) {
+          start = target;
+          clearInterval(interval);
+        }
+
+        membersCountEl.textContent = `(${Math.round(start)})`;
+      }, stepTime);
+
+      membersCountEl.dataset.value = target;
+    }
+
+
+    // ================= TASKS (REALTIME) =================
+    const taskList = document.getElementById("taskList");
+
+    const q = query(
+      collection(db, "tasks"),
+      where("projectId", "==", projectId)
+    );
+
+    onSnapshot(q, (snapshot) => {
+
+      taskList.innerHTML = "";
+
+      const tasks = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // 🔥 CACHE TASKS FOR CANCEL BUTTON
+      ctx.tasks = tasks;
+
+
+      const memberStats = getMemberTaskDisplayCounts(
+        tasks,
+        ctx.userMap
+      );
+
+      const countMap = {};
+
+      memberStats.forEach(member => {
+        countMap[member.email] = member.count;
+      });
+
+
+      renderMembers(members, ctx, countMap);
+
+      const taskCountEl = document.getElementById("taskCount");
+
+      if (taskCountEl) {
+        const current = parseInt(taskCountEl.dataset.value || "0");
+
+        let start = current;
+        const target = tasks.length;
+
+        const duration = 400;
+        const stepTime = 20;
+        const steps = duration / stepTime;
+        const increment = (target - current) / steps;
+
+        const interval = setInterval(() => {
+          start += increment;
+
+          if ((increment > 0 && start >= target) || (increment < 0 && start <= target)) {
+            start = target;
+            clearInterval(interval);
+          }
+
+          taskCountEl.textContent = `(${Math.round(start)})`;
+        }, stepTime);
+
+        taskCountEl.dataset.value = target;
+      }
+      tasks.forEach((task) => renderTaskCard(task, ctx));
+
+    });
+
+  } catch (err) {
+    console.error("PROJECT LOAD ERROR:", err);
+  }
+}
+
+// ================= TASK CARD =================
+function renderTaskCard(task, ctx) {
+  const taskList = document.getElementById("taskList");
+
+  // ONLY ASSIGNED MEMBERS CAN EDIT TASKS
+
+  const canEdit =
+    ctx.isOwner ||
+    task.assignee === ctx.currentUserEmail;
+
+  const username =
+    ctx.userMap?.[task.assignee] ||
+    task.assignee?.split("@")[0] ||
+    "Unassigned";
+
+  const statusClass = (task.status || "todo").replace(" ", "-");
+
+  const div = document.createElement("div");
+  div.className = `task-card ${statusClass}`; // 🔥 KEY FIX
+  div.dataset.id = task.id;
+  div.dataset.assignee = task.assignee || "";
+
+  div.innerHTML = `
+    <div class="task-card-top" style="justify-content: space-between; align-items: flex-start; display: flex;">
+      <div class="tag-actions" style="display: flex; gap: 8px;">
+        <span class="priority ${task.priority}">
+          ${task.priority}
+        </span>
+        <span class="status-badge ${statusClass}">
+          ${task.status || "todo"}
+        </span>
+      </div>
+
+      ${canEdit ? `
+      <div class="task-actions" style="position: relative;">
+        <button class="menu-btn">⋮</button>
+        <div class="task-menu hidden">
+          <div class="menu-items" data-status="todo">To Do</div>
+          <div class="menu-items" data-status="in progress">In Progress</div>
+          <div class="menu-items" data-status="done">Done</div>
+          ${ctx.isOwner ? '<div class=" menu-delete">Delete</div>' : ""}
+        </div>
+      </div>
+      ` : ""}
+    </div>
+
+    <div class="task-card-middle" style="margin-top: 12px; margin-bottom: 12px;">
+      <h4 class="task-title">${task.title}</h4>
+      <p class="task-desc">${task.desc || ""}</p>
+    </div>
+
+    <div class="task-card-bottom">
+      <span>Assigned to <strong>${username}</strong></span>
+      <span>${task.dueDate ? "Due " + task.dueDate : ""}</span>
+    </div>
+  `;
+
+  taskList.appendChild(div);
+}
+
+// ================= TOGGLE INTERACTION =================
+
+import { updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// TOGGLE MENU
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("menu-btn")) {
+    const menu = e.target.nextElementSibling;
+    menu.classList.toggle("hidden");
+  } else {
+    document.querySelectorAll(".task-menu").forEach((menu) => {
+      menu.classList.add("hidden");
+    });
+  }
+});
+
+// STATUS UPDATE
+document.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("menu-items")) {
+
+    // STATUS UPDATE PERMISSIONS
+
+    const card = e.target.closest(".task-card");
+
+    const newStatus = e.target.dataset.status;
+
+    console.log("clicked element:", e.target);
+    console.log("status:", newStatus);
+
+    if (!newStatus) {
+      console.warn("Invalid status click:", e.target);
+      return;
+    }
+
+    const taskId = card.dataset.id;
+
+    const ctx = window.currentCtx;
+    const isOwner = ctx?.isOwner;
+
+    // get assignee from UI (temporary method)
+    const taskAssignee = card.dataset.assignee;
+
+    // 🔐 permission check
+    const canEdit = isOwner || taskAssignee;
+
+    if (!canEdit) {
+      console.warn("Blocked unauthorized status update");
+      return;
+    }
+
+    // 🔥 UI UPDATE (instant feedback)
+    card.classList.remove("todo", "in-progress", "done");
+    card.classList.add((newStatus || "").replace(" ", "-"));
+
+    // 🔥 FIRESTORE UPDATE
+    await updateDoc(doc(db, "tasks", taskId), {
+      status: newStatus,
+    });
+
+    await logActivity(
+      `moved task to ${newStatus}`,
+      card.querySelector(".task-title")?.textContent || "Untitled",
+      window.projectCtx
+    );
+  }
+
+  if (e.target.classList.contains("menu-delete")) {
+    const card = e.target.closest(".task-card");
+    const taskId = card.dataset.id;
+
+    const ctx = window.currentCtx;
+
+    // 🔐 Admin check
+    if (!ctx?.isOwner) {
+      console.warn("Unauthorized delete attempt");
+      return;
+    }
+
+    const modal = document.getElementById("deleteModal");
+    const confirmBtn = document.getElementById("confirmDelete");
+    const cancelBtn = document.getElementById("cancelDelete");
+
+    // show modal
+    modal.classList.remove("hidden");
+
+    // store current task temporarily
+    modal.dataset.taskId = taskId;
+    modal.dataset.cardId = card.dataset.id;
+  }
+
+});
+
+
+const modal = document.getElementById("deleteModal");
+const confirmBtn = document.getElementById("confirmDelete");
+const cancelBtn = document.getElementById("cancelDelete");
+
+// ✅ Cancel
+cancelBtn.addEventListener("click", () => {
+  modal.classList.add("hidden");
+});
+
+// ✅ Confirm delete
+confirmBtn.addEventListener("click", async () => {
+  const taskId = modal.dataset.taskId;
+
+  if (!taskId) return;
+
+  const card = document.querySelector(
+    `.task-card[data-id="${taskId}"]`
+  );
+
+  const taskTitle =
+    card?.querySelector(".task-title")?.textContent || "Untitled";
+
+  // delete from Firestore
+  await deleteDoc(doc(db, "tasks", taskId));
+
+  await logActivity(
+    "deleted task",
+    taskTitle,
+    window.projectCtx
+  );
+
+  // remove from UI
+  if (card) card.remove();
+
+  modal.classList.add("hidden");
+});
+
+               // PROJECT DELETE UPDATE
+
+                       const projectModal = document.getElementById("projectDeleteModal");
+const confirmProjectBtn = document.getElementById("confirmProjectDelete");
+const cancelProjectBtn = document.getElementById("cancelProjectDelete");
+
+// ✅ Cancel project delete
+cancelProjectBtn?.addEventListener("click", () => {
+  projectModal.classList.add("hidden");
+});
+
+// ✅ Confirm project delete
+confirmProjectBtn?.addEventListener("click", async () => {
+  const projectId = localStorage.getItem("activeProjectId");
+  const ctx = window.currentCtx;
+
+  if (!projectId || !ctx?.isOwner) return;
+
+  const projectRef = doc(db, "projects", projectId);
+
+  await deleteDoc(projectRef);
+
+  await logActivity(
+    "deleted project",
+    ctx.projectData?.name || "Project",
+    window.projectCtx
+  );
+
+  projectModal.classList.add("hidden");
+
+  // redirect after delete
+  window.location.href = "./team.html";
+});
+
+
+                // PROJECT DELETE HOOK
+
+       document.getElementById("btnDeleteProject")?.addEventListener("click", () => {
+  const modal = document.getElementById("projectDeleteModal");
+
+  if (!modal) return;
+
+  modal.classList.remove("hidden");
+});
+
+// ================= BACK NAV =================
+document.getElementById("backToProjects")?.addEventListener("click", (e) => {
+  e.currentTarget.style.transform = "scale(0.95)";
+  // 🔥 CLEAR PROJECT CONTEXT
+  localStorage.removeItem("activeProjectId");
+
+  setTimeout(() => {
+    window.location.href = "./team.html";
+  }, 100);
+});
+
+// ================= COPY =================
+document.getElementById("copyCodeBtn")?.addEventListener("click", () => {
+  const code = document.getElementById("projectCode").textContent;
+  navigator.clipboard.writeText(code);
+});
+
+// ================= INLINE FORM =================
+const assignTaskBtn = document.getElementById("assignTaskBtn");
+
+function showTaskInlineForm(ctx) {
+  const taskList = document.getElementById("taskList");
+
+  const members = [...new Set(ctx.membersList || [])];
+
+  if (!members.includes(ctx.projectData.owner)) {
+    members.unshift(ctx.projectData.owner);
+  }
+
+  const options = members
+    .map((email) => {
+      const name = ctx.userMap?.[email] || email.split("@")[0];
+
+      return `<option value="${email}">${name}</option>`;
+    })
+    .join("");
+
+  taskList.innerHTML = `
+  <div class="task-form-card">
+
+    <div class="form-group">
+      <input id="inlineTaskTitle" class="task-input" placeholder="Task title" />
+    </div>
+
+    <div class="form-group">
+      <textarea id="inlineTaskDesc" class="task-textarea" placeholder="Description..."></textarea>
+    </div>
+
+    <div class="task-form-row">
+      <div class="form-group">
+        <label>Assign</label>
+        <select id="inlineTaskAssignee" class="task-select">
+          <option value="">Assign to...</option>
+          ${options}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Priority</label>
+        <select id="inlineTaskPriority" class="task-select">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="task-form-row">
+      <div class="form-group">
+        <label>Status</label>
+        <select id="inlineTaskStatus" class="task-select">
+          <option value="todo">To Do</option>
+          <option value="in progress">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Due Date</label>
+        <input id="inlineTaskDue" type="date" class="task-date" />
+      </div>
+    </div>
+
+    <div class="task-form-actions">
+      <button id="cancelTask" type="button" class="btn-cancel">Cancel</button>
+      <button id="saveTask" type="button" class="btn-create">Create</button>
+    </div>
+
+  </div>
+`;
+}
+
+assignTaskBtn?.addEventListener("click", () => {
+  showTaskInlineForm(window.currentCtx); // or store ctx globally
+});
+
+// ================= CREATE TASK =================
+document.addEventListener("click", async (e) => {
+  if (e.target.id === "saveTask") {
+    const title = document.getElementById("inlineTaskTitle").value.trim();
+    const desc = document.getElementById("inlineTaskDesc").value.trim();
+    const priority = document.getElementById("inlineTaskPriority").value;
+    const dueDate = document.getElementById("inlineTaskDue").value;
+    const assignee = document.getElementById("inlineTaskAssignee").value;
+
+    if (!title) return alert("Task title required");
+    if (!desc) return alert("Task description required");
+
+    await createTask({
+      title,
+      desc,
+      priority,
+      dueDate,
+      status: "todo",
+      assignee: assignee,
+      projectId,
+    });
+
+    loadProject();
+  }
+
+  if (e.target.id === "cancelTask") {
+    const taskList = document.getElementById("taskList");
+    if (taskList) {
+      taskList.innerHTML = "";
+    }
+    
+    // Restore the tasks from cache
+    if (window.currentCtx && window.currentCtx.tasks) {
+      window.currentCtx.tasks.forEach(task => renderTaskCard(task, window.currentCtx));
+    }
+  }
+});
+
+// ================= TASK COUNT IMPLEMENTATION =================
+
+function getMemberTaskCounts(tasks) {
+  const counts = {};
+
+  tasks.forEach((task) => {
+    const member = task.assignee;
+
+    if (!member) return;
+
+    if (!counts[member]) {
+      counts[member] = 0;
+    }
+
+    counts[member] += 1;
+  });
+
+  return counts;
+}
+
+// ================= TASK COUNT + USERMAP IMPLEMENTATION =================
+
+function getMemberTaskDisplayCounts(tasks, userMap) {
+  const counts = {};
+
+  tasks.forEach((task) => {
+    const email = task.assignee;
+
+    if (!email) return;
+
+    if (!counts[email]) {
+      counts[email] = 0;
+    }
+
+    counts[email] += 1;
+  });
+
+  return Object.keys(counts).map((email) => ({
+    email,
+    name: userMap?.[email] || email.split("@")[0],
+    count: counts[email],
+  }));
+}
+
+// ================= RENDER TASK COUNT PER MEMBER =================
+
+function renderMemberStats(stats) {
+  const container = document.getElementById("memberStatsContainer");
+
+  container.innerHTML = stats.map(member => `
+    <div class="member-stat-card">
+      <div class="member-name">${member.name}</div>
+      <div class="member-count">${member.count} tasks</div>
+    </div>
+  `).join("");
+}
+
+// ================= ACTIVITY =================
+document.getElementById("activityBtn")?.addEventListener("click", () => {
+  window.location.href = "./activity.html";
+});
+
+
+
+Complete Project task fix on task.js  
+
+import { db } from "./firebase.js";
+import { createTask } from "./task-engine.js";
+import {
+  collection,
+  onSnapshot,
+  doc,
+  getDoc,
+  deleteDoc,
+  updateDoc,
+  query,
+  orderBy,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { logActivity } from "./activity-engine.js";
+
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+let currentUser = null;
+
+// USER PROFILE
+async function getUsername(user) {
+  if (!user) return "User";
+
+  const userRef = doc(db, "users", user.uid);
+  const snap = await getDoc(userRef);
+
+  if (snap.exists()) {
+    return snap.data().username;
+  }
+
+  // fallback (only if profile somehow missing)
+  return user.email.split("@")[0];
+}
+
+let editingTaskId = null;
+
+const container = document.getElementById("tasksList");
+
+const tasksRef = collection(db, "tasks");
+
+// TASKS STATS
+
+function updateTotalTasks(tasks) {
+  // ✅ only count valid tasks
+  const validTasks = tasks.filter(
+    (task) =>
+      task &&
+      task.status &&
+      ["todo", "in progress", "done"].includes(task.status)
+  );
+
+  const total = validTasks.length;
+
+  const totalEl = document.getElementById("totalTasks");
+  if (totalEl) animateNumber(totalEl, total);
+}
+
+// 🔥 REALTIME LISTENER (Moved to onAuthStateChanged)
+let allTasks = [];
+
+//  ANIMATION
+
+function animateNumber(element, target, suffix = "") {
+  if (!element) return;
+
+  const start = parseInt(element.textContent) || 0;
+  const duration = 600;
+  const steps = 30;
+  const increment = (target - start) / steps;
+
+  let current = start;
+  let frame = 0;
+
+  const interval = setInterval(() => {
+    frame++;
+
+    current += increment;
+
+    element.textContent = Math.round(current) + suffix;
+
+    if (frame >= steps) {
+      element.textContent = target + suffix;
+      clearInterval(interval);
+    }
+  }, duration / steps);
+}
+
+// 🎯 RENDER FUNCTION
+
+function renderTasks(tasks, filterStatus = "all") {
+  // 🔥 GROUP TASKS BY STATUS
+  const grouped = {
+    todo: [],
+    "in progress": [],
+    done: [],
+  };
+
+  tasks.forEach((task) => {
+    const status = task.status || "todo";
+    if (grouped[status]) {
+      grouped[status].push(task);
+    }
+  });
+
+  // 🎯 RENDER COLUMNS
+
+  let html = `<div class="kanban-board">`;
+
+  // 🔥 ALWAYS WORK WITH ACTUAL TASKS (NOT PRE-GROUPED EMPTY STRUCTURE)
+  const hasSearch = currentSearch.length > 0;
+  const hasFilter = filterStatus !== "all";
+
+  // 🎯 IF SEARCH OR FILTER IS ACTIVE → FLAT MODE (NO EMPTY COLUMNS)
+  if (hasSearch || hasFilter) {
+    const visibleTasks = tasks;
+
+    const renderFlatColumn = (title, statusKey) => {
+      const filtered = visibleTasks.filter(
+        (t) => (t.status || "todo") === statusKey
+      );
+
+      if (filtered.length === 0) return "";
+
+      return `
+  <div class="kanban-column ${statusKey.replace(" ", " -")}">
+    <h3 class="column-title">${title}</h3>
+
+    <div class="column-tasks">
+      ${filtered
+        .map(
+          (task) => `
+      <div class="task-card ${task.status}">
+        <div class="task-card-inner">
+
+          <div class="task-top">
+
+            <span class="task-priority ${task.priority}">
+              ${task.priority}
+            </span>
+
+            <div class="task-top-right">
+              <span class="task-status">${task.status}</span>
+
+              <div class="task-menu">
+                <button class="menu-btn">⋮</button>
+
+                <div class="menu-dropdown">
+                  <button onclick="openEditTask('${task.id}')">Edit</button>
+                  <button onclick="deleteTask('${
+                    task.id
+                  }', \`${task.title.replace(/`/g, "")}\`)">Delete</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <h4 class="task-title">${task.title}</h4>
+
+          ${task.desc ? `<p class="task-desc">${task.desc}</p>` : ""}
+
+        </div>
+      </div>
+      `
+        )
+        .join("")}
+    </div>
+  </div>
+  `;
+    };
+
+    html += renderFlatColumn("Todo", "todo") || "";
+    html += renderFlatColumn("In Progress", "in progress") || "";
+    html += renderFlatColumn("Done", "done") || "";
+  } else {
+    // 🎯 DEFAULT KANBAN MODE
+    html += `
+  ${renderColumn("Todo", grouped["todo"], "todo")}
+
+  <div class="kanban-right">
+    ${renderColumn("In Progress", grouped["in progress"], "in-progress")}
+    ${renderColumn("Done", grouped["done"], "done")}
+  </div>
+  `;
+  }
+
+  html += `
+</div>`;
+  container.innerHTML = html;
+}
+
+function renderColumn(title, tasks, status) {
+  return `
+<div class="kanban-column ${status.replace(" ", " -")}">
+
+  <h3 class="column-title">${title}</h3>
+
+  <div class="column-tasks">
+    ${
+      tasks.length === 0
+        ? `<div class="empty-column-card">
+        <h4>No ${title.toLowerCase()} tasks</h4>
+        <p>Tasks in this section will appear here when created or moved.</p>
+      </div>`
+        : tasks
+            .map(
+              (task) => `
+    <div class="task-card ${task.status} priority-${task.priority}">
+
+      <div class="task-top">
+
+        <span class="task-priority ${task.priority}">
+          ${task.priority}
+        </span>
+
+        <div class="task-top-right">
+          <span class="task-status">${task.status}</span>
+
+          <div class="task-menu">
+            <button class="menu-btn">⋮</button>
+
+            <div class="menu-dropdown">
+              <button onclick="openEditTask('${task.id}')">Edit</button>
+              <button onclick="deleteTask('${task.id}', \`${task.title.replace(
+                /`/g,
+                ""
+              )}\`)">Delete</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <h4 class="task-title">${task.title}</h4>
+
+      ${task.desc ? `<p class="task-desc">${task.desc}</p>` : ""}
+
+      <div class="task-bottom">
+        <span class="task-date">
+          ${
+            task.createdAt
+              ? new Date(task.createdAt.seconds * 1000).toLocaleDateString()
+              : ""
+          }
+        </span>
+      </div>
+
+      <div class="task-actions">
+        <button onclick="updateStatus('${
+          task.id
+        }', 'todo', \`${task.title.replace(/`/g, "")}\`)"> Todo</button>
+        <button onclick="updateStatus('${
+          task.id
+        }', 'in progress', \`${task.title.replace(/`/g, "")}\`)">Start</button>
+        <button onclick="updateStatus('${
+          task.id
+        }', 'done', \`${task.title.replace(/`/g, "")}\`)">Done</button>
+      </div>
+    </div>
+
+  </div>
+  `
+            )
+            .join("")
+    }
+</div>
+
+</div>
+`;
+}
+
+// DELETE FUNCTION
+
+window.deleteTask = async (id, title) => {
+  await deleteDoc(doc(db, "tasks", id));
+
+  await logActivity("Task Deleted", title);
+};
+
+// UPDATE STATUS
+
+window.updateStatus = async (id, status, title) => {
+  await updateDoc(doc(db, "tasks", id), {
+    status,
+  });
+
+  await logActivity(`Updated (${status})`, title);
+};
+
+// EDIT TASK
+window.openEditTask = (id) => {
+  const task = allTasks.find((t) => t.id === id);
+  if (!task) return;
+
+  editingTaskId = id;
+
+  document.getElementById("taskTitle").value = task.title || "";
+  document.getElementById("taskDescription").value = task.desc || "";
+  document.getElementById("taskPriority").value = task.priority || "medium";
+  document.getElementById("taskDueDate").value = task.dueDate || "";
+  document.getElementById("taskStatus").value = task.status || "todo";
+
+  const modal = document.getElementById("modal");
+  if (modal) modal.style.display = "flex";
+};
+
+// 🔥 SEARCH & FILTER LISTENER
+
+let currentSearch = "";
+let currentFilterStatus = "all";
+
+window.updateTasksView = function () {
+  let filtered = allTasks;
+  if (currentSearch) {
+    filtered = filtered.filter((task) =>
+      task.title.toLowerCase().includes(currentSearch)
+    );
+  }
+  if (currentFilterStatus !== "all") {
+    filtered = filtered.filter(
+      (task) => task.status && task.status.toLowerCase() === currentFilterStatus
+    );
+  }
+  renderTasks(filtered, currentFilterStatus);
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("searchInput");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      currentSearch = searchInput.value.toLowerCase();
+      updateTasksView();
+    });
+  }
+
+  const filterSelect = document.getElementById("filterSelect");
+  if (filterSelect) {
+    filterSelect.addEventListener("change", (e) => {
+      if (e.target.value !== "default") {
+        currentFilterStatus = e.target.value;
+        updateTasksView();
+        filterSelect.value = "default";
+      }
+    });
+  }
+});
+
+// MENU SWITCH LOGIC
+
+const menuItems = document.querySelectorAll(".menu-item");
+
+menuItems.forEach((item) => {
+  item.addEventListener("click", () => {
+    // remove active from all
+    menuItems.forEach((i) => i.classList.remove("active"));
+
+    // add active to clicked
+    item.classList.add("active");
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const menuItems = document.querySelectorAll(".menu-item");
+
+  // detect current page
+  const path = window.location.pathname;
+
+  let currentPage = "";
+
+  if (path.includes("index.html") || path === "/") {
+    currentPage = "dashboard";
+  } else if (path.includes("tasks.html")) {
+    currentPage = "tasks";
+  } else if (path.includes("team")) {
+    currentPage = "team";
+  } else if (path.includes("activity")) {
+    currentPage = "activity";
+  }
+
+  // apply active class
+  menuItems.forEach((item) => {
+    item.classList.remove("active");
+
+    if (item.dataset.page === currentPage) {
+      item.classList.add("active");
+    }
+  });
+});
+
+// ================= MODAL & CREATE TASK =================
+const modal = document.getElementById("modal");
+const openBtn = document.getElementById("openModal");
+const cancelBtn = document.getElementById("cancelModal");
+
+if (openBtn)
+  openBtn.addEventListener("click", () => {
+    if (modal) modal.style.display = "flex";
+  });
+if (cancelBtn)
+  cancelBtn.addEventListener("click", () => {
+    if (modal) modal.style.display = "none";
+  });
+if (modal) {
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
+}
+
+const createBtn = document.getElementById("createTaskBtn");
+if (createBtn) {
+  createBtn.addEventListener("click", async () => {
+    try {
+      const title = document.getElementById("taskTitle").value.trim();
+      const desc = document.getElementById("taskDescription").value.trim();
+      const priority = document.getElementById("taskPriority").value;
+      const dueDate = document.getElementById("taskDueDate").value;
+      const status = document.getElementById("taskStatus").value;
+      const assignee = currentUser?.email;
+
+      if (!title) {
+        alert("Task title is required");
+        return;
+      }
+
+      // 🔥 EDIT MODE
+      if (editingTaskId) {
+        await updateDoc(doc(db, "tasks", editingTaskId), {
+          title,
+          desc,
+          priority,
+          dueDate,
+          status,
+          assignee,
+        });
+
+        await logActivity("Task Updated", title);
+
+        editingTaskId = null;
+      } else {
+        // 🔥 CREATE MODE
+        await createTask({
+          title,
+          desc,
+          priority,
+          dueDate,
+          status,
+          assignee,
+          projectId: null,
+        });
+      }
+
+      // reset form
+      document.getElementById("taskTitle").value = "";
+      document.getElementById("taskDescription").value = "";
+      document.getElementById("taskDueDate").value = "";
+
+      if (modal) modal.style.display = "none";
+    } catch (error) {
+      console.error(error);
+      alert("Task failed");
+    }
+  });
+}
+
+document.addEventListener("click", (e) => {
+  const menu = e.target.closest(".task-menu");
+
+  // close all first
+  document
+    .querySelectorAll(".task-menu")
+    .forEach((m) => m.classList.remove("active"));
+
+  if (menu) {
+    menu.classList.add("active");
+  }
+});
+
+const auth = getAuth();
+
+import { getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+async function loadUserProjects(userEmail) {
+  const projQ = query(collection(db, "projects"), orderBy("createdAt", "desc"));
+  const snap = await getDocs(projQ);
+  const projects = [];
+  snap.forEach((docSnap) => {
+    const project = docSnap.data();
+    const isOwner = project.owner === userEmail;
+    const isMember =
+      Array.isArray(project.members) && project.members.includes(userEmail);
+    if (isOwner || isMember) {
+      projects.push(docSnap.id);
+    }
+  });
+  return projects;
+}
+
+onAuthStateChanged(auth, async (user) => {
+  const topbarUser = document.querySelector(".topbar-user");
+  const welcomeHeader = document.querySelector(".welcome h1");
+
+  if (user) {
+    const userEmail = user.email;
+    currentUser = user;
+    const username = await getUsername(user);
+
+    if (topbarUser) {
+      topbarUser.textContent = username.toUpperCase();
+    }
+
+    if (welcomeHeader) {
+      welcomeHeader.textContent = `Welcome back, ${username}`;
+    }
+
+    // 🔥 SECURE TASK FETCHING
+    const userProjectIds = await loadUserProjects(userEmail);
+    const tasksRef = collection(db, "tasks");
+    const tasksQ = query(tasksRef, orderBy("createdAt", "desc"));
+
+    onSnapshot(tasksQ, (snapshot) => {
+      let tasks = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // 🔥 APPLY SECURITY FILTER
+                allTasks = tasks.filter(task => {
+
+  // 🚫 HARD RULE: any task with projectId is NOT personal
+  if (task.projectId) {
+    return false;
+  }
+
+  // ✅ only personal tasks remain
+  return task.assignee === userEmail;
+});
+
+      updateTotalTasks(allTasks);
+
+      if (typeof updateTasksView === "function") {
+        updateTasksView();
+      } else {
+        renderTasks(allTasks);
+      }
+    });
+  }
+});
+
+// ACTIVITY BUTTON CLICKER
+
+const activityBtn = document.getElementById("activityBtn");
+activityBtn.addEventListener("click", () => {
+  activityBtn.style.transform = "scale(0.95)";
+  setTimeout(() => {
+    window.location.href = "./activity.html";
+  }, 100);
+});
+
+
+latest updated
+
+import { db } from "./firebase.js";
+import { createTask } from "./task-engine.js";
+import {
+  collection,
+  onSnapshot,
+  doc,
+  getDoc,
+  deleteDoc,
+  updateDoc,
+  query,
+  orderBy,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { logActivity } from "./activity-engine.js";
+
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+let currentUser = null;
+
+// USER PROFILE
+async function getUsername(user) {
+  if (!user) return "User";
+
+  const userRef = doc(db, "users", user.uid);
+  const snap = await getDoc(userRef);
+
+  if (snap.exists()) {
+    return snap.data().username;
+  }
+
+  // fallback (only if profile somehow missing)
+  return user.email.split("@")[0];
+}
+
+let editingTaskId = null;
+
+const container = document.getElementById("tasksList");
+
+const tasksRef = collection(db, "tasks");
+
+// TASKS STATS
+
+function updateTotalTasks(tasks) {
+  // ✅ only count valid tasks
+  const validTasks = tasks.filter(
+    (task) =>
+      task &&
+      task.status &&
+      ["todo", "in progress", "done"].includes(task.status)
+  );
+
+  const total = validTasks.length;
+
+  const totalEl = document.getElementById("totalTasks");
+  if (totalEl) animateNumber(totalEl, total);
+}
+
+// 🔥 REALTIME LISTENER (Moved to onAuthStateChanged)
+let allTasks = [];
+
+//  ANIMATION
+
+function animateNumber(element, target, suffix = "") {
+  if (!element) return;
+
+  const start = parseInt(element.textContent) || 0;
+  const duration = 600;
+  const steps = 30;
+  const increment = (target - start) / steps;
+
+  let current = start;
+  let frame = 0;
+
+  const interval = setInterval(() => {
+    frame++;
+
+    current += increment;
+
+    element.textContent = Math.round(current) + suffix;
+
+    if (frame >= steps) {
+      element.textContent = target + suffix;
+      clearInterval(interval);
+    }
+  }, duration / steps);
+}
+
+// 🎯 RENDER FUNCTION
+
+function renderTasks(tasks, filterStatus = "all") {
+  // 🔥 GROUP TASKS BY STATUS
+  const grouped = {
+    todo: [],
+    "in progress": [],
+    done: [],
+  };
+
+  tasks.forEach((task) => {
+    const status = task.status || "todo";
+    if (grouped[status]) {
+      grouped[status].push(task);
+    }
+  });
+
+  // 🎯 RENDER COLUMNS
+
+  let html = `<div class="kanban-board">`;
+
+  // 🔥 ALWAYS WORK WITH ACTUAL TASKS (NOT PRE-GROUPED EMPTY STRUCTURE)
+  const hasSearch = currentSearch.length > 0;
+  const hasFilter = filterStatus !== "all";
+
+  // 🎯 IF SEARCH OR FILTER IS ACTIVE → FLAT MODE (NO EMPTY COLUMNS)
+  if (hasSearch || hasFilter) {
+    const visibleTasks = tasks;
+
+    const renderFlatColumn = (title, statusKey) => {
+      const filtered = visibleTasks.filter(
+        (t) => (t.status || "todo") === statusKey
+      );
+
+      if (filtered.length === 0) return "";
+
+      return `
+  <div class="kanban-column ${statusKey.replace(" ", " -")}">
+    <h3 class="column-title">${title}</h3>
+
+    <div class="column-tasks">
+      ${filtered
+        .map(
+          (task) => `
+      <div class="task-card ${task.status}">
+        <div class="task-card-inner">
+
+          <div class="task-top">
+
+            <span class="task-priority ${task.priority}">
+              ${task.priority}
+            </span>
+
+            <div class="task-top-right">
+              <span class="task-status">${task.status}</span>
+
+              <div class="task-menu">
+                <button class="menu-btn">⋮</button>
+
+                <div class="menu-dropdown">
+                  <button onclick="openEditTask('${task.id}')">Edit</button>
+                  <button onclick="deleteTask('${
+                    task.id
+                  }', \`${task.title.replace(/`/g, "")}\`)">Delete</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <h4 class="task-title">${task.title}</h4>
+
+          ${task.desc ? `<p class="task-desc">${task.desc}</p>` : ""}
+
+        </div>
+      </div>
+      `
+        )
+        .join("")}
+    </div>
+  </div>
+  `;
+    };
+
+    html += renderFlatColumn("Todo", "todo") || "";
+    html += renderFlatColumn("In Progress", "in progress") || "";
+    html += renderFlatColumn("Done", "done") || "";
+  } else {
+    // 🎯 DEFAULT KANBAN MODE
+    html += `
+  ${renderColumn("Todo", grouped["todo"], "todo")}
+
+  <div class="kanban-right">
+    ${renderColumn("In Progress", grouped["in progress"], "in-progress")}
+    ${renderColumn("Done", grouped["done"], "done")}
+  </div>
+  `;
+  }
+
+  html += `
+</div>`;
+  container.innerHTML = html;
+}
+
+function renderColumn(title, tasks, status) {
+  return `
+<div class="kanban-column ${status.replace(" ", " -")}">
+
+  <h3 class="column-title">${title}</h3>
+
+  <div class="column-tasks">
+    ${
+      tasks.length === 0
+        ? `<div class="empty-column-card">
+        <h4>No ${title.toLowerCase()} tasks</h4>
+        <p>Tasks in this section will appear here when created or moved.</p>
+      </div>`
+        : tasks
+            .map(
+              (task) => `
+    <div class="task-card ${task.status} priority-${task.priority}">
+
+      <div class="task-top">
+
+        <span class="task-priority ${task.priority}">
+          ${task.priority}
+        </span>
+
+        <div class="task-top-right">
+          <span class="task-status">${task.status}</span>
+
+          <div class="task-menu">
+            <button class="menu-btn">⋮</button>
+
+            <div class="menu-dropdown">
+              <button onclick="openEditTask('${task.id}')">Edit</button>
+              <button onclick="deleteTask('${task.id}', \`${task.title.replace(
+                /`/g,
+                ""
+              )}\`)">Delete</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <h4 class="task-title">${task.title}</h4>
+
+      ${task.desc ? `<p class="task-desc">${task.desc}</p>` : ""}
+
+      <div class="task-bottom">
+        <span class="task-date">
+          ${
+            task.createdAt
+              ? new Date(task.createdAt.seconds * 1000).toLocaleDateString()
+              : ""
+          }
+        </span>
+      </div>
+
+      <div class="task-actions">
+        <button onclick="updateStatus('${
+          task.id
+        }', 'todo', \`${task.title.replace(/`/g, "")}\`)"> Todo</button>
+        <button onclick="updateStatus('${
+          task.id
+        }', 'in progress', \`${task.title.replace(/`/g, "")}\`)">Start</button>
+        <button onclick="updateStatus('${
+          task.id
+        }', 'done', \`${task.title.replace(/`/g, "")}\`)">Done</button>
+      </div>
+    </div>
+
+  </div>
+  `
+            )
+            .join("")
+    }
+</div>
+
+</div>
+`;
+}
+
+// DELETE FUNCTION
+
+window.deleteTask = async (id, title) => {
+  await deleteDoc(doc(db, "tasks", id));
+
+  await logActivity("Task Deleted", title);
+};
+
+// UPDATE STATUS
+
+window.updateStatus = async (id, status, title) => {
+  await updateDoc(doc(db, "tasks", id), {
+    status,
+  });
+
+  await logActivity(`Updated (${status})`, title);
+};
+
+// EDIT TASK
+window.openEditTask = (id) => {
+  const task = allTasks.find((t) => t.id === id);
+  if (!task) return;
+
+  editingTaskId = id;
+
+  document.getElementById("taskTitle").value = task.title || "";
+  document.getElementById("taskDescription").value = task.desc || "";
+  document.getElementById("taskPriority").value = task.priority || "medium";
+  document.getElementById("taskDueDate").value = task.dueDate || "";
+  document.getElementById("taskStatus").value = task.status || "todo";
+
+  const modal = document.getElementById("modal");
+  if (modal) modal.style.display = "flex";
+};
+
+// 🔥 SEARCH & FILTER LISTENER
+
+let currentSearch = "";
+let currentFilterStatus = "all";
+
+window.updateTasksView = function () {
+  let filtered = allTasks;
+  if (currentSearch) {
+    filtered = filtered.filter((task) =>
+      task.title.toLowerCase().includes(currentSearch)
+    );
+  }
+  if (currentFilterStatus !== "all") {
+    filtered = filtered.filter(
+      (task) => task.status && task.status.toLowerCase() === currentFilterStatus
+    );
+  }
+  renderTasks(filtered, currentFilterStatus);
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("searchInput");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      currentSearch = searchInput.value.toLowerCase();
+      updateTasksView();
+    });
+  }
+
+  const filterSelect = document.getElementById("filterSelect");
+  if (filterSelect) {
+    filterSelect.addEventListener("change", (e) => {
+      if (e.target.value !== "default") {
+        currentFilterStatus = e.target.value;
+        updateTasksView();
+        filterSelect.value = "default";
+      }
+    });
+  }
+});
+
+// MENU SWITCH LOGIC
+
+const menuItems = document.querySelectorAll(".menu-item");
+
+menuItems.forEach((item) => {
+  item.addEventListener("click", () => {
+    // remove active from all
+    menuItems.forEach((i) => i.classList.remove("active"));
+
+    // add active to clicked
+    item.classList.add("active");
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const menuItems = document.querySelectorAll(".menu-item");
+
+  // detect current page
+  const path = window.location.pathname;
+
+  let currentPage = "";
+
+  if (path.includes("index.html") || path === "/") {
+    currentPage = "dashboard";
+  } else if (path.includes("tasks.html")) {
+    currentPage = "tasks";
+  } else if (path.includes("team")) {
+    currentPage = "team";
+  } else if (path.includes("activity")) {
+    currentPage = "activity";
+  }
+
+  // apply active class
+  menuItems.forEach((item) => {
+    item.classList.remove("active");
+
+    if (item.dataset.page === currentPage) {
+      item.classList.add("active");
+    }
+  });
+});
+
+// ================= MODAL & CREATE TASK =================
+const modal = document.getElementById("modal");
+const openBtn = document.getElementById("openModal");
+const cancelBtn = document.getElementById("cancelModal");
+
+if (openBtn)
+  openBtn.addEventListener("click", () => {
+    if (modal) modal.style.display = "flex";
+  });
+if (cancelBtn)
+  cancelBtn.addEventListener("click", () => {
+    if (modal) modal.style.display = "none";
+  });
+if (modal) {
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
+}
+
+const createBtn = document.getElementById("createTaskBtn");
+if (createBtn) {
+  createBtn.addEventListener("click", async () => {
+    try {
+      const title = document.getElementById("taskTitle").value.trim();
+      const desc = document.getElementById("taskDescription").value.trim();
+      const priority = document.getElementById("taskPriority").value;
+      const dueDate = document.getElementById("taskDueDate").value;
+      const status = document.getElementById("taskStatus").value;
+      const user = getAuth().currentUser;
+
+      if (!user) {
+       alert("User not ready yet");
+      return;
+     }
+
+const assignee = user.email;
+
+      if (!title) {
+        alert("Task title is required");
+        return;
+      }
+
+      // 🔥 EDIT MODE
+      if (editingTaskId) {
+        await updateDoc(doc(db, "tasks", editingTaskId), {
+          title,
+          desc,
+          priority,
+          dueDate,
+          status,
+          assignee,
+        });
+
+        await logActivity("Task Updated", title);
+
+        editingTaskId = null;
+       
+        } else {
+  // 🔥 CREATE MODE
+
+  const user = getAuth().currentUser;
+
+  if (!user) {
+    alert("User not ready yet");
+    return;
+  }
+
+  const assignee = user.email;
+
+  await createTask({
+    title,
+    desc,
+    priority,
+    dueDate,
+    status,
+
+    assignee: assignee,
+
+    // 🔥 HARD CLASSIFICATION (STEP 2 FIX)
+    isProjectTask: false,
+    projectId: null,
+  });
+}
+
+      // reset form
+      document.getElementById("taskTitle").value = "";
+      document.getElementById("taskDescription").value = "";
+      document.getElementById("taskDueDate").value = "";
+
+      if (modal) modal.style.display = "none";
+    } catch (error) {
+      console.error(error);
+      alert("Task failed");
+    }
+  });
+}
+
+document.addEventListener("click", (e) => {
+  const menu = e.target.closest(".task-menu");
+
+  // close all first
+  document
+    .querySelectorAll(".task-menu")
+    .forEach((m) => m.classList.remove("active"));
+
+  if (menu) {
+    menu.classList.add("active");
+  }
+});
+
+const auth = getAuth();
+
+import { getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+async function loadUserProjects(userEmail) {
+  const projQ = query(collection(db, "projects"), orderBy("createdAt", "desc"));
+  const snap = await getDocs(projQ);
+  const projects = [];
+  snap.forEach((docSnap) => {
+    const project = docSnap.data();
+    const isOwner = project.owner === userEmail;
+    const isMember =
+      Array.isArray(project.members) && project.members.includes(userEmail);
+    if (isOwner || isMember) {
+      projects.push(docSnap.id);
+    }
+  });
+  return projects;
+}
+
+onAuthStateChanged(auth, async (user) => {
+  const topbarUser = document.querySelector(".topbar-user");
+  const welcomeHeader = document.querySelector(".welcome h1");
+
+  if (user) {
+    const userEmail = user.email;
+    currentUser = user;
+    const username = await getUsername(user);
+
+    if (topbarUser) {
+      topbarUser.textContent = username.toUpperCase();
+    }
+
+    if (welcomeHeader) {
+      welcomeHeader.textContent = `Welcome back, ${username}`;
+    }
+
+    // 🔥 SECURE TASK FETCHING
+    const userProjectIds = await loadUserProjects(userEmail);
+    const tasksRef = collection(db, "tasks");
+    const tasksQ = query(tasksRef, orderBy("createdAt", "desc"));
+
+    onSnapshot(tasksQ, (snapshot) => {
+      let tasks = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+       
+      // 🔥 APPLY SECURITY FILTER
+                allTasks = tasks.filter(task => {
+
+  // 🚫 HARD RULE: any task with projectId is NOT personal
+  if (task.projectId) {
+    return false;
+  }
+
+  // ✅ only personal tasks remain
+  return task.assignee === userEmail;
+});
+
+      updateTotalTasks(allTasks);
+
+      if (typeof updateTasksView === "function") {
+        updateTasksView();
+      } else {
+        renderTasks(allTasks);
+      }
+    });
+  }
+});
+
+// ACTIVITY BUTTON CLICKER
+
+const activityBtn = document.getElementById("activityBtn");
+activityBtn.addEventListener("click", () => {
+  activityBtn.style.transform = "scale(0.95)";
+  setTimeout(() => {
+    window.location.href = "./activity.html";
+  }, 100);
+});
+
+
+
+project uiui.js 
+
+
+import { db } from "./firebase.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  collection,
+  query,
+  where,
+  onSnapshot,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { logActivity } from "./activity-engine.js";
+import { loadProjectContext } from "./project-context.js";
+import { createTask } from "./task-engine.js";
+
+import { animateCount } from "./anime.js";
+
+const projectId = localStorage.getItem("activeProjectId");
+// ✅ SAFER EXIT
+if (!projectId) {
+  alert("No project selected");
+  window.location.href = "./team.html";
+  throw new Error("Missing projectId");
+}
+
+// ================= AUTH =================
+const auth = getAuth();
+
+document.addEventListener("DOMContentLoaded", () => {
+  onAuthStateChanged(auth, async (user) => {
+    const topbarUser = document.getElementById("navUsername");
+
+    if (user && topbarUser) {
+      const username = user.email.split("@")[0];
+      topbarUser.textContent = username.toUpperCase();
+
+      const userRef = doc(db, "users", user.uid);
+      const snap = await getDoc(userRef);
+
+      if (!snap.exists()) {
+        await setDoc(userRef, {
+          email: user.email,
+          username: username,
+          createdAt: new Date(),
+        });
+      }
+    }
+
+    if (user) {
+      loadProject(user);
+    } else {
+      alert("You are not logged in");
+      window.location.href = "./login.html";
+    }
+  });
+});
+
+// EXIT AND DELETE ACTIONS
+
+
+// ================= PROJECT ACTION VISIBILITY =================
+function setupProjectActions(projectData, currentUserEmail) {
+  const deleteBtn = document.getElementById("btnDeleteProject");
+  const exitBtn = document.getElementById("btnExitProject");
+
+  if (!deleteBtn || !exitBtn) return;
+
+  // 🔐 Always reset first (prevents role-switch bugs)
+  deleteBtn.classList.add("hidden");
+  exitBtn.classList.add("hidden");
+
+  // 🔐 Get members from your REAL source of truth
+  const membersList = window.currentCtx?.membersList || [];
+
+  const isOwner = projectData.owner === currentUserEmail;
+  const isMember = membersList.includes(currentUserEmail);
+
+  // 🗑️ Admin (Owner)
+  if (isOwner) {
+    deleteBtn.classList.remove("hidden");
+    return; // prevent showing both
+  }
+
+  // 🚪 Member (but not owner)
+  if (isMember) {
+    exitBtn.classList.remove("hidden");
+  }
+}
+
+
+// MEMBER RENDERING
+
+
+function renderMembers(members, ctx, countMap) {
+  const membersList = document.getElementById("membersList");
+  membersList.innerHTML = "";
+
+  members.forEach((memberEmail) => {
+    const isAdmin = memberEmail === ctx.projectData.owner;
+
+    const username =
+      ctx.userMap?.[memberEmail] || memberEmail.split("@")[0];
+
+    const div = document.createElement("div");
+    div.className = "member-item";
+
+    div.innerHTML = `
+      <div class="member-left">
+        <span class="member-name">
+          ${username}
+          ${isAdmin ? `<span class="admin-tag">(Admin)</span>` : ""}
+        </span>
+      </div>
+
+      <div class="member-right">
+        <span class="member-tasks">0 tasks</span>
+      </div>
+    `;
+
+    membersList.appendChild(div);
+
+    // ✅ SAFE ANIMATION LAYER (no core logic touched)
+    const span = div.querySelector(".member-tasks");
+    const target = countMap[memberEmail] || 0;
+
+    span.dataset.value = "0";
+    span.textContent = "0 tasks";
+
+    requestAnimationFrame(() => {
+      animateCount(span, target);
+    });
+  });
+}
+
+// ================= LOAD PROJECT =================
+async function loadProject() {
+  try {
+    const ctx = await loadProjectContext(projectId);
+
+    window.currentCtx = ctx;
+
+    ctx.currentUserEmail = auth.currentUser?.email || null;
+
+    const data = ctx.projectData;
+
+    console.log("OWNER:", data.owner);
+console.log("USER:", ctx.currentUserEmail);
+    // set up project actions
+    setupProjectActions(data, ctx.currentUserEmail);
+
+    // 🔥 get selected project
+    localStorage.setItem("activeProjectId", projectId);
+
+    // PROJECT CONTEXT FOR LOGACTIVITY
+
+    const projectCtx = {
+      projectId: projectId,
+      projectName: data.name
+    };
+
+    // make it globally accessible
+    window.projectCtx = projectCtx;
+
+    const assignTaskBtn = document.getElementById("assignTaskBtn");
+
+    if (assignTaskBtn) {
+      if (!ctx.isOwner) {
+        assignTaskBtn.disabled = true;
+        assignTaskBtn.classList.add("disabled-btn");
+        assignTaskBtn.title = "Only admins can assign tasks";
+      }
+    }
+
+
+    // ================= OWNER =================
+    const ownerEl = document.getElementById("projectOwner");
+    if (ownerEl) {
+      const ownerEmail = data.owner;
+      const ownerName = ctx.userMap?.[ownerEmail] || ownerEmail.split("@")[0];
+
+      ownerEl.textContent = ownerName;
+    }
+
+    // ================= DETAILS =================
+    document.getElementById("projectDesc").textContent =
+      data.description || "No description provided";
+
+    document.getElementById("projectCode").textContent =
+      data.inviteCode || "N/A";
+
+    const dateEl = document.getElementById("projectDate");
+    if (dateEl && data.createdAt) {
+      const date = data.createdAt.toDate
+        ? data.createdAt.toDate()
+        : new Date(data.createdAt);
+
+      dateEl.textContent = date.toLocaleDateString();
+    }
+
+    // ================= ROLE BADGE =================
+    const badgeEl = document.getElementById("projectRoleBadge");
+    if (badgeEl) {
+      if (ctx.isOwner) {
+        badgeEl.className = "role-badge admin";
+        badgeEl.innerHTML = `
+          <img src="../Assets/icons/icons8-shield-48.png" />
+          <span>Admin</span>
+        `;
+      } else if (ctx.isMember) {
+        badgeEl.className = "role-badge member";
+        badgeEl.innerHTML = `
+          <img src="../Assets/icons/icons8-member-48.png" />
+          <span>Member</span>
+        `;
+      } else {
+        badgeEl.style.display = "none";
+      }
+    }
+
+    // ================= TITLE =================
+    document.getElementById("projectTitle").textContent = data.name;
+
+    // ================= MEMBERS =================
+    const membersList = document.getElementById("membersList");
+    const membersCountEl = document.getElementById("memberCount");
+
+    membersList.innerHTML = "";
+
+    const rawMembers = ctx.membersList || [];
+    const members = [...new Set(rawMembers)];
+
+    if (!members.includes(data.owner)) {
+      members.unshift(data.owner);
+    }
+
+    if (membersCountEl) {
+      const target = members.length;
+
+      const current = parseInt(membersCountEl.dataset.value || "0");
+
+      // if no change, just ensure correct display
+      if (current === target) {
+        membersCountEl.textContent = `(${target})`;
+        return;
+      }
+
+      let start = current;
+
+      const duration = 400;
+      const stepTime = 20;
+      const steps = duration / stepTime;
+      const increment = (target - current) / steps;
+
+      const interval = setInterval(() => {
+        start += increment;
+
+        if ((increment > 0 && start >= target) || (increment < 0 && start <= target)) {
+          start = target;
+          clearInterval(interval);
+        }
+
+        membersCountEl.textContent = `(${Math.round(start)})`;
+      }, stepTime);
+
+      membersCountEl.dataset.value = target;
+    }
+
+
+    // ================= TASKS (REALTIME) =================
+    const taskList = document.getElementById("taskList");
+
+    const q = query(
+      collection(db, "tasks"),
+      where("projectId", "==", projectId)
+    );
+
+    onSnapshot(q, (snapshot) => {
+
+      taskList.innerHTML = "";
+
+      const tasks = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // 🔥 CACHE TASKS FOR CANCEL BUTTON
+      ctx.tasks = tasks;
+
+
+      const memberStats = getMemberTaskDisplayCounts(
+        tasks,
+        ctx.userMap
+      );
+
+      const countMap = {};
+
+      memberStats.forEach(member => {
+        countMap[member.email] = member.count;
+      });
+
+
+      renderMembers(members, ctx, countMap);
+
+      const taskCountEl = document.getElementById("taskCount");
+
+      if (taskCountEl) {
+        const current = parseInt(taskCountEl.dataset.value || "0");
+
+        let start = current;
+        const target = tasks.length;
+
+        const duration = 400;
+        const stepTime = 20;
+        const steps = duration / stepTime;
+        const increment = (target - current) / steps;
+
+        const interval = setInterval(() => {
+          start += increment;
+
+          if ((increment > 0 && start >= target) || (increment < 0 && start <= target)) {
+            start = target;
+            clearInterval(interval);
+          }
+
+          taskCountEl.textContent = `(${Math.round(start)})`;
+        }, stepTime);
+
+        taskCountEl.dataset.value = target;
+      }
+      tasks.forEach((task) => renderTaskCard(task, ctx));
+
+    });
+
+  } catch (err) {
+    console.error("PROJECT LOAD ERROR:", err);
+  }
+}
+
+// ================= TASK CARD =================
+function renderTaskCard(task, ctx) {
+  const taskList = document.getElementById("taskList");
+
+  // ONLY ASSIGNED MEMBERS CAN EDIT TASKS
+
+  const canEdit =
+    ctx.isOwner ||
+    task.assignee === ctx.currentUserEmail;
+
+  const username =
+    ctx.userMap?.[task.assignee] ||
+    task.assignee?.split("@")[0] ||
+    "Unassigned";
+
+  const statusClass = (task.status || "todo").replace(" ", "-");
+
+  const div = document.createElement("div");
+  div.className = `task-card ${statusClass}`; // 🔥 KEY FIX
+  div.dataset.id = task.id;
+  div.dataset.assignee = task.assignee || "";
+
+  div.innerHTML = `
+    <div class="task-card-top" style="justify-content: space-between; align-items: flex-start; display: flex;">
+      <div class="tag-actions" style="display: flex; gap: 8px;">
+        <span class="priority ${task.priority}">
+          ${task.priority}
+        </span>
+        <span class="status-badge ${statusClass}">
+          ${task.status || "todo"}
+        </span>
+      </div>
+
+      ${canEdit ? `
+      <div class="task-actions" style="position: relative;">
+        <button class="menu-btn">⋮</button>
+        <div class="task-menu hidden">
+          <div class="menu-items" data-status="todo">To Do</div>
+          <div class="menu-items" data-status="in progress">In Progress</div>
+          <div class="menu-items" data-status="done">Done</div>
+          ${ctx.isOwner ? '<div class=" menu-delete">Delete</div>' : ""}
+        </div>
+      </div>
+      ` : ""}
+    </div>
+
+    <div class="task-card-middle" style="margin-top: 12px; margin-bottom: 12px;">
+      <h4 class="task-title">${task.title}</h4>
+      <p class="task-desc">${task.desc || ""}</p>
+    </div>
+
+    <div class="task-card-bottom">
+      <span>Assigned to <strong>${username}</strong></span>
+      <span>${task.dueDate ? "Due " + task.dueDate : ""}</span>
+    </div>
+  `;
+
+  taskList.appendChild(div);
+}
+
+// ================= TOGGLE INTERACTION =================
+
+import { updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// TOGGLE MENU
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("menu-btn")) {
+    const menu = e.target.nextElementSibling;
+    menu.classList.toggle("hidden");
+  } else {
+    document.querySelectorAll(".task-menu").forEach((menu) => {
+      menu.classList.add("hidden");
+    });
+  }
+});
+
+// STATUS UPDATE
+document.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("menu-items")) {
+
+    // STATUS UPDATE PERMISSIONS
+
+    const card = e.target.closest(".task-card");
+
+    const newStatus = e.target.dataset.status;
+
+    console.log("clicked element:", e.target);
+    console.log("status:", newStatus);
+
+    if (!newStatus) {
+      console.warn("Invalid status click:", e.target);
+      return;
+    }
+
+    const taskId = card.dataset.id;
+
+    const ctx = window.currentCtx;
+    const isOwner = ctx?.isOwner;
+
+    // get assignee from UI (temporary method)
+    const taskAssignee = card.dataset.assignee;
+
+    // 🔐 permission check
+    const canEdit = isOwner || taskAssignee;
+
+    if (!canEdit) {
+      console.warn("Blocked unauthorized status update");
+      return;
+    }
+
+    // 🔥 UI UPDATE (instant feedback)
+    card.classList.remove("todo", "in-progress", "done");
+    card.classList.add((newStatus || "").replace(" ", "-"));
+
+    // 🔥 FIRESTORE UPDATE
+    await updateDoc(doc(db, "tasks", taskId), {
+      status: newStatus,
+    });
+
+    await logActivity(
+      `moved task to ${newStatus}`,
+      card.querySelector(".task-title")?.textContent || "Untitled",
+      window.projectCtx
+    );
+  }
+
+  if (e.target.classList.contains("menu-delete")) {
+    const card = e.target.closest(".task-card");
+    const taskId = card.dataset.id;
+
+    const ctx = window.currentCtx;
+
+    // 🔐 Admin check
+    if (!ctx?.isOwner) {
+      console.warn("Unauthorized delete attempt");
+      return;
+    }
+
+    const modal = document.getElementById("deleteModal");
+    const confirmBtn = document.getElementById("confirmDelete");
+    const cancelBtn = document.getElementById("cancelDelete");
+
+    // show modal
+    modal.classList.remove("hidden");
+
+    // store current task temporarily
+    modal.dataset.taskId = taskId;
+    modal.dataset.cardId = card.dataset.id;
+  }
+
+});
+
+
+const modal = document.getElementById("deleteModal");
+const confirmBtn = document.getElementById("confirmDelete");
+const cancelBtn = document.getElementById("cancelDelete");
+
+// ✅ Cancel
+cancelBtn.addEventListener("click", () => {
+  modal.classList.add("hidden");
+});
+
+// ✅ Confirm delete
+confirmBtn.addEventListener("click", async () => {
+  const taskId = modal.dataset.taskId;
+
+  if (!taskId) return;
+
+  const card = document.querySelector(
+    `.task-card[data-id="${taskId}"]`
+  );
+
+  const taskTitle =
+    card?.querySelector(".task-title")?.textContent || "Untitled";
+
+  // delete from Firestore
+  await deleteDoc(doc(db, "tasks", taskId));
+
+  await logActivity(
+    "deleted task",
+    taskTitle,
+    window.projectCtx
+  );
+
+  // remove from UI
+  if (card) card.remove();
+
+  modal.classList.add("hidden");
+});
+
+               // PROJECT DELETE UPDATE
+
+                       const projectModal = document.getElementById("projectDeleteModal");
+const confirmProjectBtn = document.getElementById("confirmProjectDelete");
+const cancelProjectBtn = document.getElementById("cancelProjectDelete");
+
+// ✅ Cancel project delete
+cancelProjectBtn?.addEventListener("click", () => {
+  projectModal.classList.add("hidden");
+});
+
+// ✅ Confirm project delete
+confirmProjectBtn?.addEventListener("click", async () => {
+  const projectId = localStorage.getItem("activeProjectId");
+  const ctx = window.currentCtx;
+
+  if (!projectId || !ctx?.isOwner) return;
+
+  const projectRef = doc(db, "projects", projectId);
+
+  await deleteDoc(projectRef);
+
+  await logActivity(
+    "deleted project",
+    ctx.projectData?.name || "Project",
+    window.projectCtx
+  );
+
+  projectModal.classList.add("hidden");
+
+  // redirect after delete
+  window.location.href = "./team.html";
+});
+
+
+                // PROJECT DELETE HOOK
+
+       document.getElementById("btnDeleteProject")?.addEventListener("click", () => {
+  const modal = document.getElementById("projectDeleteModal");
+
+  if (!modal) return;
+
+  modal.classList.remove("hidden");
+});
+
+
+                         // PROJECT EXIT UPDATE
+
+import { arrayRemove, } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const exitModal = document.getElementById("exitProjectModal");
+const confirmExitBtn = document.getElementById("confirmExitProject");
+const cancelExitBtn = document.getElementById("cancelExitProject");
+
+// ✅ Cancel exit
+cancelExitBtn?.addEventListener("click", () => {
+  exitModal.classList.add("hidden");
+});
+
+// ✅ Confirm exit
+confirmExitBtn?.addEventListener("click", async () => {
+  const projectId = localStorage.getItem("activeProjectId");
+  const userEmail = auth.currentUser?.email;
+
+  if (!projectId || !userEmail) return;
+
+  const projectRef = doc(db, "projects", projectId);
+
+  // 🔥 REMOVE USER FROM MEMBERS ARRAY
+  await updateDoc(projectRef, {
+    members: arrayRemove(userEmail),
+  });
+
+  await logActivity(
+    "left project",
+    window.currentCtx?.projectData?.name || "Project",
+    window.projectCtx
+  );
+
+  // 🚪 CLEAN LOCAL STATE
+  localStorage.removeItem("activeProjectId");
+
+  exitModal.classList.add("hidden");
+
+  // 🚀 REDIRECT OUT
+  window.location.href = "./team.html";
+});
+
+              // PROJECT EXIT HOOK
+
+                    document.getElementById("btnExitProject")?.addEventListener("click", () => {
+  const modal = document.getElementById("exitProjectModal");
+  if (!modal) return;
+
+  modal.classList.remove("hidden");
+});
+
+// ================= BACK NAV =================
+document.getElementById("backToProjects")?.addEventListener("click", (e) => {
+  e.currentTarget.style.transform = "scale(0.95)";
+  // 🔥 CLEAR PROJECT CONTEXT
+  localStorage.removeItem("activeProjectId");
+
+  setTimeout(() => {
+    window.location.href = "./team.html";
+  }, 100);
+});
+
+// ================= COPY =================
+document.getElementById("copyCodeBtn")?.addEventListener("click", () => {
+  const code = document.getElementById("projectCode").textContent;
+  navigator.clipboard.writeText(code);
+});
+
+// ================= INLINE FORM =================
+const assignTaskBtn = document.getElementById("assignTaskBtn");
+
+function showTaskInlineForm(ctx) {
+  const taskList = document.getElementById("taskList");
+
+  const members = [...new Set(ctx.membersList || [])];
+
+  if (!members.includes(ctx.projectData.owner)) {
+    members.unshift(ctx.projectData.owner);
+  }
+
+  const options = members
+    .map((email) => {
+      const name = ctx.userMap?.[email] || email.split("@")[0];
+
+      return `<option value="${email}">${name}</option>`;
+    })
+    .join("");
+
+  taskList.innerHTML = `
+  <div class="task-form-card">
+
+    <div class="form-group">
+      <input id="inlineTaskTitle" class="task-input" placeholder="Task title" />
+    </div>
+
+    <div class="form-group">
+      <textarea id="inlineTaskDesc" class="task-textarea" placeholder="Description..."></textarea>
+    </div>
+
+    <div class="task-form-row">
+      <div class="form-group">
+        <label>Assign</label>
+        <select id="inlineTaskAssignee" class="task-select">
+          <option value="">Assign to...</option>
+          ${options}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Priority</label>
+        <select id="inlineTaskPriority" class="task-select">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="task-form-row">
+      <div class="form-group">
+        <label>Status</label>
+        <select id="inlineTaskStatus" class="task-select">
+          <option value="todo">To Do</option>
+          <option value="in progress">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Due Date</label>
+        <input id="inlineTaskDue" type="date" class="task-date" />
+      </div>
+    </div>
+
+    <div class="task-form-actions">
+      <button id="cancelTask" type="button" class="btn-cancel">Cancel</button>
+      <button id="saveTask" type="button" class="btn-create">Create</button>
+    </div>
+
+  </div>
+`;
+}
+
+assignTaskBtn?.addEventListener("click", () => {
+  showTaskInlineForm(window.currentCtx); // or store ctx globally
+});
+
+// ================= CREATE TASK =================
+document.addEventListener("click", async (e) => {
+  if (e.target.id === "saveTask") {
+    const title = document.getElementById("inlineTaskTitle").value.trim();
+    const desc = document.getElementById("inlineTaskDesc").value.trim();
+    const priority = document.getElementById("inlineTaskPriority").value;
+    const dueDate = document.getElementById("inlineTaskDue").value;
+    const assignee = document.getElementById("inlineTaskAssignee").value;
+
+    if (!title) return alert("Task title required");
+    if (!desc) return alert("Task description required");
+
+    await createTask({
+      title,
+      desc,
+      priority,
+      dueDate,
+      status: "todo",
+      assignee: assignee,
+      projectId,
+    });
+
+    loadProject();
+  }
+
+  if (e.target.id === "cancelTask") {
+    const taskList = document.getElementById("taskList");
+    if (taskList) {
+      taskList.innerHTML = "";
+    }
+    
+    // Restore the tasks from cache
+    if (window.currentCtx && window.currentCtx.tasks) {
+      window.currentCtx.tasks.forEach(task => renderTaskCard(task, window.currentCtx));
+    }
+  }
+});
+
+// ================= TASK COUNT IMPLEMENTATION =================
+
+function getMemberTaskCounts(tasks) {
+  const counts = {};
+
+  tasks.forEach((task) => {
+    const member = task.assignee;
+
+    if (!member) return;
+
+    if (!counts[member]) {
+      counts[member] = 0;
+    }
+
+    counts[member] += 1;
+  });
+
+  return counts;
+}
+
+// ================= TASK COUNT + USERMAP IMPLEMENTATION =================
+
+function getMemberTaskDisplayCounts(tasks, userMap) {
+  const counts = {};
+
+  tasks.forEach((task) => {
+    const email = task.assignee;
+
+    if (!email) return;
+
+    if (!counts[email]) {
+      counts[email] = 0;
+    }
+
+    counts[email] += 1;
+  });
+
+  return Object.keys(counts).map((email) => ({
+    email,
+    name: userMap?.[email] || email.split("@")[0],
+    count: counts[email],
+  }));
+}
+
+// ================= RENDER TASK COUNT PER MEMBER =================
+
+function renderMemberStats(stats) {
+  const container = document.getElementById("memberStatsContainer");
+
+  container.innerHTML = stats.map(member => `
+    <div class="member-stat-card">
+      <div class="member-name">${member.name}</div>
+      <div class="member-count">${member.count} tasks</div>
+    </div>
+  `).join("");
+}
+
+// ================= ACTIVITY =================
+document.getElementById("activityBtn")?.addEventListener("click", () => {
+  window.location.href = "./activity.html";
+});
+

@@ -9,32 +9,33 @@ import {
 import { logActivity } from "./activity-engine.js";
 
 // ================= CREATE TASK =================
-export async function createTask(task) {
+  export async function createTask(task) {
   try {
-    const activeProjectId = localStorage.getItem("activeProjectId");
+
+    // 🔥 REAL SOURCE OF TRUTH
+    const isProjectTask = !!task.projectId;
 
     const docRef = await addDoc(collection(db, "tasks"), {
       ...task,
 
-      // 🔥 IMPORTANT LINK TO PROJECT
-      projectId: activeProjectId,
+      // override safely
+      projectId: task.projectId || null,
+      isProjectTask,
 
       createdAt: new Date()
     });
 
     console.log("TASK CREATED:", docRef.id);
 
-    // Log the activity
     await logActivity("created", task.title);
 
     return docRef.id;
 
   } catch (err) {
-    console.error("CREATE TASK ERROR:", err);
-  }
+  console.error("CREATE TASK ERROR:", err);
+  throw err; // 🔥 CRITICAL: propagate failure
 }
-
-
+}
 
 // ================= GET TASKS =================
 export async function getTasks() {
