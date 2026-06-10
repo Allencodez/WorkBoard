@@ -65,7 +65,7 @@ function getActivityIcon(action) {
   if (normalized.includes("deleted")) return "🔴";
   if (normalized.includes("completed")) return "✅";
 
-  return "📌";
+  return "🟡";
 }
 
 /* ===============================
@@ -116,10 +116,10 @@ const displayActor = isCurrentUser
 
           <div class="activity-text">
             ${displayActor} <span>${actionText}</span> 
-             <p>
-                    “${act.taskTitle}”
-                   ${act.projectName ? `<span class="activity-project">in ${act.projectName}</span>` : ""}
-            </p>
+              <p>
+  “${act.target || act.taskTitle || act.projectName || "Untitled"}”
+  ${act.projectName && act.taskTitle ? `<span class="activity-project">in ${act.projectName}</span>` : ""}
+</p>
           </div>
 
         </div>
@@ -188,13 +188,21 @@ function applyActivityFilter() {
     return allActivities.filter(act => act.userEmail === window.currentUserEmail && !act.projectId);
   }
 
-  if (activityFilter === "all") {
-    return allActivities.filter(act => {
-      if (act.userEmail === window.currentUserEmail && !act.projectId) return true;
-      if (userProjectIds.includes(act.projectId)) return true;
-      return false;
-    });
-  }
+if (activityFilter === "all") {
+  return allActivities.filter(act => {
+    // 🔥 Always show your personal actions (no project)
+    if (act.userEmail === window.currentUserEmail && !act.projectId) {
+      return true;
+    }
+
+    // 🔥 Always show ALL project activities immediately
+    if (act.projectId) {
+      return true;
+    }
+
+    return false;
+  });
+}
 
   // specific project selected
   return allActivities.filter(act => act.projectId === activityFilter);

@@ -21,14 +21,18 @@ export async function logActivity(action, taskTitle, projectCtx = null) {
 
        await addDoc(collection(db, "activities"), {
         action: action,
-        taskTitle: taskTitle,
+
+         // 🔥 flexible target (task OR project OR anything)
+        target: taskTitle || null,
+
         userEmail: user.email,
+        userName: user.email.split("@")[0],
 
          // 🔐 project context (optional)
-       projectId: projectCtx?.projectId || null,
-       projectName: projectCtx?.projectName || null,
+        projectId: projectCtx?.projectId || null,
+        projectName: projectCtx?.projectName || null,
 
-       timestamp: serverTimestamp()
+        timestamp: serverTimestamp()
     });
 
 

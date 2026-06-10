@@ -284,15 +284,18 @@ onAuthStateChanged(auth, async (user) => {
       }));
 
 
-      tasks = tasks.filter((task) => {
-  const isPersonal = task.assignee === userEmail;
+//       tasks = tasks.filter((task) => {
+//   const isPersonal = task.assignee === userEmail;
 
-  const isProject =
-    task.projectId &&
-    userProjectIds.includes(task.projectId);
+//   const isProject =
+//     task.projectId &&
+//     userProjectIds.includes(task.projectId);
 
-  return isPersonal || isProject;
-});
+//   return isPersonal || isProject;
+// });
+
+
+tasks = tasks.filter(task => task.assignee === userEmail);
 
 
 

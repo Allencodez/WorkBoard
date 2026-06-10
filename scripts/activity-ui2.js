@@ -54,7 +54,7 @@ function getActivityIcon(action) {
   if (normalized.includes("deleted")) return "🔴";
   if (normalized.includes("completed")) return "✅";
 
-  return "📌";
+  return "🟡";
 }
 
 /* ===============================
@@ -100,7 +100,7 @@ function renderActivities(activities, currentUserEmail) {
 
           <div class="activity-text">
             ${displayActor} <span>${actionText}</span> 
-            <strong>“${act.taskTitle}”</strong>
+              <strong>“${act.target || act.taskTitle || act.projectName || "Untitled"}”</strong>
           </div>
 
         </div>
